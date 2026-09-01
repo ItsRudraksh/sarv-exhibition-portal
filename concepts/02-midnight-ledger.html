@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sarv Biolabs — Midnight Ledger</title>
+  <style>
+    :root {
+      --night: #07151d;
+      --panel: #0e242e;
+      --ink: #eff9fa;
+      --muted: #9bb4bd;
+      --line: #284650;
+      --aqua: #55d7df;
+      --aqua-deep: #164c59;
+      --warm: #d5ee91
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--night);
+      color: var(--ink);
+      font: 16px/1.45 Arial, sans-serif
+    }
+
+    .app {
+      max-width: 620px;
+      margin: auto;
+      padding: 19px 18px 32px;
+      min-height: 100dvh;
+      background: linear-gradient(155deg, #0d2731 0, #07151d 45%)
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px
+    }
+
+    header img {
+      width: 121px;
+      filter: brightness(0) invert(1)
+    }
+
+    .status {
+      font: 700 10px monospace;
+      color: var(--aqua);
+      letter-spacing: .09em
+    }
+
+    .status:before {
+      content: '● ';
+      font-size: 12px
+    }
+
+    h1 {
+      font-size: clamp(44px, 12vw, 70px);
+      line-height: .91;
+      letter-spacing: -.07em;
+      margin: 48px 0 15px;
+      max-width: 8ch
+    }
+
+    .intro {
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 31ch;
+      margin: 0
+    }
+
+    .signal {
+      margin: 30px 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(7, 21, 29, .45);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 13px
+    }
+
+    .wave {
+      display: flex;
+      height: 28px;
+      align-items: center;
+      gap: 4px
+    }
+
+    .wave i {
+      display: block;
+      width: 3px;
+      background: var(--aqua);
+      border-radius: 99px
+    }
+
+    .wave i:nth-child(1) {
+      height: 7px
+    }
+
+    .wave i:nth-child(2) {
+      height: 17px
+    }
+
+    .wave i:nth-child(3) {
+      height: 27px
+    }
+
+    .wave i:nth-child(4) {
+      height: 12px
+    }
+
+    .wave i:nth-child(5) {
+      height: 21px
+    }
+
+    .wave i:nth-child(6) {
+      height: 8px
+    }
+
+    .signal p {
+      font-size: 12px;
+      margin: 0;
+      color: var(--muted)
+    }
+
+    .path {
+      padding: 20px 18px;
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      background: var(--panel)
+    }
+
+    .path.active {
+      background: var(--aqua);
+      color: #06202a;
+      border-color: var(--aqua)
+    }
+
+    .code {
+      font: 700 10px monospace;
+      letter-spacing: .12em;
+      color: var(--aqua)
+    }
+
+    .active .code {
+      color: #075262
+    }
+
+    .path h2 {
+      font-size: 26px;
+      margin: 8px 0 2px;
+      letter-spacing: -.04em
+    }
+
+    .path p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 14px
+    }
+
+    .active p {
+      color: #0d4653
+    }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 14px;
+      font: 700 10px monospace;
+      letter-spacing: .06em;
+      opacity: .7
+    }
+
+    .foot {
+      border-top: 1px solid var(--line);
+      margin-top: 30px;
+      padding-top: 17px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .foot b {
+      color: var(--warm)
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header><img src="../raw/sarv-bio-labs-logo-1.png" alt="Sarv Biolabs"><span class="status">Portal ready</span>
+    </header>
+    <section>
+      <h1>Meet the right next step.</h1>
+      <p class="intro">A focused start for pharmaceutical manufacturers, suppliers, and sourcing teams.</p>
+    </section>
+    <div class="signal">
+      <div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p>Guided voice entry and card scan are available when useful.</p>
+    </div><a class="path active" href="#"><span class="code">ROUTE / 01</span>
+      <h2>Sell to Sarv</h2>
+      <p>Present your supply capability for a considered vendor review.</p>
+      <div class="meta"><span>SUPPLIER INTAKE</span><span>→</span></div>
+    </a><a class="path" href="#"><span class="code">ROUTE / 02</span>
+      <h2>Buy from Sarv</h2>
+      <p>Start a product inquiry with the relevant category and requirement.</p>
+      <div class="meta"><span>PRODUCT INQUIRY</span><span>→</span></div>
+    </a>
+    <p class="foot"><b>Designed for the exhibition floor.</b><br>Fast on mobile. Manual entry remains available if
+      permissions or connectivity are unavailable.</p>
+  </main>
+</body>
+
+</html>

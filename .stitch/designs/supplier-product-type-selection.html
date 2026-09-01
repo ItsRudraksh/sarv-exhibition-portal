@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sarv Biolabs - Supplier Product Type Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&amp;family=JetBrains+Mono:wght@600&amp;family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-error-container": "#93000a",
+                  "inverse-primary": "#7fd1f4",
+                  "tertiary-fixed": "#baeaff",
+                  "background": "#f9faf7",
+                  "primary-fixed": "#bce9ff",
+                  "inverse-on-surface": "#f0f1ee",
+                  "surface-container-lowest": "#ffffff",
+                  "on-tertiary-container": "#edf9ff",
+                  "on-tertiary-fixed-variant": "#004d62",
+                  "secondary-container": "#c2e9f7",
+                  "tertiary-container": "#007b9a",
+                  "surface-dim": "#d9dad8",
+                  "outline": "#6f787e",
+                  "surface-container": "#edeeeb",
+                  "on-secondary-fixed-variant": "#274c57",
+                  "primary-container": "#147a9a",
+                  "secondary-fixed-dim": "#a7cdda",
+                  "glass-border": "#C9D9DF",
+                  "measured-slate": "#5C747C",
+                  "on-error": "#ffffff",
+                  "inverse-surface": "#2e312f",
+                  "tertiary": "#00617a",
+                  "surface-container-low": "#f3f4f1",
+                  "pure-surface": "#FFFFFF",
+                  "on-primary-fixed": "#001f2a",
+                  "on-primary-container": "#ecf8ff",
+                  "on-primary-fixed-variant": "#004d63",
+                  "on-background": "#191c1b",
+                  "surface": "#f9faf7",
+                  "on-secondary": "#ffffff",
+                  "surface-tint": "#006783",
+                  "on-secondary-container": "#456a76",
+                  "secondary-fixed": "#c2e9f7",
+                  "surface-container-highest": "#e2e3e0",
+                  "surface-bright": "#f9faf7",
+                  "outline-variant": "#bec8ce",
+                  "primary": "#00607b",
+                  "on-tertiary": "#ffffff",
+                  "on-surface": "#191c1b",
+                  "blue-mist": "#D7F0F7",
+                  "surface-variant": "#e2e3e0",
+                  "error": "#ba1a1a",
+                  "primary-fixed-dim": "#7fd1f4",
+                  "on-tertiary-fixed": "#001f29",
+                  "surface-container-high": "#e7e8e6",
+                  "secondary": "#3f646f",
+                  "tertiary-fixed-dim": "#60d4fd",
+                  "on-surface-variant": "#3f484d",
+                  "on-secondary-fixed": "#001f27",
+                  "on-primary": "#ffffff",
+                  "error-container": "#ffdad6"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "action-height": "48px",
+                  "stack-gap": "16px",
+                  "edge-margin": "18px",
+                  "section-gap": "24px",
+                  "label-gap": "12px"
+          },
+          "fontFamily": {
+                  "headline-lg": [
+                          "Plus Jakarta Sans"
+                  ],
+                  "headline-md": [
+                          "Plus Jakarta Sans"
+                  ],
+                  "label-caps": [
+                          "JetBrains Mono"
+                  ],
+                  "display-hero": [
+                          "Fraunces"
+                  ],
+                  "headline-lg-mobile": [
+                          "Plus Jakarta Sans"
+                  ],
+                  "body-md": [
+                          "Plus Jakarta Sans"
+                  ],
+                  "body-lg": [
+                          "Plus Jakarta Sans"
+                  ]
+          },
+          "fontSize": {
+                  "headline-lg": [
+                          "42px",
+                          {
+                                  "lineHeight": "0.96",
+                                  "letterSpacing": "-0.045em",
+                                  "fontWeight": "700"
+                          }
+                  ],
+                  "headline-md": [
+                          "24px",
+                          {
+                                  "lineHeight": "1.2",
+                                  "fontWeight": "600"
+                          }
+                  ],
+                  "label-caps": [
+                          "11px",
+                          {
+                                  "lineHeight": "1.4",
+                                  "letterSpacing": "0.05em",
+                                  "fontWeight": "600"
+                          }
+                  ],
+                  "display-hero": [
+                          "48px",
+                          {
+                                  "lineHeight": "1.1",
+                                  "letterSpacing": "-0.055em",
+                                  "fontWeight": "500"
+                          }
+                  ],
+                  "headline-lg-mobile": [
+                          "32px",
+                          {
+                                  "lineHeight": "1.1",
+                                  "letterSpacing": "-0.045em",
+                                  "fontWeight": "700"
+                          }
+                  ],
+                  "body-md": [
+                          "16px",
+                          {
+                                  "lineHeight": "1.55",
+                                  "fontWeight": "400"
+                          }
+                  ],
+                  "body-lg": [
+                          "18px",
+                          {
+                                  "lineHeight": "1.6",
+                                  "fontWeight": "400"
+                          }
+                  ]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #f9faf7;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .checkbox-custom {
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #C9D9DF;
+      border-radius: 4px;
+      background-color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+    }
+    
+    .checkbox-custom:checked {
+      background-color: #00607b;
+      border-color: #00607b;
+    }
+    
+    .checkbox-custom:checked::after {
+      content: 'check';
+      font-family: 'Material Symbols Outlined';
+      color: white;
+      font-size: 18px;
+    }
+
+    .glass-border-b {
+      border-bottom: 1px solid #C9D9DF;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface h-screen flex flex-col font-body-md text-body-md overflow-hidden max-w-[430px] mx-auto border-x border-glass-border">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky flex items-center justify-between px-edge-margin h-action-height w-full bg-surface border-b border-glass-border z-10 shrink-0">
+<button aria-label="Go back" class="flex items-center justify-center text-primary hover:bg-surface-container-high transition-colors scale-95 active:scale-90 transition-transform rounded-full p-2">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex items-center justify-center flex-1">
+<img alt="Sarv Bio Labs" class="h-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6vBR7B2q82F7133lT2W_dtqNKciisZjLctGtpIxBWTQu2CvNKI16_4l5R13V18PHHPRA7v9-KlYY5MccRt3PdGaB3ueMih7Sm9C6JZggqm3hVwaHltSMqEUXOTRza7wQGRmv58ZL1SdbvCdfB81RerM6b_1b1qLdcB_t1KLhOUH2wGhNg6vOygjeIG5wAZAQcpvU521Up7VvPQIecOHihHJKOTKa_sXYWMkx5gv1iNXcgtHqcUW7PDA4R6cCdr4BJ2_Xkezl82mRG"/>
+</div>
+<div class="text-measured-slate font-label-caps text-label-caps whitespace-nowrap">
+      Step 2 of 4
+    </div>
+</header>
+<!-- Main Content Area (Scrollable) -->
+<main class="flex-1 overflow-y-auto w-full pb-24">
+<!-- Context Section -->
+<section class="px-edge-margin py-stack-gap bg-surface-container-lowest glass-border-b">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h2 class="font-label-caps text-label-caps text-measured-slate mb-1 uppercase">Selected Departments</h2>
+<p class="font-body-md text-body-md text-on-surface">Active Pharmaceutical Ingredients, Excipients</p>
+</div>
+<button class="text-primary font-label-caps text-label-caps uppercase hover:underline">Change</button>
+</div>
+<p class="font-body-md text-[14px] text-measured-slate flex items-center gap-1 mt-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+        Selections save automatically.
+      </p>
+</section>
+<!-- Task Area -->
+<section class="px-edge-margin pt-section-gap pb-stack-gap">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2 tracking-tight">What do you want to supply?</h1>
+<p class="font-body-md text-body-md text-measured-slate mb-6">Product types are filtered based on the departments you selected previously.</p>
+<!-- Search Field -->
+<div class="relative w-full mb-6">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" data-icon="search">search</span>
+<input class="w-full h-action-height pl-10 pr-4 bg-pure-surface border border-glass-border rounded-lg text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-body-md text-body-md transition-shadow" placeholder="Search product types" type="text"/>
+</div>
+</section>
+<!-- Taxonomy List -->
+<section class="w-full">
+<ul class="flex flex-col w-full">
+<!-- Row 1 -->
+<li class="w-full">
+<label class="flex items-center px-edge-margin py-4 glass-border-b hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex-1 pr-4">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-0.5">Antibiotics (Beta-lactam)</span>
+<span class="block font-body-md text-[14px] text-measured-slate">Active Pharmaceutical Ingredients</span>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center">
+<input class="checkbox-custom focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-surface" type="checkbox"/>
+</div>
+</label>
+</li>
+<!-- Row 2 -->
+<li class="w-full">
+<label class="flex items-center px-edge-margin py-4 glass-border-b hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex-1 pr-4">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-0.5">Antibiotics (Macrolide)</span>
+<span class="block font-body-md text-[14px] text-measured-slate">Active Pharmaceutical Ingredients</span>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center">
+<input class="checkbox-custom focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-surface" type="checkbox"/>
+</div>
+</label>
+</li>
+<!-- Row 3 -->
+<li class="w-full">
+<label class="flex items-center px-edge-margin py-4 glass-border-b hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex-1 pr-4">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-0.5">Binders (Cellulose derivatives)</span>
+<span class="block font-body-md text-[14px] text-measured-slate">Excipients</span>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center">
+<input class="checkbox-custom focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-surface" type="checkbox"/>
+</div>
+</label>
+</li>
+<!-- Row 4 -->
+<li class="w-full">
+<label class="flex items-center px-edge-margin py-4 glass-border-b hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex-1 pr-4">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-0.5">Disintegrants</span>
+<span class="block font-body-md text-[14px] text-measured-slate">Excipients</span>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center">
+<input class="checkbox-custom focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-surface" type="checkbox"/>
+</div>
+</label>
+</li>
+<!-- Row 5 -->
+<li class="w-full">
+<label class="flex items-center px-edge-margin py-4 glass-border-b hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex-1 pr-4">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-0.5">Vitamins (Fat-soluble)</span>
+<span class="block font-body-md text-[14px] text-measured-slate">Active Pharmaceutical Ingredients</span>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center">
+<input class="checkbox-custom focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-surface" type="checkbox"/>
+</div>
+</label>
+</li>
+</ul>
+</section>
+</main>
+<!-- Footer Actions (Fixed Bottom) -->
+<footer class="fixed bottom-0 w-full max-w-[430px] bg-pure-surface border-t border-glass-border px-edge-margin py-4 z-50 flex flex-col gap-3 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+<p class="font-body-md text-[14px] text-measured-slate text-center w-full">Select at least one product type to continue</p>
+<button class="w-full h-action-height bg-primary text-on-primary font-headline-md text-[16px] rounded-lg flex items-center justify-center scale-98 active:scale-95 transition-transform">
+      Review my details
+    </button>
+</footer>
+</body></html>

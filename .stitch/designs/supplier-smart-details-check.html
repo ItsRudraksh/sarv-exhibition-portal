@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Smart Details Check - Sarv Biolabs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600&amp;family=Fraunces:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f4f1",
+                        "on-tertiary-fixed-variant": "#004d62",
+                        "inverse-primary": "#7fd1f4",
+                        "surface-container-high": "#e7e8e6",
+                        "tertiary": "#00617a",
+                        "surface-container-lowest": "#ffffff",
+                        "blue-mist": "#D7F0F7",
+                        "primary-container": "#147a9a",
+                        "tertiary-fixed": "#baeaff",
+                        "primary": "#00607b",
+                        "on-surface": "#191c1b",
+                        "on-secondary-container": "#456a76",
+                        "on-background": "#191c1b",
+                        "primary-fixed-dim": "#7fd1f4",
+                        "on-surface-variant": "#3f484d",
+                        "secondary": "#3f646f",
+                        "on-primary": "#ffffff",
+                        "pure-surface": "#FFFFFF",
+                        "surface-container": "#edeeeb",
+                        "surface-container-highest": "#e2e3e0",
+                        "secondary-fixed-dim": "#a7cdda",
+                        "tertiary-container": "#007b9a",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#2e312f",
+                        "glass-border": "#C9D9DF",
+                        "on-secondary-fixed-variant": "#274c57",
+                        "surface": "#f9faf7",
+                        "inverse-on-surface": "#f0f1ee",
+                        "on-primary-fixed": "#001f2a",
+                        "on-primary-container": "#ecf8ff",
+                        "secondary-fixed": "#c2e9f7",
+                        "outline-variant": "#bec8ce",
+                        "surface-dim": "#d9dad8",
+                        "measured-slate": "#5C747C",
+                        "outline": "#6f787e",
+                        "background": "#f9faf7",
+                        "on-tertiary-fixed": "#001f29",
+                        "primary-fixed": "#bce9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#006783",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#c2e9f7",
+                        "on-tertiary-container": "#edf9ff",
+                        "on-secondary-fixed": "#001f27",
+                        "surface-bright": "#f9faf7",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e2e3e0",
+                        "on-primary-fixed-variant": "#004d63",
+                        "tertiary-fixed-dim": "#60d4fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "edge-margin": "18px",
+                        "action-height": "48px",
+                        "stack-gap": "16px",
+                        "section-gap": "24px",
+                        "label-gap": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-hero": ["Fraunces"],
+                        "body-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.045em", "fontWeight": "700" }],
+                        "headline-lg": ["42px", { "lineHeight": "0.96", "letterSpacing": "-0.045em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-hero": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.055em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.55", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col items-center">
+<!-- Mobile Container -->
+<div class="w-full max-w-[390px] min-h-screen bg-surface flex flex-col relative shadow-sm mx-auto">
+<!-- TopAppBar (From JSON) -->
+<header class="sticky top-0 z-40 bg-surface dark:bg-surface-dim border-b border-glass-border dark:border-outline-variant flex justify-between items-center w-full px-edge-margin h-action-height">
+<button class="p-2 -ml-2 text-primary dark:text-primary-fixed-dim hover:bg-blue-mist dark:hover:bg-on-secondary-fixed-variant rounded-full transition-transform duration-200 active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex-1 flex justify-center items-center gap-2">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim tracking-tight">Supplier Portal</span>
+</div>
+<button class="p-2 -mr-2 text-on-surface-variant dark:text-outline hover:bg-blue-mist dark:hover:bg-on-secondary-fixed-variant rounded-full transition-transform duration-200 active:scale-95 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</header>
+<!-- Progress Bar -->
+<div class="w-full h-1 bg-surface-variant relative overflow-hidden">
+<div class="absolute left-0 top-0 h-full bg-primary w-3/4 transition-all duration-500"></div>
+</div>
+<main class="flex-1 flex flex-col px-edge-margin pt-section-gap pb-32 overflow-y-auto w-full max-w-[390px]">
+<!-- Intro -->
+<div class="mb-section-gap">
+<div class="flex items-center gap-2 mb-2 text-primary">
+<span class="font-label-caps text-label-caps uppercase">Step 3 of 4</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-3">Review your details</h1>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Almost there.</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">We've collected details from your business card. You only need to provide missing required info.</p>
+<div class="flex items-center gap-1.5 text-measured-slate">
+<span class="material-symbols-outlined text-sm">cloud_done</span>
+<span class="font-body-md text-sm">Saved automatically</span>
+</div>
+</div>
+<!-- Selection Summary -->
+<div class="mb-section-gap">
+<h3 class="font-label-caps text-label-caps text-measured-slate uppercase mb-label-gap">Your Selections</h3>
+<div class="bg-pure-surface border border-glass-border rounded-xl p-4 flex flex-col gap-4">
+<div class="flex justify-between items-start gap-4 pb-4 border-b border-glass-border/50">
+<div>
+<p class="font-label-caps text-label-caps text-measured-slate mb-1">Departments</p>
+<p class="font-body-md text-body-md text-on-surface">Active Pharmaceutical Ingredients</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider">Edit</button>
+</div>
+<div class="flex justify-between items-start gap-4">
+<div>
+<p class="font-label-caps text-label-caps text-measured-slate mb-1">Product Types</p>
+<p class="font-body-md text-body-md text-on-surface">Antibiotics</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider">Edit</button>
+</div>
+</div>
+</div>
+<!-- Extracted Details Card -->
+<div class="mb-section-gap">
+<div class="flex justify-between items-center mb-label-gap">
+<h3 class="font-label-caps text-label-caps text-measured-slate uppercase">From your business card</h3>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined fill text-sm">check_circle</span>
+<span class="font-label-caps text-label-caps">Scan verified</span>
+</div>
+</div>
+<div class="bg-pure-surface border border-glass-border rounded-xl flex flex-col">
+<!-- Row 1 -->
+<div class="flex justify-between items-center p-4 border-b border-glass-border/50">
+<div class="flex-1 overflow-hidden">
+<p class="font-label-caps text-label-caps text-measured-slate mb-0.5">Company</p>
+<p class="font-body-md text-body-md text-on-surface truncate">[Company name from card]</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider pl-4">Edit</button>
+</div>
+<!-- Row 2 -->
+<div class="flex justify-between items-center p-4 border-b border-glass-border/50">
+<div class="flex-1 overflow-hidden">
+<p class="font-label-caps text-label-caps text-measured-slate mb-0.5">Contact</p>
+<p class="font-body-md text-body-md text-on-surface truncate">[Contact name from card]</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider pl-4">Edit</button>
+</div>
+<!-- Row 3 -->
+<div class="flex justify-between items-center p-4 border-b border-glass-border/50">
+<div class="flex-1 overflow-hidden">
+<p class="font-label-caps text-label-caps text-measured-slate mb-0.5">Work email</p>
+<p class="font-body-md text-body-md text-on-surface truncate">[Work email from card]</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider pl-4">Edit</button>
+</div>
+<!-- Row 4 -->
+<div class="flex justify-between items-center p-4 border-b border-glass-border/50">
+<div class="flex-1 overflow-hidden">
+<p class="font-label-caps text-label-caps text-measured-slate mb-0.5">Mobile</p>
+<p class="font-body-md text-body-md text-on-surface truncate">[Mobile number from card]</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider pl-4">Edit</button>
+</div>
+<!-- Row 5 -->
+<div class="flex justify-between items-center p-4">
+<div class="flex-1 overflow-hidden">
+<p class="font-label-caps text-label-caps text-measured-slate mb-0.5">Location</p>
+<p class="font-body-md text-body-md text-on-surface truncate">[Location from card]</p>
+</div>
+<button class="font-label-caps text-primary hover:text-primary-fixed-dim uppercase tracking-wider pl-4">Edit</button>
+</div>
+</div>
+</div>
+<!-- Missing Info Section -->
+<div class="mb-section-gap relative">
+<!-- Divider with text -->
+<div class="flex items-center gap-4 mb-4">
+<div class="h-px bg-glass-border flex-1"></div>
+<h3 class="font-label-caps text-label-caps text-measured-slate uppercase text-center">Only if something is missing</h3>
+<div class="h-px bg-glass-border flex-1"></div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-center mb-4">We’ll ask only for the required detail that could not be read.</p>
+<div class="bg-surface-container-low border border-glass-border rounded-xl p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-blue-mist flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined fill text-primary">check_circle</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface font-medium">All required details found</p>
+</div>
+</div>
+<!-- Optional Row -->
+<div class="mb-section-gap">
+<button class="w-full bg-pure-surface border border-glass-border rounded-xl p-4 flex justify-between items-center hover:bg-surface-container transition-colors duration-200">
+<div class="flex flex-col items-start text-left">
+<span class="font-body-md text-body-md text-on-surface font-medium mb-1">Add optional company details</span>
+<span class="font-body-md text-sm text-measured-slate">You can skip this — our team can follow up.</span>
+</div>
+<span class="material-symbols-outlined text-measured-slate">expand_more</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 w-full z-40 bg-surface/90 backdrop-blur-md border-t border-glass-border pb-safe max-w-[390px] left-1/2 -translate-x-1/2">
+<div class="p-edge-margin pt-4 flex flex-col gap-3">
+<p class="font-body-md text-sm text-center text-measured-slate">Your selections and details are saved.</p>
+<button class="w-full h-action-height bg-primary text-on-primary font-headline-md text-[16px] rounded-xl flex items-center justify-center transition-transform duration-200 active:scale-98">
+                    Continue to review
+                </button>
+</div>
+</footer>
+</div>
+</body></html>

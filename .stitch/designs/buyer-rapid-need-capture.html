@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Inquiry Step 1 - Sarv Biolabs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600&amp;family=Fraunces:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#e2e3e0",
+                      "on-secondary-fixed-variant": "#274c57",
+                      "tertiary-fixed-dim": "#60d4fd",
+                      "outline": "#6f787e",
+                      "inverse-on-surface": "#f0f1ee",
+                      "on-primary-container": "#ecf8ff",
+                      "surface-container": "#edeeeb",
+                      "error": "#ba1a1a",
+                      "on-error-container": "#93000a",
+                      "glass-border": "#C9D9DF",
+                      "on-tertiary-fixed-variant": "#004d62",
+                      "background": "#f9faf7",
+                      "on-error": "#ffffff",
+                      "on-primary-fixed": "#001f2a",
+                      "tertiary": "#00617a",
+                      "primary-container": "#147a9a",
+                      "primary": "#00607b",
+                      "inverse-surface": "#2e312f",
+                      "secondary-fixed-dim": "#a7cdda",
+                      "measured-slate": "#5C747C",
+                      "secondary-fixed": "#c2e9f7",
+                      "on-surface": "#191c1b",
+                      "on-surface-variant": "#3f484d",
+                      "surface-container-low": "#f3f4f1",
+                      "primary-fixed-dim": "#7fd1f4",
+                      "on-tertiary-container": "#edf9ff",
+                      "on-primary-fixed-variant": "#004d63",
+                      "tertiary-container": "#007b9a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#7fd1f4",
+                      "pure-surface": "#FFFFFF",
+                      "on-secondary-container": "#456a76",
+                      "surface-dim": "#d9dad8",
+                      "secondary": "#3f646f",
+                      "surface-container-high": "#e7e8e6",
+                      "outline-variant": "#bec8ce",
+                      "on-tertiary-fixed": "#001f29",
+                      "secondary-container": "#c2e9f7",
+                      "primary-fixed": "#bce9ff",
+                      "surface-container-highest": "#e2e3e0",
+                      "on-background": "#191c1b",
+                      "blue-mist": "#D7F0F7",
+                      "surface-tint": "#006783",
+                      "on-secondary-fixed": "#001f27",
+                      "surface": "#f9faf7",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed": "#baeaff",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#f9faf7"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "label-gap": "12px",
+                      "edge-margin": "18px",
+                      "action-height": "48px",
+                      "stack-gap": "16px",
+                      "section-gap": "24px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-md": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ],
+                      "display-hero": [
+                              "Fraunces"
+                      ],
+                      "body-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-lg-mobile": [
+                              "Plus Jakarta Sans"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "42px",
+                              {
+                                      "lineHeight": "0.96",
+                                      "letterSpacing": "-0.045em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.55",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "11px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-hero": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.055em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.045em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #bec8ce;
+            border-radius: 20px;
+        }
+        .accordion-content {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-active .accordion-content {
+            max-height: 500px; /* Adjust based on content */
+            opacity: 1;
+        }
+        .accordion-active .chevron {
+            transform: rotate(180deg);
+        }
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+      </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md antialiased min-h-screen flex flex-col pt-action-height pb-[100px]">
+<!-- Header (TopAppBar) -->
+<header class="bg-surface border-b border-glass-border fixed top-0 w-full z-50 flex flex-col justify-center px-edge-margin h-action-height w-full">
+<div class="flex items-center justify-between w-full relative h-full">
+<div class="flex items-center">
+<button class="p-2 -ml-2 text-primary hover:bg-surface-container-low transition-colors rounded-full scale-98 active:opacity-90">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+</div>
+<div class="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center h-full">
+<img alt="Sarv Biolabs" class="h-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAid5-MTqlfAQwFv7yNBjnr9xkpYEoPBb9KB77UNjFtBQVJYLz-YpUIWaiPFkPKfpEhklwTOtQCBPwB-6dDkd3Q8jO1d68bBzVFPrWB-Yd_MeK_D6nriZAXPpniGblvuG8Jv1er9Pa7vg_pUiOH-7RTRalSjtmxqOCRl2EiX73Yi_tPLq72YLhq8vEjrmhFLUdfUWTE9G0DHH-wBcQk1K5VjJMyUoGIWa0r03-lDUzwTbP9OezSejPpYFGiTslUT698ErbFw0AlK2mW"/>
+</div>
+<div class="flex items-center">
+<span class="font-label-caps text-label-caps text-primary font-bold uppercase tracking-wider">Step 1 of 2</span>
+</div>
+</div>
+<!-- Progress Bar -->
+<div class="absolute bottom-0 left-0 w-full h-[2px] bg-surface-container">
+<div class="h-full bg-primary w-1/2 transition-all duration-300"></div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-md mx-auto px-edge-margin pt-section-gap pb-section-gap flex flex-col gap-section-gap">
+<!-- Header Section -->
+<div class="flex flex-col gap-2">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface md:font-headline-lg md:text-headline-lg">What are you looking for?</h1>
+<p class="text-measured-slate">Tell us the product or requirement. You can add details only if you know them.</p>
+<div class="flex items-center gap-2 mt-2 bg-blue-mist/30 px-3 py-2 rounded-lg w-fit">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-medium text-primary-container">Your contact details are saved</span>
+</div>
+</div>
+<!-- Forms Section -->
+<div class="flex flex-col gap-stack-gap">
+<!-- Main Input -->
+<div class="flex flex-col gap-label-gap">
+<label class="text-measured-slate font-medium" for="main_req">Product or requirement <span class="text-error">*</span></label>
+<textarea class="w-full bg-pure-surface border border-glass-border rounded-[10px] p-4 text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all resize-none shadow-sm" id="main_req" placeholder="e.g. product name, material, or what you need" rows="4"></textarea>
+<span class="text-sm text-measured-slate">A short description is enough to start.</span>
+</div>
+<!-- Divider -->
+<div class="flex items-center gap-4 my-2">
+<div class="h-px bg-glass-border flex-grow"></div>
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">OR</span>
+<div class="h-px bg-glass-border flex-grow"></div>
+</div>
+<!-- Optional Search -->
+<div class="flex flex-col gap-label-gap">
+<label class="text-measured-slate font-medium" for="search_area">Search our product areas (optional)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant" data-icon="search">search</span>
+<input class="w-full bg-pure-surface border border-glass-border rounded-[10px] pl-10 pr-4 py-3 text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all shadow-sm h-action-height" id="search_area" placeholder="Search areas..." type="text"/>
+</div>
+<button class="text-primary font-medium text-sm text-left hover:underline w-fit mt-1">I know the exact product</button>
+</div>
+<!-- Optional Specifications Accordion -->
+<div class="mt-4 border border-glass-border rounded-xl bg-pure-surface overflow-hidden shadow-sm" id="specs-accordion">
+<button class="w-full flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-variant transition-colors group" onclick="document.getElementById('specs-accordion').classList.toggle('accordion-active')">
+<div class="flex flex-col items-start text-left">
+<span class="font-medium text-on-surface">Add specifications (optional)</span>
+<span class="text-sm text-measured-slate mt-1">Quantity, pack size, standard, needed-by date, or notes.</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant chevron group-hover:text-primary transition-colors" data-icon="expand_more">expand_more</span>
+</button>
+<div class="accordion-content bg-pure-surface">
+<div class="p-4 flex flex-col gap-4 border-t border-glass-border">
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-sm text-measured-slate">Quantity</label>
+<input class="w-full border border-glass-border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:outline-none" placeholder="e.g. 500" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm text-measured-slate">Unit</label>
+<select class="w-full border border-glass-border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:outline-none bg-pure-surface">
+<option>kg</option>
+<option>L</option>
+<option>pcs</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm text-measured-slate">Additional Notes</label>
+<textarea class="w-full border border-glass-border rounded-lg p-2 focus:ring-2 focus:ring-primary focus:outline-none resize-none" placeholder="Any specific requirements..." rows="2"></textarea>
+</div>
+</div>
+</div>
+</div>
+<p class="text-sm text-measured-slate mt-1">Our team can follow up for anything else.</p>
+</div>
+</main>
+<!-- Footer Action -->
+<footer class="fixed bottom-0 w-full bg-surface/90 backdrop-blur-md border-t border-glass-border p-edge-margin z-50 flex flex-col gap-3 pb-safe">
+<div class="flex justify-center w-full">
+<span class="text-sm text-measured-slate flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="sync">sync</span>
+                 Changes save automatically
+             </span>
+</div>
+<button class="w-full bg-primary text-on-primary h-[52px] rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary-container transition-colors scale-98 active:opacity-90 shadow-sm max-w-md mx-auto">
+            Review my inquiry
+            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</footer>
+</body></html>

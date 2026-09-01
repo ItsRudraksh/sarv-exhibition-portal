@@ -1,0 +1,202 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Sarv Biolabs - Supplier Review and Submit</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@600&amp;family=Fraunces:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2e312f",
+                        "tertiary-container": "#007b9a",
+                        "on-primary-fixed": "#001f2a",
+                        "on-primary-fixed-variant": "#004d63",
+                        "on-secondary-container": "#456a76",
+                        "measured-slate": "#5C747C",
+                        "blue-mist": "#D7F0F7",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e7e8e6",
+                        "outline-variant": "#bec8ce",
+                        "on-background": "#191c1b",
+                        "surface-container-highest": "#e2e3e0",
+                        "secondary-fixed": "#c2e9f7",
+                        "secondary-container": "#c2e9f7",
+                        "primary-fixed-dim": "#7fd1f4",
+                        "on-tertiary-container": "#edf9ff",
+                        "background": "#f9faf7",
+                        "surface-variant": "#e2e3e0",
+                        "on-surface-variant": "#3f484d",
+                        "primary-container": "#147a9a",
+                        "surface-dim": "#d9dad8",
+                        "surface": "#f9faf7",
+                        "primary-fixed": "#bce9ff",
+                        "on-tertiary-fixed": "#001f29",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#006783",
+                        "tertiary": "#00617a",
+                        "secondary": "#3f646f",
+                        "inverse-on-surface": "#f0f1ee",
+                        "surface-container-low": "#f3f4f1",
+                        "tertiary-fixed": "#baeaff",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1b",
+                        "primary": "#00607b",
+                        "on-secondary-fixed-variant": "#274c57",
+                        "surface-container": "#edeeeb",
+                        "on-primary-container": "#ecf8ff",
+                        "tertiary-fixed-dim": "#60d4fd",
+                        "on-tertiary-fixed-variant": "#004d62",
+                        "on-secondary-fixed": "#001f27",
+                        "outline": "#6f787e",
+                        "surface-bright": "#f9faf7",
+                        "inverse-primary": "#7fd1f4",
+                        "on-secondary": "#ffffff",
+                        "glass-border": "#C9D9DF",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#a7cdda",
+                        "on-error-container": "#93000a",
+                        "pure-surface": "#FFFFFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "label-gap": "12px",
+                        "stack-gap": "16px",
+                        "section-gap": "24px",
+                        "action-height": "48px",
+                        "edge-margin": "18px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["JetBrains Mono"],
+                        "display-hero": ["Fraunces"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", { "lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-hero": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.055em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.045em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["42px", { "lineHeight": "0.96", "letterSpacing": "-0.045em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col md:max-w-[390px] md:mx-auto md:border-x md:border-glass-border md:shadow-sm">
+<!-- TopAppBar -->
+<header class="bg-surface w-full top-0 border-b border-glass-border sticky z-50">
+<div class="flex items-center justify-between px-edge-margin h-action-height w-full">
+<div class="flex items-center gap-3">
+<button aria-label="Go back" class="active:scale-[0.98] transition-transform duration-200 text-primary p-2 -ml-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<div class="flex items-center gap-2">
+<img alt="Sarv Biolabs" class="h-5 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAViz5Lf5RVRUQZDSfDyMjmNTLjhNBF8UacfcTQv9tNdNacXPTbQUSWa2EW6ARkImM3nw3yqya4CoaEUVIPaU2qghIdYJ5nLnAuYbtiRsl8NBXqP7UCu5gIynMlBDneGgEGgttWNVDmSZNKwgc2HC0XZZ9YyGhfeQuZ_wVot-S4glDqQ8lj0x9HtiqLfkcemxfK5VcdWGz5T4lo8qGaPuj6E8j6V91kqE4HQ_8WDaH-1l1Ky0LfPBaPmlH6CbLobBf_S6O2jlooJKZC">
+<span class="w-[1px] h-3 bg-glass-border mx-1"></span>
+<span class="font-label-caps text-[10px] text-measured-slate uppercase tracking-wider">Supplier request</span>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 pb-32">
+<!-- Header Section -->
+<div class="px-edge-margin pt-stack-gap pb-stack-gap">
+<div class="flex items-center justify-between mb-2">
+<h1 class="font-headline-md text-headline-md text-on-surface">Review request</h1>
+<div class="font-label-caps text-[10px] text-tertiary uppercase tracking-wider bg-surface-container px-2 py-1 rounded">Step 4 of 4</div>
+</div>
+<p class="font-body-md text-body-md text-measured-slate text-sm">Review details below before final submission.</p>
+</div>
+<!-- Summary Section 1: Company & Contacts -->
+<section class="px-edge-margin py-3 border-t border-glass-border">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-body-lg text-body-lg font-semibold text-on-surface">Company &amp; contacts</h2>
+<button class="text-sm font-semibold text-primary hover:underline flex items-center gap-1 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                </button>
+</div>
+<div class="flex flex-col border border-glass-border rounded-lg overflow-hidden bg-pure-surface">
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">
+<div class="font-label-caps text-[10px] text-measured-slate uppercase shrink-0 pt-0.5">Company Name</div>
+<div class="font-body-md text-body-md text-on-surface text-right break-words w-full">Company details provided</div>
+</div>
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">Primary contact provided</div>
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">
+<div class="font-label-caps text-[10px] text-measured-slate uppercase shrink-0 pt-0.5">Email</div>
+<div class="font-body-md text-body-md text-on-surface text-right break-all w-full">Primary email provided</div>
+</div>
+</div>
+</section>
+<!-- Summary Section 2: Supply Capability -->
+<section class="px-edge-margin py-3 border-t border-glass-border">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-body-lg text-body-lg font-semibold text-on-surface">Supply capability</h2>
+<button class="text-sm font-semibold text-primary hover:underline flex items-center gap-1 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                </button>
+</div>
+<div class="flex flex-col border border-glass-border rounded-lg overflow-hidden bg-pure-surface">
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">
+<div class="font-label-caps text-[10px] text-measured-slate uppercase shrink-0 pt-0.5">Department</div>
+<div class="font-body-md text-body-md text-on-surface text-right break-words w-full">Selected department</div>
+</div>
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">Selected product type</div>
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">
+<div class="font-label-caps text-[10px] text-measured-slate uppercase shrink-0 pt-0.5">Category</div>
+<div class="font-body-md text-body-md text-on-surface text-right break-words w-full">Selected category</div>
+</div>
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">
+<div class="font-label-caps text-[10px] text-measured-slate uppercase shrink-0 pt-0.5">Equipment</div>
+<div class="font-body-md text-body-md text-on-surface text-right break-words w-full">Selected equipment</div>
+</div>
+</div>
+</section>
+<!-- Summary Section 3: Location Preference -->
+<section class="px-edge-margin py-3 border-t border-glass-border">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-body-lg text-body-lg font-semibold text-on-surface">Location preference</h2>
+<button class="text-sm font-semibold text-primary hover:underline flex items-center gap-1 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-[16px]">edit</span> Edit
+                </button>
+</div>
+<div class="flex flex-col border border-glass-border rounded-lg overflow-hidden bg-pure-surface">
+<div class="flex justify-between items-start p-3 border-b border-glass-border last:border-0 gap-4">
+<div class="font-label-caps text-[10px] text-measured-slate uppercase shrink-0 pt-0.5">Region</div>
+<div class="font-body-md text-body-md text-on-surface text-right break-words w-full">Location preference selected</div>
+</div>
+</div>
+</section>
+<!-- Catalogue & Location (Compact) -->
+<section class="px-edge-margin py-3 border-t border-glass-border space-y-3"><div class="flex justify-between items-center mb-2"><h2 class="font-body-lg text-body-lg font-semibold text-on-surface">Supporting information</h2></div><div class="flex flex-col gap-3"><div class="flex justify-between items-center p-3 border border-glass-border rounded-lg bg-pure-surface"><div><h3 class="font-body-md text-on-surface font-semibold text-sm">Catalogue</h3><p class="font-label-caps text-[10px] text-measured-slate mt-0.5">PDF or Image files</p></div><button class="flex items-center justify-center h-8 px-3 bg-surface-container-low border border-glass-border text-primary rounded font-body-md text-sm active:scale-[0.98] transition-transform shrink-0"><span class="material-symbols-outlined text-[16px] mr-1">upload_file</span> Add catalogue</button></div><div class="flex flex-col p-3 border border-glass-border rounded-lg bg-pure-surface gap-2"><div><h3 class="font-body-md text-on-surface font-semibold text-sm">Website URL</h3><p class="font-label-caps text-[10px] text-measured-slate mt-0.5">Company or product page</p></div><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-measured-slate text-[18px]">link</span><input class="w-full h-10 pl-10 pr-3 rounded border border-glass-border bg-surface text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none" placeholder="https://" type="url"></div></div><p class="text-[11px] text-measured-slate px-1">Add a catalogue or website — at least one is required. You can add both.</p></div></section>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 w-full md:max-w-[390px] bg-pure-surface border-t border-glass-border px-edge-margin py-3 pb-[env(safe-area-inset-bottom,16px)] z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] flex flex-col gap-2">
+<div class="text-center">
+<p class="font-label-caps text-[10px] text-measured-slate">Request will enter internal review queue.</p>
+</div>
+<button class="w-full h-[44px] bg-primary text-on-primary rounded-lg font-body-md text-body-md font-semibold active:scale-[0.98] transition-transform flex justify-center items-center">
+            Submit supplier request
+        </button>
+</div>
+</body></html>

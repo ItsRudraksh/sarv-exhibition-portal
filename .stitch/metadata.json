@@ -1,0 +1,187 @@
+{
+  "name": "projects/16252155655979346180",
+  "projectId": "16252155655979346180",
+  "title": "Sarv Biolabs Exhibition Portal",
+  "visibility": "PUBLIC",
+  "projectType": "PROJECT_DESIGN",
+  "origin": "STITCH",
+  "designSystemStatus": "light and dark design systems imported and active in Stitch",
+  "activeDesignSystems": {
+    "visitor": "assets/ec49fa42191d45048964a70d670003ba",
+    "admin": "assets/30f2e48d1564477bbfa471de0bd717fe"
+  },
+  "designVariants": [
+    ".stitch/DESIGN.md",
+    ".stitch/DESIGN.dark.md"
+  ],
+  "screens": {
+    "entry_choice": {
+      "id": "8904f7a4fdfc4f58896e87a93de1ecb4",
+      "sourceScreen": "projects/16252155655979346180/screens/8904f7a4fdfc4f58896e87a93de1ecb4",
+      "title": "Entry Choice Portal",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved"
+    },
+    "supplier_departments": {
+      "id": "350bb64c5666401ba7d5755fb37ce77d",
+      "sourceScreen": "projects/16252155655979346180/screens/350bb64c5666401ba7d5755fb37ce77d",
+      "title": "Supplier Intake: Search & Taxonomy Focus",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved"
+    },
+    "supplier_product_types": {
+      "id": "3378382deca54c13b0700fbd58cf53a1",
+      "sourceScreen": "projects/16252155655979346180/screens/3378382deca54c13b0700fbd58cf53a1",
+      "title": "Supplier Product Type Selection",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "supersedesHiddenScreen": "3534977e2b974b73b627561b414197fb"
+    },
+    "supplier_profile": {
+      "id": "2f9cf531803c4adb9fbb3ad6bd592eb2",
+      "sourceScreen": "projects/16252155655979346180/screens/2f9cf531803c4adb9fbb3ad6bd592eb2",
+      "title": "Supplier Profile: Refined Header & Summary",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Assistance-led supplier profile with finalized company, primary/alternate contact, location, and Category → Subcategory → Equipment fields."
+    },
+    "supplier_review": {
+      "id": "0071a004fa7243479a1d1d34c5b0d860",
+      "sourceScreen": "projects/16252155655979346180/screens/0071a004fa7243479a1d1d34c5b0d860",
+      "title": "Supplier Review: Final Screen 05 Candidate",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Fast Scan review screen. Catalogue upload and website URL are accepted independently or together; at least one is required. Location verification is handled automatically in code and has no visible evidence or permission UI."
+    },
+    "supplier_confirmation": {
+      "id": "16bbb11987a54bbc80405eff7b91aab0",
+      "sourceScreen": "projects/16252155655979346180/screens/16bbb11987a54bbc80405eff7b91aab0",
+      "title": "Supplier Inquiry: Production Confirmation Template",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Production-safe supplier confirmation template with explicit placeholders, internal review steps, and an exhibition-staff assistance route."
+    },
+    "buyer_product_inquiry": {
+      "id": "fd38f8f196404cf8a7acc2fedade7c52",
+      "sourceScreen": "projects/16252155655979346180/screens/fd38f8f196404cf8a7acc2fedade7c52",
+      "title": "Buyer Product Inquiry",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Approved base direction for buyer product-area selection or exact-requirement entry."
+    },
+    "buyer_category": {
+      "id": "6af956a24a4d464383ed8df144f6a209",
+      "sourceScreen": "projects/16252155655979346180/screens/6af956a24a4d464383ed8df144f6a209",
+      "title": "Buyer Inquiry: Minimalist Card Variant",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Approved Minimalist Card direction for pharmacopeial standards (IP, USP, BP, PP, Other) and buyer requirement detail. Reverified as the sole retained Screen 08 design in Stitch after variation cleanup."
+    },
+    "buyer_profile": {
+      "id": "69fae3abe9c049d08ce2e16ab84ec038",
+      "sourceScreen": "projects/16252155655979346180/screens/69fae3abe9c049d08ce2e16ab84ec038",
+      "title": "Buyer Profile: Refined Consistency Update",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Approved Screen 09 aligned to the Supplier Profile form anatomy: compact header/progress, assistance strip, outlined mobile inputs, and fixed action bar, with buyer/company details and required plus optional consent.",
+      "variants": {
+        "originalBase": "e1f4cbb93ddc493da896ddc02f912320",
+        "formFirst": "15fd91c301d34b67ac50ee7acc42201e",
+        "contextFirst": "83a77202e2c34de69724921896f8ba69",
+        "assistanceAware": "5df07c0a4e1745c0acec6acd76fb0e08"
+      }
+    },
+    "buyer_confirmation": {
+      "id": "979563a272a24d51b266578abeeb689d",
+      "sourceScreen": "projects/16252155655979346180/screens/979563a272a24d51b266578abeeb689d",
+      "title": "Buyer Inquiry: Submission Confirmation",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Approved base Screen 10: production-safe buyer acknowledgement with placeholder-only summary, no fabricated reference number or SLA, clear follow-up expectation, exhibition-staff correction route, and restart actions. Stitch canvas audit confirms it is the sole non-hidden Screen 10 item; the generated alternatives are hidden."
+    }
+  },
+  "desktopScreens": {
+    "entry_choice": { "id": "35d8eb26541b4ce9b9715755b8062606", "title": "Entry Choice Portal - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "supplier_departments": { "id": "db689e500ce34fcd8b9581b6c430acb0", "title": "Supplier Department Selection - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "supplier_product_types": { "id": "62a6930cb8fb4e50a4e92bfcabd7e992", "title": "Supplier Product Selection - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "supplier_profile": { "id": "79caa44945aa4e2b9ce5ae1ccb35dccd", "title": "Supplier Profile - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "supplier_review": { "id": "442630bc11934723aa9b20ebc3c99f28", "title": "Supplier Review & Submit - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "supplier_confirmation": { "id": "5e1ab90c6c194a378324d7a2f248709c", "title": "Supplier Inquiry Confirmation - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "buyer_product_inquiry": { "id": "189f356296354862909b80647d52f9b1", "title": "Buyer Product Inquiry - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "buyer_category": { "id": "abddbaab2dfe451dbc37ae22989f4564", "title": "Buyer Requirement Details - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "buyer_profile": { "id": "93a4284d64524c9fac2771cbe735f439", "title": "Buyer Profile & Consent - Desktop", "deviceType": "DESKTOP", "status": "generated" },
+    "buyer_confirmation": { "id": "2f6f63492e5748f5b4832ebdbf7ad0c3", "title": "Buyer Inquiry Confirmation - Desktop", "deviceType": "DESKTOP", "status": "generated" }
+  },
+  "flowRevision": {
+    "status": "in_review",
+    "principles": [
+      "Capture both sides of a business card before intent selection.",
+      "Confirm name, email, and phone with country code before progressing so partial records can be retained.",
+      "Persist meaningful progress server-side; QR payloads are captured for internal follow-up only and do not redirect the visitor.",
+      "Keep buyer requirements progressive and optional wherever sales can follow up."
+    ],
+    "cardCaptureStart": {
+      "id": "b792a9f8114c43ef9c47b92565a13bc9",
+      "sourceScreen": "projects/16252155655979346180/screens/b792a9f8114c43ef9c47b92565a13bc9",
+      "title": "Business Card Capture - Start",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved"
+    },
+    "detailsCheck": {
+      "id": "81eacb82ff39448ca948348d5a7b33f1",
+      "sourceScreen": "projects/16252155655979346180/screens/81eacb82ff39448ca948348d5a7b33f1",
+      "title": "Extracted Details Confirmation",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Three-field identity checkpoint after card capture. Name, work email, and mobile number with country code establish the auto-saved partial inquiry before intent selection."
+    },
+    "intentSelection": {
+      "id": "f6a79d52e755464686ef2dcdf0583104",
+      "sourceScreen": "projects/16252155655979346180/screens/f6a79d52e755464686ef2dcdf0583104",
+      "title": "Intent Selection Portal",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Post-save route selection retaining the first-person supplier and buyer paths. Buyer copy promises a quick inquiry with only known details."
+    },
+    "supplierProductTypesRefined": {
+      "id": "ff747fafbf0e4254a70d0bd3f439d9d8",
+      "sourceScreen": "projects/16252155655979346180/screens/ff747fafbf0e4254a70d0bd3f439d9d8",
+      "title": "Supplier Product Type Selection - Refined Mobile Flow",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Replacement for the approved taxonomy screen after Stitch failed to render a targeted edit. It corrects the step count, confirms automatic saving, and leads to smart details review."
+    },
+    "supplierSmartDetailsCheck": {
+      "id": "9f0df261d9784d029fcdcc67ce4dc390",
+      "sourceScreen": "projects/16252155655979346180/screens/9f0df261d9784d029fcdcc67ce4dc390",
+      "title": "Supplier Smart Details Check - Step 3",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Fast supplier details checkpoint: confirmed card extraction and selected taxonomy are previewed first. When extraction is complete it requires no further typing; otherwise it reveals only the genuinely missing required detail. Optional company context remains collapsed."
+    },
+    "buyerRapidNeedCapture": {
+      "id": "a07014409a4947a38990bdf1e996fb86",
+      "sourceScreen": "projects/16252155655979346180/screens/a07014409a4947a38990bdf1e996fb86",
+      "title": "Buyer Inquiry: Rapid Need Capture",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Replacement for the old buyer product inquiry and separate requirement-details screens. One required product-or-need entry is sufficient; saved contact details remove the profile form, while product-area search and specifications stay optional and collapsed."
+    },
+    "buyerFinalReviewSubmit": {
+      "id": "193bb0d77cdd4ed18e4fb52b73bd9cdf",
+      "sourceScreen": "projects/16252155655979346180/screens/193bb0d77cdd4ed18e4fb52b73bd9cdf",
+      "title": "Buyer Inquiry: Final Review & Submit",
+      "deviceType": "MOBILE",
+      "approvalStatus": "approved",
+      "details": "Final buyer checkpoint with only the entered requirement and the saved contact summary. Optional specifications are represented as a compact empty state; no company or profile form is reintroduced before submission."
+    },
+    "buyerSubmissionConfirmationRevised": {
+      "id": "94465f5f179a4aae84290e12019ab4a8",
+      "sourceScreen": "projects/16252155655979346180/screens/94465f5f179a4aae84290e12019ab4a8",
+      "title": "Buyer Inquiry: Submission Confirmation (Revised)",
+      "deviceType": "MOBILE",
+      "approvalStatus": "pending_review",
+      "details": "Replacement confirmation for the streamlined buyer flow. It acknowledges the dynamic requirement and saved contact details without assuming a pharmacopeial category, standard, quantity, or response-time commitment."
+    }
+  }
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Intent Selection - Sarv Biolabs</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&amp;family=JetBrains+Mono:wght@600&amp;family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#001f27",
+                        "tertiary-container": "#007b9a",
+                        "secondary": "#3f646f",
+                        "primary-fixed": "#bce9ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f0f1ee",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-background": "#191c1b",
+                        "on-primary-fixed-variant": "#004d63",
+                        "outline": "#6f787e",
+                        "surface-container-low": "#f3f4f1",
+                        "surface-bright": "#f9faf7",
+                        "surface-variant": "#e2e3e0",
+                        "surface-container-highest": "#e2e3e0",
+                        "tertiary": "#00617a",
+                        "surface-tint": "#006783",
+                        "tertiary-fixed-dim": "#60d4fd",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#456a76",
+                        "on-tertiary-container": "#edf9ff",
+                        "primary-container": "#147a9a",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#001f29",
+                        "secondary-fixed-dim": "#a7cdda",
+                        "on-primary-fixed": "#001f2a",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#c2e9f7",
+                        "pure-surface": "#FFFFFF",
+                        "surface-container": "#edeeeb",
+                        "inverse-surface": "#2e312f",
+                        "surface-dim": "#d9dad8",
+                        "on-surface-variant": "#3f484d",
+                        "error": "#ba1a1a",
+                        "surface": "#f9faf7",
+                        "primary-fixed-dim": "#7fd1f4",
+                        "on-secondary-fixed-variant": "#274c57",
+                        "glass-border": "#C9D9DF",
+                        "primary": "#00607b",
+                        "on-surface": "#191c1b",
+                        "on-primary-container": "#ecf8ff",
+                        "tertiary-fixed": "#baeaff",
+                        "surface-container-high": "#e7e8e6",
+                        "on-tertiary-fixed-variant": "#004d62",
+                        "secondary-container": "#c2e9f7",
+                        "blue-mist": "#D7F0F7",
+                        "on-error": "#ffffff",
+                        "measured-slate": "#5C747C",
+                        "background": "#f9faf7",
+                        "inverse-primary": "#7fd1f4",
+                        "outline-variant": "#bec8ce"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "edge-margin": "18px",
+                        "action-height": "48px",
+                        "stack-gap": "16px",
+                        "section-gap": "24px",
+                        "label-gap": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "display-hero": ["Fraunces"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.045em", "fontWeight": "700" }],
+                        "headline-lg": ["42px", { "lineHeight": "0.96", "letterSpacing": "-0.045em", "fontWeight": "700" }],
+                        "display-hero": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.055em", "fontWeight": "500" }],
+                        "label-caps": ["11px", { "lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center px-edge-margin h-action-height max-w-[390px] mx-auto bg-surface border-b border-glass-border flat no shadows justify-between">
+<button aria-label="Go back" class="text-primary hover:bg-surface-container-low transition-transform active:scale-95 duration-200 rounded-full p-2 flex items-center justify-center -ml-2" type="button">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex-1 flex justify-center items-center">
+<img alt="Sarv Biolabs Logo" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAOxKYg6RBmb1VlHN0cHfpJX99oRog5SWcAdt267wj5tKg9_WE4KBDmJBKIm5EDKb49K0Q5eifk4olZ6zhnKGIEPiX2QMuc97TBM3Sj0u-wWbyXQWq7Pe7_IDQkPfq48ePl7P2iY3M0Lw1X85NRz6IwSt_yaMtzj8yd8FKGPBs9GtWr-SeM-3yeEf_wq-1I_TXDqg-YJ459NAna-TxDI_f6R3o4ZMimhPKTpvIkU5mAlys7QDKYYwYJmphCSRGLUJwAtsUyy3Ybq4K"/>
+</div>
+<div class="w-[40px]"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-[390px] mt-[48px] px-edge-margin pt-section-gap pb-32 flex-1 flex flex-col">
+<!-- Saved State Indicator -->
+<div class="mb-section-gap flex flex-col gap-1 border-l-2 border-primary pl-3 py-1">
+<p class="font-body-md text-body-md text-measured-slate">Your details are saved.</p>
+<a class="font-body-md text-body-md text-primary underline hover:text-tertiary-fixed-dim transition-opacity" href="#">Change contact details</a>
+</div>
+<!-- Headings -->
+<div class="mb-section-gap">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-stack-gap">What would you like to do?</h1>
+<p class="font-body-lg text-body-lg text-measured-slate">Choose the path that fits your visit today.</p>
+</div>
+<!-- Decision Rows -->
+<div class="flex flex-col gap-0 border-y border-glass-border">
+<!-- Option 1: Sell -->
+<button class="w-full text-left py-section-gap flex items-center gap-stack-gap hover:bg-surface-container-low transition-colors duration-200 group border-b border-glass-border last:border-0 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" type="button">
+<div class="w-[48px] h-[48px] rounded-full bg-blue-mist flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="storefront">storefront</span>
+</div>
+<div class="flex-1 pr-4">
+<h2 class="font-headline-md text-[20px] text-on-surface mb-1">I want to sell</h2>
+<p class="font-body-md text-body-md text-measured-slate">Tell Sarv about the products or capabilities you can supply.</p>
+</div>
+<span class="material-symbols-outlined text-primary opacity-50 group-hover:opacity-100 transition-opacity shrink-0" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Option 2: Buy -->
+<button class="w-full text-left py-section-gap flex items-center gap-stack-gap hover:bg-surface-container-low transition-colors duration-200 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface" type="button">
+<div class="w-[48px] h-[48px] rounded-full bg-blue-mist flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div class="flex-1 pr-4">
+<h2 class="font-headline-md text-[20px] text-on-surface mb-1">I want to buy</h2>
+<p class="font-body-md text-body-md text-measured-slate">Start a quick product inquiry. Add only the details you know.</p>
+</div>
+<span class="material-symbols-outlined text-primary opacity-50 group-hover:opacity-100 transition-opacity shrink-0" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full max-w-[390px] py-section-gap px-edge-margin flex flex-col items-center gap-label-gap mt-auto bg-surface-container-low border-t border-glass-border flat no shadows">
+<p class="font-label-caps text-label-caps text-measured-slate text-center">© 2024 Sarv Biolabs. Mineral Research Precision.</p>
+<div class="flex gap-4">
+<a class="font-label-caps text-label-caps text-measured-slate hover:text-primary transition-opacity duration-150" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-measured-slate hover:text-primary transition-opacity duration-150" href="#">Help Center</a>
+<a class="font-label-caps text-label-caps text-measured-slate hover:text-primary transition-opacity duration-150" href="#">Terms of Service</a>
+</div>
+</footer>
+</body></html>

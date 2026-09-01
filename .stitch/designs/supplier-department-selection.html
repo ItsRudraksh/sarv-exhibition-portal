@@ -1,0 +1,328 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Sarv Biolabs - Supplier Intake Step 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600&amp;family=Fraunces:opsz,wght@9..144,500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "error-container": "#ffdad6",
+                "on-tertiary-fixed-variant": "#004d62",
+                "primary-fixed-dim": "#7fd1f4",
+                "on-error": "#ffffff",
+                "surface-container-highest": "#e2e3e0",
+                "on-secondary-fixed-variant": "#274c57",
+                "primary-fixed": "#bce9ff",
+                "on-surface": "#191c1b",
+                "surface-container-lowest": "#ffffff",
+                "secondary-container": "#c2e9f7",
+                "on-error-container": "#93000a",
+                "surface-container": "#edeeeb",
+                "on-primary-fixed-variant": "#004d63",
+                "on-surface-variant": "#3f484d",
+                "on-secondary": "#ffffff",
+                "secondary-fixed-dim": "#a7cdda",
+                "on-tertiary-fixed": "#001f29",
+                "pure-surface": "#FFFFFF",
+                "background": "#f9faf7",
+                "surface": "#f9faf7",
+                "secondary": "#3f646f",
+                "on-primary-fixed": "#001f2a",
+                "tertiary": "#00617a",
+                "on-tertiary-container": "#edf9ff",
+                "on-background": "#191c1b",
+                "inverse-on-surface": "#f0f1ee",
+                "on-tertiary": "#ffffff",
+                "glass-border": "#C9D9DF",
+                "outline": "#6f787e",
+                "error": "#ba1a1a",
+                "on-secondary-fixed": "#001f27",
+                "outline-variant": "#bec8ce",
+                "primary": "#00607b",
+                "surface-variant": "#e2e3e0",
+                "on-secondary-container": "#456a76",
+                "on-primary": "#ffffff",
+                "surface-container-high": "#e7e8e6",
+                "on-primary-container": "#ecf8ff",
+                "surface-dim": "#d9dad8",
+                "tertiary-fixed": "#baeaff",
+                "surface-container-low": "#f3f4f1",
+                "measured-slate": "#5C747C",
+                "blue-mist": "#D7F0F7",
+                "secondary-fixed": "#c2e9f7",
+                "tertiary-container": "#007b9a",
+                "inverse-primary": "#7fd1f4",
+                "surface-tint": "#006783",
+                "surface-bright": "#f9faf7",
+                "inverse-surface": "#2e312f",
+                "primary-container": "#147a9a",
+                "tertiary-fixed-dim": "#60d4fd"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "label-gap": "12px",
+                "stack-gap": "16px",
+                "section-gap": "24px",
+                "edge-margin": "18px",
+                "action-height": "48px"
+        },
+        "fontFamily": {
+                "headline-lg-mobile": [
+                        "Plus Jakarta Sans"
+                ],
+                "headline-lg": [
+                        "Plus Jakarta Sans"
+                ],
+                "body-md": [
+                        "Plus Jakarta Sans"
+                ],
+                "label-caps": [
+                        "JetBrains Mono"
+                ],
+                "headline-md": [
+                        "Plus Jakarta Sans"
+                ],
+                "display-hero": [
+                        "Fraunces"
+                ],
+                "body-lg": [
+                        "Plus Jakarta Sans"
+                ]
+        },
+        "fontSize": {
+                "headline-lg-mobile": [
+                        "32px",
+                        {
+                                "lineHeight": "1.1",
+                                "letterSpacing": "-0.045em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-lg": [
+                        "42px",
+                        {
+                                "lineHeight": "0.96",
+                                "letterSpacing": "-0.045em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "1.55",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-caps": [
+                        "11px",
+                        {
+                                "lineHeight": "1.4",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-hero": [
+                        "48px",
+                        {
+                                "lineHeight": "1.1",
+                                "letterSpacing": "-0.055em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+    body {
+      background-color: #f9faf7;
+    }
+    
+    /* Custom Checkbox Styles */
+    .custom-checkbox {
+      appearance: none;
+      background-color: #fff;
+      margin: 0;
+      font: inherit;
+      color: currentColor;
+      width: 24px;
+      height: 24px;
+      border: 1px solid #C9D9DF; /* glass-border */
+      border-radius: 4px;
+      display: grid;
+      place-content: center;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .custom-checkbox::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      transform: scale(0);
+      transition: 120ms transform ease-in-out;
+      box-shadow: inset 1em 1em white;
+      background-color: white;
+      transform-origin: center;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .custom-checkbox:checked {
+      background-color: #147a9a; /* primary-container */
+      border-color: #147a9a;
+    }
+
+    .custom-checkbox:checked::before {
+      transform: scale(1);
+    }
+
+    .custom-checkbox:focus {
+      outline: 2px solid #147a9a;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-surface dark:bg-surface-dim border-b border-glass-border dark:border-outline-variant flat no shadows">
+<div class="flex items-center justify-between px-edge-margin h-action-height max-w-2xl mx-auto w-full">
+<div class="flex items-center">
+<button aria-label="Go back" class="p-2 -ml-2 text-primary dark:text-primary-fixed hover:bg-blue-mist/20 transition-colors rounded-full scale-95 duration-150 ease-in-out active:scale-90">
+<span aria-hidden="true" class="material-symbols-outlined">arrow_back</span>
+</button>
+</div>
+<div class="flex items-center justify-center flex-1">
+<img alt="Sarv Biolabs Logo" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_PjWUoLraCAck6j3OQNUzacXl87rZxYfNEUB1SwtfyMP5oZLsRAyFrvkD3IdQEXiLKj3m6cNFc6TmwjspZiQACnfa9SR6HoVLX_qm-jdDfH0yJcXUZX7T_vqlOYJPg8rAPG2JCbt_t1_swo35Y7pXRU2V-R-jENiMv78QLLWFC0bheJO0sNGjUZgIPMT_UxbhHgq-ClFS_SAlpI_qObAmP90wzVRZGDQE0mfkRDHJn5d-HrS_QYBtGJu3-f6Fb5YlYZiLGvQkWWwL">
+</div>
+<div class="flex items-center text-measured-slate font-label-caps text-label-caps uppercase">
+        Step 1 of 4
+      </div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-edge-margin pt-section-gap pb-[100px] max-w-2xl mx-auto w-full">
+<!-- Header Section -->
+<div class="mb-section-gap">
+<p class="font-label-caps text-label-caps uppercase text-measured-slate mb-label-gap">SUPPLIER INTAKE</p>
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2">Which departments do you want to work with?</h1>
+<p class="text-measured-slate font-body-md">Select one or more areas. We’ll show relevant product types next.</p>
+</div>
+<!-- Search Input -->
+<div class="relative mb-section-gap">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-measured-slate">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border border-glass-border rounded-lg bg-pure-surface text-on-surface placeholder-measured-slate focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-shadow" id="department-search" placeholder="Search departments" type="text">
+<label class="sr-only" for="department-search">Search departments</label>
+</div>
+<!-- Selection List -->
+<form class="space-y-0 border border-glass-border rounded-lg bg-pure-surface overflow-hidden" id="department-form">
+<!-- Item: Phytochemicals -->
+<label class="flex items-center p-4 min-h-[52px] border-b border-glass-border last:border-b-0 cursor-pointer hover:bg-surface transition-colors">
+<input class="custom-checkbox mr-4" name="departments" onchange="updateContinueButton()" type="checkbox" value="phytochemicals">
+<span class="font-body-md flex-1">Phytochemicals</span>
+</label>
+<!-- Item: Oncology APIs -->
+<label class="flex items-center p-4 min-h-[52px] border-b border-glass-border last:border-b-0 cursor-pointer hover:bg-surface transition-colors">
+<input class="custom-checkbox mr-4" name="departments" onchange="updateContinueButton()" type="checkbox" value="oncology_apis">
+<span class="font-body-md flex-1">Oncology APIs</span>
+</label>
+<!-- Item: Specialty APIs -->
+<label class="flex items-center p-4 min-h-[52px] border-b border-glass-border last:border-b-0 cursor-pointer hover:bg-surface transition-colors">
+<input class="custom-checkbox mr-4" name="departments" onchange="updateContinueButton()" type="checkbox" value="specialty_apis">
+<span class="font-body-md flex-1">Specialty APIs</span>
+</label>
+<!-- Item: Advanced Intermediates -->
+<label class="flex items-center p-4 min-h-[52px] border-b border-glass-border last:border-b-0 cursor-pointer hover:bg-surface transition-colors">
+<input class="custom-checkbox mr-4" name="departments" onchange="updateContinueButton()" type="checkbox" value="advanced_intermediates">
+<span class="font-body-md flex-1">Advanced Intermediates</span>
+</label>
+<!-- Item: Herbal Extracts -->
+<label class="flex items-center p-4 min-h-[52px] border-b border-glass-border last:border-b-0 cursor-pointer hover:bg-surface transition-colors">
+<input class="custom-checkbox mr-4" name="departments" onchange="updateContinueButton()" type="checkbox" value="herbal_extracts">
+<span class="font-body-md flex-1">Herbal Extracts</span>
+</label>
+<!-- Item: Research & Development -->
+<label class="flex items-center p-4 min-h-[52px] border-b border-glass-border last:border-b-0 cursor-pointer hover:bg-surface transition-colors">
+<input class="custom-checkbox mr-4" name="departments" onchange="updateContinueButton()" type="checkbox" value="research_development">
+<span class="font-body-md flex-1">Research &amp; Development</span>
+</label>
+</form>
+<!-- Info Note -->
+<div class="mt-section-gap flex p-3 bg-blue-mist/10 rounded-r-lg border-l-2 border-primary-container">
+<span class="material-symbols-outlined text-primary-container mr-2" style="font-variation-settings: 'FILL' 1;">info</span>
+<p class="text-measured-slate text-sm">The available departments are set for this exhibition.</p>
+</div>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 left-0 w-full bg-pure-surface border-t border-glass-border px-edge-margin py-4 pb-safe z-50">
+<div class="max-w-2xl mx-auto w-full">
+<button class="w-full h-action-height bg-primary-container text-on-primary rounded-lg font-headline-md text-body-md font-semibold opacity-50 cursor-not-allowed transition-all duration-200 active:scale-98 disabled:active:scale-100" disabled="" id="btn-continue">
+        Continue
+      </button>
+</div>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+    function updateContinueButton() {
+      const checkboxes = document.querySelectorAll('input[name="departments"]');
+      const continueBtn = document.getElementById('btn-continue');
+      let isChecked = false;
+
+      checkboxes.forEach((cb) => {
+        if (cb.checked) {
+          isChecked = true;
+        }
+      });
+
+      if (isChecked) {
+        continueBtn.disabled = false;
+        continueBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        continueBtn.classList.add('opacity-100', 'cursor-pointer');
+      } else {
+        continueBtn.disabled = true;
+        continueBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        continueBtn.classList.remove('opacity-100', 'cursor-pointer');
+      }
+    }
+
+    // Basic search filtering (optional but good for UX)
+    document.getElementById('department-search').addEventListener('input', function(e) {
+      const term = e.target.value.toLowerCase();
+      const labels = document.querySelectorAll('#department-form label');
+      
+      labels.forEach(label => {
+        const text = label.querySelector('span').textContent.toLowerCase();
+        if(text.includes(term)) {
+          label.style.display = 'flex';
+        } else {
+          label.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body></html>

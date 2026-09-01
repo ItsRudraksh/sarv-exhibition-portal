@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>Sarv Biolabs - Card Capture</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Fraunces:wght@500&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#004d63",
+                        "surface-bright": "#f9faf7",
+                        "inverse-surface": "#2e312f",
+                        "surface-dim": "#d9dad8",
+                        "inverse-primary": "#7fd1f4",
+                        "background": "#f9faf7",
+                        "pure-surface": "#FFFFFF",
+                        "on-secondary-fixed-variant": "#274c57",
+                        "primary-container": "#147a9a",
+                        "secondary-container": "#c2e9f7",
+                        "inverse-on-surface": "#f0f1ee",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#baeaff",
+                        "on-surface": "#191c1b",
+                        "secondary-fixed-dim": "#a7cdda",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "measured-slate": "#5C747C",
+                        "surface-container": "#edeeeb",
+                        "tertiary": "#00617a",
+                        "blue-mist": "#D7F0F7",
+                        "tertiary-container": "#007b9a",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e2e3e0",
+                        "surface-tint": "#006783",
+                        "secondary-fixed": "#c2e9f7",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#3f646f",
+                        "on-tertiary-container": "#edf9ff",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e7e8e6",
+                        "on-secondary-container": "#456a76",
+                        "on-secondary": "#ffffff",
+                        "outline": "#6f787e",
+                        "on-primary-container": "#ecf8ff",
+                        "on-secondary-fixed": "#001f27",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f3f4f1",
+                        "on-tertiary-fixed": "#001f29",
+                        "primary-fixed-dim": "#7fd1f4",
+                        "outline-variant": "#bec8ce",
+                        "on-primary-fixed": "#001f2a",
+                        "primary": "#00607b",
+                        "surface": "#f9faf7",
+                        "primary-fixed": "#bce9ff",
+                        "glass-border": "#C9D9DF",
+                        "on-tertiary-fixed-variant": "#004d62",
+                        "on-background": "#191c1b",
+                        "on-surface-variant": "#3f484d",
+                        "tertiary-fixed-dim": "#60d4fd",
+                        "surface-container-highest": "#e2e3e0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "edge-margin": "18px",
+                        "section-gap": "24px",
+                        "stack-gap": "16px",
+                        "action-height": "48px",
+                        "label-gap": "12px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "display-hero": ["Fraunces"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", { "lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg": ["42px", { "lineHeight": "0.96", "letterSpacing": "-0.045em", "fontWeight": "700" }],
+                        "display-hero": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.055em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.045em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col font-body-md select-none overflow-x-hidden pt-safe pb-safe">
+<!-- Header Section -->
+<header class="w-full flex flex-col items-center justify-center pt-8 pb-4 px-edge-margin shrink-0">
+<img alt="Sarv Biolabs Logo" class="h-10 w-auto object-contain mb-3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZrvmSxOL6e5Mpl_pTJQeECbc191KlwufkJc-QhyGfFsmNilzVAoI_S0xvOGVuEaPg-Wge3xMwB6I03JS1Nrf33wgtCtjtnAVXqhL8-JPbb_BONhXQ6QPJLbFiV5JGzd675L-nhhdBQ2qVo2L0UaZO9oA81Uh5wYsIMpgKJjcTDOznB20C2foEDqXvZHWvFdTvYFLtRadkW-vjbAQa62oacf22qiPgtPUexzr13Nu0YcoyR2QhlvIjEUUu-fXrVFEggiLBXWkVNauJ"/>
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-wider">Start</span>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col px-edge-margin max-w-[500px] mx-auto w-full pb-8">
+<!-- Intent / Intro Text -->
+<section class="mb-section-gap mt-4 text-center">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2 tracking-tight">Start with your business card</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto">
+                Capture both sides and we’ll fill in the details we can. You can review all extracted details before submitting.
+            </p>
+</section>
+<!-- Capture Module - Single Column -->
+<section class="flex flex-col gap-section-gap w-full">
+<!-- Slot 1: Front Side (Active) -->
+<div class="flex flex-col w-full relative">
+<div class="flex justify-between items-center mb-label-gap px-1">
+<span class="font-body-md text-body-md font-medium text-on-surface">Front side</span>
+<span class="font-label-caps text-label-caps text-measured-slate">1 OF 2</span>
+</div>
+<div class="bg-pure-surface border border-dashed border-glass-border rounded-xl aspect-[1.58] w-full flex flex-col items-center justify-center p-4 relative overflow-hidden shadow-sm transition-all">
+<!-- Faint background tint for empty state -->
+<div class="absolute inset-0 bg-blue-mist opacity-10 pointer-events-none"></div>
+<span class="material-symbols-outlined text-4xl text-primary opacity-60 mb-3 pointer-events-none">id_card</span>
+<div class="flex flex-col w-full gap-3 mt-auto max-w-[240px] z-10 relative">
+<button class="w-full h-action-height bg-primary text-on-primary rounded-lg font-body-md font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 20px;">photo_camera</span>
+                            Use camera
+                        </button>
+<button class="w-full h-action-height bg-transparent border border-glass-border text-primary rounded-lg font-body-md font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined" style="font-size: 20px;">upload</span>
+                            Upload
+                        </button>
+</div>
+</div>
+</div>
+<!-- Slot 2: Back Side (Inactive/Faded) -->
+<div class="flex flex-col w-full relative opacity-50 grayscale-[20%]">
+<div class="flex justify-between items-center mb-label-gap px-1">
+<span class="font-body-md text-body-md font-medium text-on-surface">Back side</span>
+<span class="font-label-caps text-label-caps text-measured-slate">2 OF 2</span>
+</div>
+<div class="bg-surface-container-lowest border border-dashed border-outline-variant rounded-xl aspect-[1.58] w-full flex flex-col items-center justify-center p-4">
+<span class="material-symbols-outlined text-4xl text-outline-variant mb-2 pointer-events-none">flip</span>
+<span class="font-body-md text-body-md text-measured-slate text-center">Complete front side first</span>
+</div>
+</div>
+</section>
+<!-- Fallback Action -->
+<div class="mt-section-gap flex justify-center w-full">
+<button class="text-primary font-body-md text-body-md underline decoration-1 underline-offset-4 hover:opacity-80 active:opacity-60 transition-opacity p-2">
+                Continue without a card
+            </button>
+</div>
+<!-- Quiet Info Block -->
+<div class="mt-auto pt-8">
+<div class="border-l-2 border-primary bg-surface-container-low p-4 rounded-r-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-primary shrink-0 mt-0.5" style="font-size: 20px;">qr_code_scanner</span>
+<p class="font-body-md text-sm text-measured-slate leading-snug">
+                    QR codes found on cards are captured and linked to your inquiry automatically.
+                </p>
+</div>
+</div>
+</main>
+</body></html>
