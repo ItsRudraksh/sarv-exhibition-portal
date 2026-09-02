@@ -22,6 +22,7 @@ export interface CardFileMeta {
   size: number
   type: string
   previewUrl?: string
+  assetId?: string
 }
 
 export interface ContactDetails {
@@ -71,6 +72,7 @@ export interface InquiryDraft {
   buyer: BuyerDetails
   contactConfirmed: boolean
   submittedAt: string | null
+  referenceCode: string | null
 }
 
 function createDraftId(): string {
@@ -127,6 +129,7 @@ export const createEmptyDraft = (): InquiryDraft => ({
   },
   contactConfirmed: false,
   submittedAt: null,
+  referenceCode: null,
 })
 
 export const SUPPLIER_STEPS: InquiryStep[] = [

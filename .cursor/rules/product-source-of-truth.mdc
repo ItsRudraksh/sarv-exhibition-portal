@@ -1,0 +1,23 @@
+---
+description: Canonical product/docs precedence and exhibition-portal vocabulary — do not revive obsolete flows.
+alwaysApply: true
+---
+
+# Product source of truth
+
+Read **`specs/PLATFORM_CONTEXT.md`** before changing flow, copy, schema, or screens. Delivery sequence: **`specs/BUILD-PLAN.md`**. When sources conflict, use PLATFORM_CONTEXT decision precedence (user-approved decisions → database + scan-first Stitch → current 11 local exports → old HLD/prototypes).
+
+## Do not regress
+
+- **I want to sell** = supplier intake. Vendor create/update only after explicit internal **Add to production**. AI must never approve.
+- **I want to buy** = fast customer inquiry. Contact + one requirement is enough; specs are optional. Do not restore the old mandatory pharmacopoeial/profile steps.
+- Scan-first: card front/back or **manual fallback** → confirm name, work email, mobile, country code → durable draft → route choice.
+- Card QR payloads are **internal only**. Never redirect, preview, or “open link.”
+- Pharmacopoeial standards: **IP, USP, BP, EP** only. **PP** is a typo — do not add it.
+- Location evidence is consented and separate from postal address. Do not collect location or raw IP silently.
+- Keep **Alpine Blue**. Do not copy hard-coded sample people/companies from `.stitch` HTML into the app.
+- Historic `.stitch/MASTER_TASKS.md`, old desktop mocks, and `raw/` diagrams are evidence, not current requirements.
+
+## Implementation honesty
+
+The visitor app in **`frontend/`** is a client-only prototype until a backend exists. Do not claim OCR, uploads, CRM, or vendor delivery are live. Taxonomy in `taxonomy.ts` is mock data. Java delivery: **`specs/BUILD-PLAN.md`**.

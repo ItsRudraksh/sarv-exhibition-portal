@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: exhibition-portal
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5433/exhibition_portal?currentSchema=exhibition_portal}
+    username: ${DATASOURCE_USERNAME:exhibition}
+    password: ${DATASOURCE_PASSWORD:exhibition}
+    hikari:
+      connection-init-sql: SET search_path TO exhibition_portal, public
+  flyway:
+    enabled: true
+    default-schema: exhibition_portal
+    schemas: exhibition_portal
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 21MB
+      max-request-size: 21MB
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+exhibition:
+  poc: true
+  default-campaign-id: 22222222-2222-4222-8222-222222222222
+  cors-origins:
+    - http://localhost:5173
+    - https://localhost:5173
+    - http://127.0.0.1:5173
+    - https://127.0.0.1:5173
+    - https://192.168.1.12:5173
+  storage-root: ${EXHIBITION_STORAGE_ROOT:./var/exhibition-files}
+  file-retention-days: 730
+  card-max-bytes: 10485760
+  catalogue-max-bytes: 20971520
+  consent-policy-version: card-extraction-v1
+  export-retention-hours: 24
+  outbox:
+    schedule-enabled: true
+    max-attempts: 5
+    backoff-seconds: 30
+    marketing-destination: poc-mailbox
+    vendor-destination: poc-vendor-stub
+    force-failure-code: ""

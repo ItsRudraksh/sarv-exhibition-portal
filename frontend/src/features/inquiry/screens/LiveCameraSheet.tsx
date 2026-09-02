@@ -15,13 +15,18 @@ export function LiveCameraSheet({
 }: LiveCameraSheetProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   const onUnavailableRef = useRef(onUnavailable)
-  onUnavailableRef.current = onUnavailable
 
   useEffect(() => {
+    onUnavailableRef.current = onUnavailable
+  }, [onUnavailable])
+
+  useEffect(() => {
+    if (!ready) return
     let cancelled = false
 
     const start = async () => {
@@ -56,7 +61,7 @@ export function LiveCameraSheet({
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }
-  }, [])
+  }, [ready])
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -85,31 +90,50 @@ export function LiveCameraSheet({
 
   return (
     <div className="camera-sheet" role="dialog" aria-modal="true" aria-label={copy.cardCapture.useCamera}>
-      <video
-        ref={videoRef}
-        className="camera-sheet__video"
-        playsInline
-        muted
-        autoPlay
-      />
-      {error ? (
-        <p className="camera-sheet__error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      <div className="camera-sheet__bar">
-        <button type="button" className="btn btn-secondary" onClick={handleCancel}>
-          {copy.common.back}
-        </button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => void handleCapture()}
-          disabled={busy}
-        >
-          {busy ? copy.cardCapture.processing : copy.cardCapture.takePhoto}
-        </button>
-      </div>
+      {!ready ? (
+        <div className="camera-sheet__bar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12, padding: 24 }}>
+          <p style={{ margin: 0, color: 'var(--color-pure-surface)' }}>
+            <strong style={{ display: 'block', marginBottom: 8 }}>{copy.cardCapture.cameraPermissionTitle}</strong>
+            {copy.cardCapture.cameraPermissionBody}
+          </p>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button type="button" className="btn btn-secondary" onClick={onCancel}>
+              {copy.common.back}
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => setReady(true)}>
+              {copy.cardCapture.cameraPermissionContinue}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <video
+            ref={videoRef}
+            className="camera-sheet__video"
+            playsInline
+            muted
+            autoPlay
+          />
+          {error ? (
+            <p className="camera-sheet__error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <div className="camera-sheet__bar">
+            <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+              {copy.common.back}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void handleCapture()}
+              disabled={busy}
+            >
+              {busy ? copy.cardCapture.processing : copy.cardCapture.takePhoto}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

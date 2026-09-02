@@ -1,0 +1,32 @@
+---
+description: Persist agent work in repo docs — chats are ephemeral; durable knowledge lives in versioned files.
+alwaysApply: true
+---
+
+# Chat-independent documentation
+
+**Chat transcripts are not the system of record.** Before finishing a substantive turn (code, design decisions, operational steps, investigation conclusions, or verification), the same material must exist in versioned files so deleting chats causes no unique loss.
+
+## What to update (this repo)
+
+| Kind of change | Write it here |
+|---|---|
+| Product / flow / policy | `specs/PLATFORM_CONTEXT.md` (decision precedence still applies) |
+| Data model | `specs/DATABASE-DESIGN.md` and `specs/exhibition_portal_schema.sql` |
+| Delivery sequence | `specs/BUILD-PLAN.md` |
+| Verification commands | `specs/TESTING.md` |
+| Visitor UI behaviour | `frontend/README.md`, `specs/FRONTEND_BUILD_PROMPT.md` if the contract changed, `frontend/src/features/inquiry/copy.ts` for visitor strings |
+| Visual system | `.stitch/DESIGN.md` only when the design system itself changed — do not restyle from stale HTML |
+
+A short dated subsection is enough. Do not leave “how to repeat this” only in chat.
+
+## Minimum bar
+
+If the only place a decision, command sequence, verification path, or “what we changed” lives is the chat thread, copy it into the matching file above.
+
+## Scope
+
+- Applies when the turn **changes** something durable (code, config, agreed behaviour, runbook, or non-obvious findings others must reuse).
+- Pure Q&A with no project impact does not require new files.
+- Does **not** authorize unsolicited doc spam. Pair with **post-change-testing-and-docs**.
+- If the user says **`delete this chat`**, also follow **delete-this-chat-handoff**.

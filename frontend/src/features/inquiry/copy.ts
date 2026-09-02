@@ -1,11 +1,11 @@
 export const copy = {
   appName: 'Sarv Biolabs Exhibition Portal',
   prototypeBanner:
-    'This is a client-only prototype. Draft data is stored in your browser and is not sent to a server.',
+    'POC: drafts are saved to the Java API when it is running. Otherwise they stay in this browser only.',
   cardCapture: {
     title: 'Start with your business card',
     subtitle:
-      'Capture both sides and we’ll fill in the details we can. You can review all extracted details before submitting.',
+      'Capture both sides if you have a card, or continue without one. Automatic text extraction is not on yet — you will confirm your contact details next.',
     frontLabel: 'Front side',
     backLabel: 'Back side',
     useCamera: 'Use camera',
@@ -16,11 +16,21 @@ export const copy = {
     continueWithout: 'Continue without a card',
     backLocked: 'Complete front side first',
     qrNote:
-      'If a QR code is present on your card, it would be stored with your inquiry for internal use only. This prototype does not read QR codes.',
-    cameraUnavailable: 'Camera capture is not available in this prototype. Use upload or continue manually.',
+      'If a QR code is present on your card, it is stored with your inquiry for internal use only. This app does not open or preview QR destinations.',
+    cameraUnavailable: 'Camera is not available here. Use upload or continue without a card.',
     processing: 'Preparing photo…',
     processingFailed:
       'Could not load that photo — it may be too large for this browser. Try again or use a smaller image.',
+    consentTitle: 'Store card images with this inquiry',
+    consentBody:
+      'Images are kept privately with this draft so the stall team can follow up. They are not published. Extraction is not on yet. You can continue without a card.',
+    consentGrant: 'I agree to store card images with this inquiry',
+    consentRequired: 'Agree to store the card, or continue without a card.',
+    cameraPermissionTitle: 'Camera access',
+    cameraPermissionBody:
+      'Your phone will ask for camera permission next. The photo is stored with this inquiry only. It is not posted publicly.',
+    cameraPermissionContinue: 'Allow camera',
+    uploading: 'Uploading…',
   },
   contact: {
     title: 'Check your contact details',
@@ -64,7 +74,7 @@ export const copy = {
     supplyCapability: 'Supply capability',
     supportingInfo: 'Supporting information',
     catalogue: 'Catalogue',
-    catalogueHint: 'PDF or image files (local selection only)',
+    catalogueHint: 'PDF or JPEG/PNG/WebP, stored privately with this inquiry',
     website: 'Website URL',
     websiteHint: 'Company or product page',
     websiteOrCatalogue: 'Add a catalogue or website — at least one is required. You can add both.',
@@ -110,9 +120,11 @@ export const copy = {
     edit: 'Edit',
     restart: 'Restart demo',
     restartConfirm: 'Clear saved draft and start over?',
+    receiptReference: 'Receipt reference',
     stepOf: (current: number, total: number) => `Step ${current} of ${total}`,
     savedAutomatically: 'Saved automatically',
     search: 'Search',
-    localFileOnly: 'Selected locally — not uploaded in this prototype',
+    localFileOnly: 'Selected on this device only — API is offline',
+    uploaded: 'Stored with this inquiry',
   },
 } as const

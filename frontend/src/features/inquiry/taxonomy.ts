@@ -9,48 +9,125 @@ export interface ProductType {
   departmentIds: string[]
 }
 
-/** Prototype taxonomy — replace with API-driven config in production. */
+/**
+ * POC seed IDs — must match backend V2__poc_seed.sql.
+ * Live taxonomy is loaded from GET /api/v1/taxonomy when the API is up.
+ */
 export const PROTOTYPE_DEPARTMENTS: Department[] = [
-  { id: 'phytochemicals', name: 'Phytochemicals' },
-  { id: 'oncology_apis', name: 'Oncology APIs' },
-  { id: 'specialty_apis', name: 'Specialty APIs' },
-  { id: 'advanced_intermediates', name: 'Advanced Intermediates' },
-  { id: 'herbal_extracts', name: 'Herbal Extracts' },
-  { id: 'research_development', name: 'Research & Development' },
+  { id: '10000000-0000-4000-8000-000000000001', name: 'Phytochemicals' },
+  { id: '10000000-0000-4000-8000-000000000002', name: 'Oncology APIs' },
+  { id: '10000000-0000-4000-8000-000000000003', name: 'Specialty APIs' },
+  { id: '10000000-0000-4000-8000-000000000004', name: 'Advanced Intermediates' },
+  { id: '10000000-0000-4000-8000-000000000005', name: 'Herbal Extracts' },
+  { id: '10000000-0000-4000-8000-000000000006', name: 'Research & Development' },
 ]
 
 export const PROTOTYPE_PRODUCT_TYPES: ProductType[] = [
-  { id: 'api_bulk', name: 'Bulk APIs', departmentIds: ['specialty_apis', 'oncology_apis'] },
-  { id: 'intermediates', name: 'Key Intermediates', departmentIds: ['advanced_intermediates', 'oncology_apis'] },
-  { id: 'phyto_extracts', name: 'Phyto Extracts', departmentIds: ['phytochemicals', 'herbal_extracts'] },
-  { id: 'oncology_finished', name: 'Oncology Products', departmentIds: ['oncology_apis'] },
-  { id: 'herbal_ingredients', name: 'Herbal Ingredients', departmentIds: ['herbal_extracts', 'phytochemicals'] },
-  { id: 'custom_synthesis', name: 'Custom Synthesis', departmentIds: ['research_development', 'advanced_intermediates'] },
-  { id: 'antibiotics', name: 'Antibiotics', departmentIds: ['specialty_apis'] },
-  { id: 'paclitaxel_docetaxel', name: 'Paclitaxel / Docetaxel Intermediates', departmentIds: ['oncology_apis', 'advanced_intermediates'] },
+  {
+    id: '20000000-0000-4000-8000-000000000001',
+    name: 'Bulk APIs',
+    departmentIds: [
+      '10000000-0000-4000-8000-000000000003',
+      '10000000-0000-4000-8000-000000000002',
+    ],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000002',
+    name: 'Key Intermediates',
+    departmentIds: [
+      '10000000-0000-4000-8000-000000000004',
+      '10000000-0000-4000-8000-000000000002',
+    ],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000003',
+    name: 'Phyto Extracts',
+    departmentIds: [
+      '10000000-0000-4000-8000-000000000001',
+      '10000000-0000-4000-8000-000000000005',
+    ],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000004',
+    name: 'Oncology Products',
+    departmentIds: ['10000000-0000-4000-8000-000000000002'],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000005',
+    name: 'Herbal Ingredients',
+    departmentIds: [
+      '10000000-0000-4000-8000-000000000005',
+      '10000000-0000-4000-8000-000000000001',
+    ],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000006',
+    name: 'Custom Synthesis',
+    departmentIds: [
+      '10000000-0000-4000-8000-000000000006',
+      '10000000-0000-4000-8000-000000000004',
+    ],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000007',
+    name: 'Antibiotics',
+    departmentIds: ['10000000-0000-4000-8000-000000000003'],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000008',
+    name: 'Paclitaxel / Docetaxel Intermediates',
+    departmentIds: [
+      '10000000-0000-4000-8000-000000000002',
+      '10000000-0000-4000-8000-000000000004',
+    ],
+  },
 ]
 
 export const PHARMACOPOEIAL_STANDARDS = ['IP', 'USP', 'BP', 'EP'] as const
 
+let liveDepartments: Department[] | null = null
+let liveProductTypes: ProductType[] | null = null
+
+export function setLiveTaxonomy(departments: Department[], productTypes: ProductType[]): void {
+  liveDepartments = departments
+  liveProductTypes = productTypes
+}
+
+function departments(): Department[] {
+  return liveDepartments ?? PROTOTYPE_DEPARTMENTS
+}
+
+function productTypes(): ProductType[] {
+  return liveProductTypes ?? PROTOTYPE_PRODUCT_TYPES
+}
+
+export function listDepartments(): Department[] {
+  return departments()
+}
+
+export function listProductTypes(): ProductType[] {
+  return productTypes()
+}
+
 export function getDepartmentsByIds(ids: string[]): Department[] {
-  return PROTOTYPE_DEPARTMENTS.filter((d) => ids.includes(d.id))
+  return departments().filter((d) => ids.includes(d.id))
 }
 
 export function getProductTypesForDepartments(departmentIds: string[]): ProductType[] {
   if (departmentIds.length === 0) return []
-  return PROTOTYPE_PRODUCT_TYPES.filter((pt) =>
+  return productTypes().filter((pt) =>
     pt.departmentIds.some((id) => departmentIds.includes(id)),
   )
 }
 
 export function getProductTypesByIds(ids: string[]): ProductType[] {
-  return PROTOTYPE_PRODUCT_TYPES.filter((pt) => ids.includes(pt.id))
+  return productTypes().filter((pt) => ids.includes(pt.id))
 }
 
 export function searchProductAreas(query: string): ProductType[] {
   const term = query.trim().toLowerCase()
   if (!term) return []
-  return PROTOTYPE_PRODUCT_TYPES.filter(
+  return productTypes().filter(
     (pt) =>
       pt.name.toLowerCase().includes(term) ||
       getDepartmentsByIds(pt.departmentIds).some((d) =>

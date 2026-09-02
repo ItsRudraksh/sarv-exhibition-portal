@@ -31,7 +31,7 @@ export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
     const fieldErrors = validateContact(draft.contact)
     setErrors(fieldErrors)
     if (Object.keys(fieldErrors).length === 0) {
-      advanceAfterContact()
+      void advanceAfterContact()
     }
   }
 
@@ -115,6 +115,11 @@ export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
         <Notice>
           <p>{copy.contact.savedNote}</p>
         </Notice>
+        {journey.submitError ? (
+          <p className="field-error" role="alert">
+            {journey.submitError}
+          </p>
+        ) : null}
       </main>
 
       <FixedFooter>

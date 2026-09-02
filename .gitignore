@@ -1,0 +1,22 @@
+# Java
+backend/target/
+*.class
+*.jar
+*.war
+.idea/
+*.iml
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+*.local
+.env
+
+# Local private file store (Phase 3)
+backend/var/

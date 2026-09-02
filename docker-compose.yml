@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: exhibition_portal
+      POSTGRES_USER: exhibition
+      POSTGRES_PASSWORD: exhibition
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U exhibition -d exhibition_portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - exhibition_pg:/var/lib/postgresql/data
+
+volumes:
+  exhibition_pg:

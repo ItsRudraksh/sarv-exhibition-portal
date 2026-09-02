@@ -1,5 +1,7 @@
 # Fresh-chat prompt: build the frontend
 
+> **Current implementation (1 Sep 2026):** The visitor app in `frontend/` talks to the Spring Boot API. Card and catalogue **uploads are live** (private disk + `file_assets`). OCR, QR decode, CRM, and vendor upsert are still not live. Use [PLATFORM_CONTEXT.md](PLATFORM_CONTEXT.md) and [BUILD-PLAN.md](BUILD-PLAN.md) as current product/delivery SSOT. The prompt below is the original client-only contract.
+
 Copy everything below into a fresh Codex chat opened at `C:\Coding\Sarv\Exhibition-Portal`.
 
 ---
@@ -27,15 +29,15 @@ Read/view the following completely before editing code. This is required to avoi
 
 ### Product, architecture, and data
 
-1. Read `PLATFORM_CONTEXT.md` **fully**, especially the decision-precedence, canonical visitor flow, non-regression rules, visual system, active-asset, database-baseline, and open-decision sections.
+1. Read `specs/PLATFORM_CONTEXT.md` **fully**, especially the decision-precedence, canonical visitor flow, non-regression rules, visual system, active-asset, database-baseline, and open-decision sections.
 2. Read `raw/ABOUT-PLATFORM.TXT`, `raw/tentative-user-flow.md`, and `raw/tentative-system-design.md` fully. The diagrams are historical, so do not revive their old mandatory buyer steps.
 3. Read the whole `raw/biotech-exhibition-inquiry-portal-hld.pdf`: extract text and render/view all pages, not just the text extraction. Use the PDF workflow/skill if it is available.
-4. Read `DATABASE-DESIGN.md` and `exhibition_portal_schema.sql` fully. The frontend should honour their input, state, consent, file, taxonomy, and lifecycle constraints even though it will use mock data locally.
+4. Read `specs/DATABASE-DESIGN.md` and `specs/exhibition_portal_schema.sql` fully. The frontend should honour their input, state, consent, file, taxonomy, and lifecycle constraints even though it will use mock data locally.
 5. Read `raw/sarvbiolabs-brochure.pdf` fully and visually inspect it. Use it only for factual brand/domain orientation, never to invent claims, data, commitments, or contact information in the UI.
 
 ### Design, visual evidence, and history
 
-6. Read `.stitch/DESIGN.md`, `.stitch/DESIGN.dark.md`, `.stitch/MASTER_TASKS.md`, and `.stitch/metadata.json` fully. `MASTER_TASKS.md` has stale historical entries; resolve conflicts according to the precedence in `PLATFORM_CONTEXT.md`.
+6. Read `.stitch/DESIGN.md`, `.stitch/DESIGN.dark.md`, `.stitch/MASTER_TASKS.md`, and `.stitch/metadata.json` fully. `MASTER_TASKS.md` has stale historical entries; resolve conflicts according to the precedence in `specs/PLATFORM_CONTEXT.md`.
 7. View every PNG in `.stitch/designs/final-flow-pngs/` at original resolution in numerical order (`001` through `011`). These are the canonical visual-flow references.
 8. Read the matching 11 HTML exports in `.stitch/designs/` to understand content hierarchy and interactions. They are design references only, not production code and not a license to retain their hard-coded sample values.
 9. View/read the original concept directions in `concepts/` and `raw/` (including `concepts/design-system-directions.png`, all three concept HTML pages, and the raw flow/system PNGs) so you understand what was selected versus superseded.

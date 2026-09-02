@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
-import type { CardFileMeta, CardSide } from '../types'
+import type { CardSide } from '../types'
 import {
   FixedFooter,
   Logo,
@@ -20,44 +20,47 @@ export interface CardCaptureScreenProps {
 }
 
 export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
-  const { draft, updateDraft, goToStep } = journey
+  const { draft, updateDraft, goToStep, uploadCard, declineCardConsent } = journey
   const fileRef = useRef<HTMLInputElement>(null)
   const pendingSideRef = useRef<CardSide>('front')
   const processingRef = useRef(false)
   const [processingSide, setProcessingSide] = useState<CardSide | null>(null)
   const [cameraSide, setCameraSide] = useState<CardSide | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [consentGranted, setConsentGranted] = useState(Boolean(draft.cardFront || draft.cardBack))
 
   const resetFileInput = () => {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const applyMeta = (side: CardSide, meta: CardFileMeta) => {
-    if (side === 'front') {
-      revokeCardPreview(draft.cardFront)
-      updateDraft({ cardFront: meta })
-      return
-    }
-    revokeCardPreview(draft.cardBack)
-    updateDraft({ cardBack: meta })
-  }
-
   const processBlob = async (side: CardSide, source: Blob) => {
     if (processingRef.current) return
+    if (!consentGranted) {
+      setError(copy.cardCapture.consentRequired)
+      return
+    }
     processingRef.current = true
     setError(null)
     setProcessingSide(side)
     try {
       const meta = await prepareImageForPreview(source)
-      applyMeta(side, meta)
-    } catch {
-      setError(copy.cardCapture.processingFailed)
+      await uploadCard(side, source, meta.name, meta)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : copy.cardCapture.processingFailed)
     } finally {
       processingRef.current = false
       setProcessingSide(null)
       setCameraSide(null)
       resetFileInput()
     }
+  }
+
+  const requireConsent = (action: () => void) => {
+    if (!consentGranted) {
+      setError(copy.cardCapture.consentRequired)
+      return
+    }
+    action()
   }
 
   const openFilePicker = (side: CardSide, mode: 'camera' | 'upload') => {
@@ -119,6 +122,22 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
           </p>
         </section>
 
+        <label className="notice" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <input
+            type="checkbox"
+            checked={consentGranted}
+            onChange={(e) => {
+              setConsentGranted(e.target.checked)
+              setError(null)
+            }}
+            style={{ width: 20, height: 20, marginTop: 2, flexShrink: 0 }}
+          />
+          <span>
+            <strong style={{ display: 'block', marginBottom: 4 }}>{copy.cardCapture.consentTitle}</strong>
+            {copy.cardCapture.consentBody}
+          </span>
+        </label>
+
         {error ? (
           <div className="notice notice--error" role="alert">
             <p>{error}</p>
@@ -130,8 +149,8 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
             label={copy.cardCapture.frontLabel}
             slotLabel="1 OF 2"
             file={draft.cardFront}
-            onCamera={() => openCamera('front')}
-            onUpload={() => openFilePicker('front', 'upload')}
+            onCamera={() => requireConsent(() => openCamera('front'))}
+            onUpload={() => requireConsent(() => openFilePicker('front', 'upload'))}
             onClear={() => clearPhoto('front')}
             active
             processing={processingSide === 'front'}
@@ -141,8 +160,8 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
             label={copy.cardCapture.backLabel}
             slotLabel="2 OF 2"
             file={draft.cardBack}
-            onCamera={() => openCamera('back')}
-            onUpload={() => openFilePicker('back', 'upload')}
+            onCamera={() => requireConsent(() => openCamera('back'))}
+            onUpload={() => requireConsent(() => openFilePicker('back', 'upload'))}
             onClear={() => clearPhoto('back')}
             active={frontReady}
             inactiveMessage={copy.cardCapture.backLocked}
@@ -166,7 +185,12 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
           <button
             type="button"
             className="btn-text"
-            onClick={() => goToStep('contact-confirm')}
+            onClick={() => {
+              void (async () => {
+                await declineCardConsent()
+                goToStep('contact-confirm')
+              })()
+            }}
             disabled={processingSide !== null}
           >
             {copy.cardCapture.continueWithout}

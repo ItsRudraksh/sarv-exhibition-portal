@@ -1,0 +1,23 @@
+---
+description: After code changes — lint/build, browser verification, and durable docs (overrides generic "skip markdown" for this repo).
+alwaysApply: true
+---
+
+# After every substantive code change
+
+Durable spec/README updates satisfy **chat-independent-documentation**. Do not rely on chat as the only record.
+
+## Bugs / broken behaviour
+
+**Reproduce** (failing test or browser repro first) → **fix at root cause** → **lint/build/tests** → **update docs**. No workaround-only patches.
+
+## Checklist
+
+1. **Automated (frontend):** From `frontend/`, run **`npm run lint`** and **`npm run build`**. Fix failures before finishing. When a unit/E2E suite exists, run it too. Command list: **`specs/TESTING.md`**.
+   - Lint/build does **not** prove the 11-screen journey. If you touch `frontend/src/**` screens, journey, validation, or styles, exercise the changed path in the browser, or state **Manual smoke required** with the exact screens (e.g. card capture → contact → I want to buy → submit).
+2. **Visitor-facing copy:** If labels, errors, confirmation text, or prototype-limit notices change, update **`frontend/src/features/inquiry/copy.ts`** in the same delivery. Do not invent operator About & Help JSON — this repo has no WAR help surface.
+3. **Docs:** When behaviour, flow, prototype limits, or validation change, update **`specs/PLATFORM_CONTEXT.md`**, **`frontend/README.md`**, and **`specs/DATABASE-DESIGN.md`** as applicable. Delivery sequence: **`specs/BUILD-PLAN.md`**. Treat this as requested documentation even if other habits say to avoid markdown edits.
+4. **Audit / persistence:** When adding or changing **persisted** inquiry, consent, file, review, export, or integration behaviour, follow **`specs/DATABASE-DESIGN.md`** (audit events, consent records, no silent vendor upsert). Document N/A for client-only prototype work.
+5. **Reply:** Tests/lint/build (pass/fail), docs touched, audit (logged / N/A + reason), **Verification** (browser / manual steps). See **runtime-parity-definition-of-done**.
+
+Skip tests/docs only if the user explicitly says so in that thread.

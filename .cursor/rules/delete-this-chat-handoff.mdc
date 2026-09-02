@@ -1,0 +1,25 @@
+---
+description: When the user says "delete this chat", finish durable docs + tests handoff before ending.
+alwaysApply: true
+---
+
+# "Delete this chat" — mandatory handoff
+
+When the user message **includes** `delete this chat` (case-insensitive), finish this checklist for **all substantive work in the current thread** before considering the session complete. Chats may be deleted immediately after.
+
+## Required actions (in order)
+
+1. **Inventory** — List features, fixes, decisions, and investigation conclusions others must reuse.
+2. **Durable docs** — Copy into:
+   - `specs/PLATFORM_CONTEXT.md` (product/flow/stage)
+   - `specs/BUILD-PLAN.md` when delivery sequence or stack changed
+   - `specs/DATABASE-DESIGN.md` / `specs/exhibition_portal_schema.sql` when data rules changed
+   - `frontend/README.md` and visitor `copy.ts` when the prototype behaviour or limits changed
+   - `specs/FRONTEND_BUILD_PROMPT.md` only if the implementation contract changed
+   - `specs/TESTING.md` when verification commands changed
+3. **Tests** — Add or extend regression tests for behaviour introduced or fixed. From `frontend/`: **`npm run lint`** and **`npm run build`**. If a test suite exists, run it and fix failures. UI changes: browser smoke or **Manual smoke required** with exact screens.
+4. **Reply** — Short handoff: docs touched (paths), tests/lint/build (pass/fail), audit impact (logged / N/A), **Verification** (browser / manual steps).
+
+Substantive turns should already have updated docs and tests. This signal is a final pass, not a reason to skip earlier turns.
+
+Pairs with **chat-independent-documentation**, **post-change-testing-and-docs**, and **runtime-parity-definition-of-done**.

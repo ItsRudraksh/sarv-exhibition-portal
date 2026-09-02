@@ -24,7 +24,7 @@ function formatSpecs(draft: InquiryJourney['draft']): string {
 }
 
 export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
-  const { draft, goBack, submit, goToStep } = journey
+  const { draft, goBack, submit, goToStep, submitting, submitError } = journey
   const fromCard = draft.cardFront !== null || draft.cardBack !== null
 
   return (
@@ -100,10 +100,17 @@ export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
         <Notice>
           <p>{copy.buyer.followUpNote}</p>
         </Notice>
+        {submitError ? (
+          <p className="field-error" role="alert">
+            {submitError}
+          </p>
+        ) : null}
       </main>
 
       <FixedFooter note={copy.buyer.savedUntilSubmit}>
-        <PrimaryButton onClick={submit}>{copy.buyer.submit}</PrimaryButton>
+        <PrimaryButton onClick={() => void submit()} disabled={submitting}>
+          {submitting ? 'Submitting…' : copy.buyer.submit}
+        </PrimaryButton>
       </FixedFooter>
     </div>
   )

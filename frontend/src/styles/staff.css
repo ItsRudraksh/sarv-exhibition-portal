@@ -1,0 +1,159 @@
+.staff-app {
+  min-height: 100svh;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 18px 64px;
+  font-family: var(--font-ui);
+  color: #e7f5f6;
+  background: #07171d;
+}
+
+.staff-header h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.staff-kicker {
+  margin: 0 0 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #55cfdf;
+}
+
+.staff-lede,
+.staff-hint,
+.staff-meta {
+  color: #a4bec4;
+}
+
+.staff-card,
+.staff-section,
+.staff-row {
+  background: #0d2932;
+  border: 1px solid #274b55;
+  border-radius: 10px;
+}
+
+.staff-card,
+.staff-section {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.staff-app label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.staff-app input,
+.staff-app textarea {
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid #274b55;
+  border-radius: 10px;
+  background: #0d2932;
+  color: #e7f5f6;
+  font: inherit;
+}
+
+.staff-app input:focus,
+.staff-app textarea:focus,
+.staff-app button:focus-visible {
+  outline: 2px solid #55cfdf;
+  outline-offset: 2px;
+}
+
+.staff-app button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: #55cfdf;
+  color: #07171d;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.staff-app button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.staff-secondary {
+  background: transparent !important;
+  color: #e7f5f6 !important;
+  box-shadow: inset 0 0 0 1px #274b55;
+}
+
+.staff-text-btn {
+  background: transparent !important;
+  color: #55cfdf !important;
+  min-height: 40px;
+  padding: 0;
+  width: fit-content;
+}
+
+.staff-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.staff-tabs button {
+  flex: 1;
+  background: #0d2932;
+  color: #e7f5f6;
+  box-shadow: inset 0 0 0 1px #274b55;
+}
+
+.staff-tabs button.is-active {
+  background: #123f4b;
+  color: #55cfdf;
+}
+
+.staff-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.staff-row {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.staff-row span,
+.staff-row strong {
+  display: block;
+}
+
+.staff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.staff-error {
+  color: #ffb4ab;
+  margin: 0;
+}
+
+.staff-ok {
+  color: #55cfdf;
+  margin: 0;
+}
+
+.staff-empty {
+  color: #a4bec4;
+}

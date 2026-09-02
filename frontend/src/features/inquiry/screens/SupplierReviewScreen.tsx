@@ -6,7 +6,6 @@ import {
   getProductTypesByIds,
 } from '../taxonomy'
 import { validateSupplierReview, formatPhone } from '../validation'
-import type { CardFileMeta } from '../types'
 import {
   AppHeader,
   FixedFooter,
@@ -20,8 +19,9 @@ export interface SupplierReviewScreenProps {
 }
 
 export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
-  const { draft, updateDraft, goBack, submit, goToStep } = journey
+  const { draft, updateDraft, goBack, submit, goToStep, submitting, submitError, uploadCatalogue, apiAvailable } = journey
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const departments = getDepartmentsByIds(draft.departmentIds)
@@ -29,26 +29,29 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
 
   const handleFile = (file: File | undefined) => {
     if (!file) return
-    const meta: CardFileMeta = {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    }
-    updateDraft({
-      supplier: { ...draft.supplier, catalogueFile: meta },
-    })
-    setErrors((e) => {
-      const next = { ...e }
-      delete next.catalogue
-      return next
-    })
+    setUploading(true)
+    void uploadCatalogue(file)
+      .then(() => {
+        setErrors((e) => {
+          const next = { ...e }
+          delete next.catalogue
+          return next
+        })
+      })
+      .catch((caught: unknown) => {
+        setErrors((e) => ({
+          ...e,
+          catalogue: caught instanceof Error ? caught.message : copy.cardCapture.processingFailed,
+        }))
+      })
+      .finally(() => setUploading(false))
   }
 
   const handleSubmit = () => {
     const fieldErrors = validateSupplierReview(draft.supplier)
     setErrors(fieldErrors)
     if (Object.keys(fieldErrors).length === 0) {
-      submit()
+      void submit()
     }
   }
 
@@ -98,7 +101,10 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
                   </p>
                   {draft.supplier.catalogueFile ? (
                     <p style={{ margin: '8px 0 0', fontSize: '0.875rem' }}>
-                      {draft.supplier.catalogueFile.name} — {copy.common.localFileOnly}
+                      {draft.supplier.catalogueFile.name} —{' '}
+                      {draft.supplier.catalogueFile.assetId || apiAvailable
+                        ? copy.common.uploaded
+                        : copy.common.localFileOnly}
                     </p>
                   ) : null}
                 </div>
@@ -106,9 +112,10 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
                   type="button"
                   className="btn btn-secondary"
                   style={{ width: 'auto', minHeight: 36, fontSize: '0.875rem' }}
+                  disabled={uploading}
                   onClick={() => fileRef.current?.click()}
                 >
-                  Add catalogue
+                  {uploading ? copy.cardCapture.uploading : 'Add catalogue'}
                 </button>
               </div>
               <input
@@ -137,6 +144,11 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
                 {errors.catalogue}
               </p>
             ) : null}
+            {submitError ? (
+              <p className="field-error" role="alert">
+                {submitError}
+              </p>
+            ) : null}
 
             <p className="field-hint">{copy.supplier.websiteOrCatalogue}</p>
           </div>
@@ -144,7 +156,9 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
       </main>
 
       <FixedFooter note={copy.supplier.reviewQueueNote}>
-        <PrimaryButton onClick={handleSubmit}>{copy.supplier.submit}</PrimaryButton>
+        <PrimaryButton onClick={handleSubmit} disabled={submitting}>
+          {submitting ? 'Submitting…' : copy.supplier.submit}
+        </PrimaryButton>
       </FixedFooter>
     </div>
   )

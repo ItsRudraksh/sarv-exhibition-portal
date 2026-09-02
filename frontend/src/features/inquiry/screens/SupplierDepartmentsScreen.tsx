@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
-import { PROTOTYPE_DEPARTMENTS, PROTOTYPE_PRODUCT_TYPES } from '../taxonomy'
+import { listDepartments, listProductTypes } from '../taxonomy'
 import { validateSupplierDepartments } from '../validation'
 import {
   AppHeader,
@@ -22,8 +22,8 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
-    if (!term) return PROTOTYPE_DEPARTMENTS
-    return PROTOTYPE_DEPARTMENTS.filter((d) =>
+    if (!term) return listDepartments()
+    return listDepartments().filter((d) =>
       d.name.toLowerCase().includes(term),
     )
   }, [search])
@@ -35,7 +35,7 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
     updateDraft({
       departmentIds: ids,
       productTypeIds: draft.productTypeIds.filter((ptId) => {
-        const pt = PROTOTYPE_PRODUCT_TYPES.find((p) => p.id === ptId)
+        const pt = listProductTypes().find((p) => p.id === ptId)
         return pt?.departmentIds.some((d) => ids.includes(d))
       }),
     })

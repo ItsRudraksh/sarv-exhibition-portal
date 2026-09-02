@@ -1,0 +1,21 @@
+---
+description: Close the gap between passing lint/tests and a working visitor portal (all stacks in this repo).
+alwaysApply: true
+---
+
+# Runtime parity — definition of done
+
+**Unit tests and `tsc` prove isolated logic.** They do not prove browser UI, camera/file capture, `localStorage` resume, or later API/serialization work.
+
+## Before you call a task “done”
+
+1. **Name the execution surface** you changed (visitor web UI, future HTTP API, schema, CLI, job).
+2. **Exercise that surface at least once**, not only the fastest check:
+   - **Visitor UI** (`frontend/`): walk the changed screen(s) in the browser at ~390px and a desktop width. Camera, upload, validation, back/resume, and submit paths that you touched must actually run.
+   - **HTTP API** (when a backend exists): integration test against the running app or a full Spring Boot slice — not a mocked controller-only claim that the portal “saves.”
+   - **Schema / pure domain:** SQL/review or unit tests may be enough.
+3. If you only ran `npm run lint` / `npm run build` for a UI change, **say so explicitly** and give exact manual steps (screen → action). Do **not** imply end-to-end verification.
+
+## Reply footer
+
+Include a short **Verification** line: which runtime path ran (browser, API, schema-only) or **Manual smoke required** + steps, plus env assumptions (Vite port, HTTPS for camera, LAN phone testing).

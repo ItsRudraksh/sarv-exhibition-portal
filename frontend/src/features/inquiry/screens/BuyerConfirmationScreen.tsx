@@ -39,6 +39,11 @@ export function BuyerConfirmationScreen({ journey }: BuyerConfirmationScreenProp
           <p className="screen-subtitle" style={{ margin: '0 auto' }}>
             {copy.buyer.confirmationBody}
           </p>
+          {draft.referenceCode ? (
+            <p className="field-hint" style={{ marginTop: 12 }}>
+              {copy.common.receiptReference}: {draft.referenceCode}
+            </p>
+          ) : null}
         </section>
 
         <div className="card section-gap">

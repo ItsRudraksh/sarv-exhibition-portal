@@ -2,8 +2,25 @@
 
 **Status:** Approved logical and physical design baseline  
 **Database:** PostgreSQL  
-**Application target:** Java Spring Boot, with Flyway migrations and an ORM chosen during implementation  
-**Scope:** Data design only. This document deliberately contains no migration, application, or integration implementation.
+**Application target:** Java Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
+**Scope:** Data design. The singleton DDL in this folder is the **full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
+**Delivery:** [BUILD-PLAN.md](BUILD-PLAN.md)
+
+### Scan-first / POC deviations (1 September 2026)
+
+These are required for the scan-first visitor flow. They are applied in Flyway V1. They are **not** yet reflected as `NOT NULL` drops in `exhibition_portal_schema.sql`.
+
+| Column | Singleton DDL | POC / scan-first |
+|---|---|---|
+| `inquiries.route` | `NOT NULL` (`SUPPLIER` / `PURCHASE`) | **Nullable** on draft until sell/buy. Required at submit. |
+| `inquiry_parties.company_name_submitted` | `NOT NULL` | **Nullable**. Buyer company must not block submit. Supplier company is still required by service rules. |
+| Consent uniqueness vs revocation | One current row *and* revocation as a new event | **Append-only.** Current consent is the latest row by `decided_at` per `(inquiry_id, purpose)`. Never UPDATE a prior GRANT/DECLINE. |
+| `app_users.password_hash` | Not in singleton DDL (SSO `external_subject`) | **POC V4** local HTTP Basic. |
+| `export_jobs` file pointer | `file_asset_id` (requires `inquiries`) | **POC V4** `storage_key` on disk; exports are not one inquiry. |
+
+`EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems.
+
+POC **audit:** `workflow_events` on create/submit/review/outbox. **V3–V5:** `audit_events` also on file, consent, Add to production, reject, export, and outbox enqueue/retry/success/fail. Metadata must not include email, phone, or filenames.
 
 ## 1. Design outcome
 
@@ -105,7 +122,7 @@ The top-level record for every public journey. It persists even when a downstrea
 |---|---|---|
 | `id` | `uuid` | Primary key. |
 | `reference_code` | `text` | Unique visitor-facing confirmation reference. |
-| `route` | `text` | `SUPPLIER` or `PURCHASE`; immutable after first submission. |
+| `route` | `text` | `SUPPLIER` or `PURCHASE`; immutable after first submission. **POC:** nullable until the visitor chooses a route. |
 | `entry_channel` | `text` | `EXHIBITION_QR`, `WEBSITE`, `DIRECT`, or future approved channel. |
 | `qr_campaign_id` | `uuid` | Nullable FK to `qr_campaigns`. |
 | `exhibition_id` | `uuid` | Nullable FK to `exhibitions`; copied from the campaign at creation for durable attribution. |
@@ -153,7 +170,7 @@ An immutable submitted snapshot of the individual and company details. This prot
 | `inquiry_id` | `uuid` | Required FK to `inquiries`. |
 | `role` | `text` | `SUPPLIER_CONTACT` or `BUYER_CONTACT`; unique per inquiry for the initial release. |
 | `organization_id`, `contact_id` | `uuid` | Nullable FK links after matching/review. |
-| `company_name_submitted` | `text` | Required. |
+| `company_name_submitted` | `text` | Required for supplier submit. **POC:** nullable so a buyer without a company can submit. |
 | `person_name_submitted` | `text` | Required. |
 | `email_submitted` | `text` | Required. |
 | `email_normalized` | `text` | Required comparison key. |
@@ -356,7 +373,7 @@ Consent is a record, not a boolean on the inquiry. This retains the wording vers
 | `decided_at` | `timestamptz` | Required. |
 | `revoked_at` | `timestamptz` | Nullable. |
 
-**Constraint:** one current record per `(inquiry_id, purpose, policy_version)`; revocation is a new event, not an overwrite.
+**Constraint:** append-only inserts. Current consent for a purpose is the latest `decided_at` row. Revocation inserts `REVOKED` with `revoked_at`; prior GRANT/DECLINE rows are not updated. Applied in Flyway V3.
 
 ### `location_evidence`
 
@@ -401,7 +418,7 @@ The portal authorizes internal staff; visitor authentication is not needed for t
 
 | Table | Essential columns | Constraints |
 |---|---|---|
-| `app_users` | `id`, `external_subject`, `email_normalized`, `display_name`, `status` | `external_subject` and normalized email are unique. |
+| `app_users` | `id`, `external_subject`, `email_normalized`, `display_name`, `status` | `external_subject` and normalized email are unique. **POC V4** also has `password_hash` for local HTTP Basic (`{noop}…`). Replace with SSO; do not ship noop hashes. |
 | `roles` | `id`, `code`, `name` | Codes include `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`, and `TAXONOMY_MANAGER`. |
 | `user_roles` | `user_id`, `role_id` | Composite primary key. |
 
@@ -456,7 +473,7 @@ An export is a controlled, auditable generated file rather than a direct table d
 | `scope` | `text` | `PURCHASE_LEADS`, `SUPPLIER_INQUIRIES`, or approved future scope. |
 | `filter_summary` | `jsonb` | Narrow technical snapshot of approved filter inputs; not a source of business truth. |
 | `state` | `text` | `QUEUED`, `GENERATING`, `READY`, `FAILED`, or `EXPIRED`. |
-| `file_asset_id` | `uuid` | Nullable FK to `file_assets` for the generated xlsx. |
+| `file_asset_id` | `uuid` | Nullable FK to `file_assets` for the generated xlsx. **POC V4** uses `storage_key` instead because `file_assets.inquiry_id` is required. |
 | `expires_at`, `generated_at` | `timestamptz` | Required expiry and nullable completion time. |
 
 ### `audit_events`
@@ -505,9 +522,11 @@ The initial migration set should create at least the following, in addition to p
 
 ## 12. Delivery sequence after this design
 
+The sequenced Java + React plan is **[BUILD-PLAN.md](BUILD-PLAN.md)**. In short:
+
 1. Confirm the legal/privacy wording and retention periods, especially for location, business-card images, and voice data.
 2. Define the initial admin taxonomy: departments, their valid product types, Sarv product catalogue entries, and supported pharmacopoeial standards.
-3. Produce an ERD and PostgreSQL/Flyway migration plan from this document.
+3. Apply BUILD-PLAN §3 schema fixes, then produce Flyway migrations from this document (do not apply the singleton DDL as production V1).
 4. Implement the supplier and purchase flows, then add asynchronous catalogue processing and integration outbox workers.
 5. Add CRM/vendor platform mappings only after their API, identity-match, and ownership rules are confirmed.
 

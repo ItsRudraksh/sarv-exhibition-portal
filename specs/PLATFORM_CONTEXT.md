@@ -2,9 +2,9 @@
 
 > **Purpose:** This is the durable handoff for any future AI agent, designer, developer, or stakeholder working on the portal. It consolidates the accessible project conversations, source material, HLD, database design, Stitch work, local exported screens, and local skills.
 >
-> **Assembled:** 21 August 2026
+> **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** Product definition, HLD, database design, and high-fidelity visitor-flow prototypes are complete. There is **no application implementation in this workspace yet**: no React/Vite project, Spring Boot service, package manifest, migration project, or deployed integration.
+> **Current stage:** Phases 1–5 are running: visitor API, files/consent/audit, `/staff` review, and an **outbox** that stubs mailbox/vendor delivery. OCR and live CRM/vendor APIs are **not** live. Delivery sequence: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -299,10 +299,12 @@ The original local design cleanup removed obsolete local exports and preserved t
 - **Database:** PostgreSQL (confirmed).
 - **Backend target:** Java Spring Boot.
 - **Migrations:** Flyway.
-- **ORM:** intentionally replaceable / to be chosen at implementation time; the logical design does not depend on a particular ORM.
-- **Frontend intent:** React for the eventual full-stack portal was stated in the original concept. No frontend repository has been scaffolded here yet.
+- **ORM:** POC uses JDBC (`JdbcClient`); still replaceable later. The logical design does not depend on a particular ORM.
+- **Frontend:** React 19 + TypeScript + Vite in `frontend/`; POC talks to `/api/v1` with `localStorage` fallback.
+- **POC API:** `backend/` Spring Boot 3.5, Flyway V1–V2. Run notes: `backend/README.md`.
+- **Delivery plan:** [BUILD-PLAN.md](BUILD-PLAN.md).
 
-The database design is approved as a logical/physical baseline in `DATABASE-DESIGN.md`. The one-file PostgreSQL DDL is `exhibition_portal_schema.sql`; its historical task report says it was validated against PostgreSQL 18 in a rolled-back transaction, so no validation schema/data was persisted.
+The database design is approved as a logical/physical baseline in [DATABASE-DESIGN.md](DATABASE-DESIGN.md). The one-file PostgreSQL DDL is [exhibition_portal_schema.sql](exhibition_portal_schema.sql); its historical task report says it was validated against PostgreSQL 18 in a rolled-back transaction, so no validation schema/data was persisted.
 
 ### Database model in plain language
 
@@ -343,13 +345,16 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 - Alpine Blue light and dark design systems.
 - Stitch project, logo/design-system upload, design tracker, and final local mobile screen exports.
 - Scan-first UX revision, approved screen-by-screen except the final buyer-confirmation tracker nuance above.
-- Approved PostgreSQL database design and a single full DDL file.
+- Approved PostgreSQL database design and a single full DDL file (now under `specs/`).
+- Visitor-flow React app (`frontend/`) covering the 11 scan-first screens, wired to the POC API with `localStorage` fallback.
+- Java 21 Spring Boot POC (`backend/`): Flyway V1–V2, JDBC draft/submit + taxonomy API, `workflow_events` on create/submit.
 - Project-local skill set for database work, Stitch design workflows, React/Vite/dashboard work, shadcn, static extraction, and Remotion walkthroughs.
+- Phased Java/React build plan: [BUILD-PLAN.md](BUILD-PLAN.md).
 
 ### Not implemented or not finalised
 
-- No working web application, authenticated admin portal, API, tests, deployment, database migration project, object-storage integration, OCR/AI provider, CRM connector, or enterprise-vendor connector.
-- Internal/admin screens are not designed/approved. Required surfaces are supplier review queue, supplier record review with explicit Add to production, and buyer-lead queue/controlled export.
+- No cloud object-storage provider, OCR/AI provider, live CRM product, or live enterprise-vendor API. Outbox stubs write local JSON only.
+- Internal/admin screens exist as a POC at `/staff` (Alpine Blue After Dark). Not a designed Stitch admin suite. Required later: richer supplier record, Excel workbook export, SSO.
 - Final design approval of the revised buyer confirmation should be confirmed/documented.
 - Desktop counterparts need scan-first alignment only where the old screens actually conflict.
 - Business-owned configuration has not been supplied: definitive department list, department-to-product-type map, product catalogue source, mandatory fields, and final standards/labels.
@@ -357,12 +362,12 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 
 ## 11. Recommended implementation sequence
 
-This is a recommendation based on the approved material, not a request to start automatically.
+The canonical sequenced plan is **[BUILD-PLAN.md](BUILD-PLAN.md)**. Summary:
 
 1. Resolve the open business/operational decisions in section 12 and finish approval of buyer confirmation.
-2. Turn `exhibition_portal_schema.sql` into versioned Flyway migrations only after deciding deployment/environment conventions.
-3. Build the visitor portal mobile-first, using the scan-first flow and reliable server-side draft persistence before adding complex integrations.
-4. Implement taxonomy/configuration administration or seed a controlled initial taxonomy; never hard-code temporary sample labels into the visitor UI.
+2. **POC done:** Flyway V1–V2 with BUILD-PLAN §3 scan-first fixes on the inquiry subset. Do not load `exhibition_portal_schema.sql` as V1; expand Flyway toward the full target as later phases need tables.
+3. **POC done for draft persistence:** visitor app + server draft/submit. Remaining visitor work: files, shared-device isolation, camera-permission copy, self-hosted fonts.
+4. Replace the POC taxonomy seed with a business-owned list; never hard-code stall-specific sample labels as if they were production configuration.
 5. Implement secure file-upload/storage/scan/derivative processing and consent/audit primitives early.
 6. Build authenticated internal queues and human supplier approval before enabling enterprise vendor delivery.
 7. Add a durable outbox/retry worker for CRM/lead and vendor integrations. Add controlled Excel export as a job, not a raw download.
@@ -406,7 +411,10 @@ No skill changes the product requirements above. They are implementation tools, 
 
 | Path | What it is / why it matters |
 | --- | --- |
-| `PLATFORM_CONTEXT.md` | This durable consolidated handoff. |
+| `specs/README.md` | Specs index and read order. |
+| `specs/PLATFORM_CONTEXT.md` | This durable consolidated handoff. |
+| `specs/BUILD-PLAN.md` | Java Spring Boot + React delivery phases. |
+| `specs/TESTING.md` | Lint, build, and smoke verification. |
 | `raw/ABOUT-PLATFORM.TXT` | Original detailed verbal concept: exhibition QR, two routes, AI assist, location, files, admin, lead routing, and later normal inquiry reuse. |
 | `raw/tentative-user-flow.md` and `.png` | Original (now partly superseded) user/operations flow. |
 | `raw/tentative-system-design.md` and `.png` | Original logical system-flow diagram. |
@@ -419,8 +427,11 @@ No skill changes the product requirements above. They are implementation tools, 
 | `.stitch/metadata.json` | Stitch project IDs/assets/tracking; contains the current visibility conflict noted above. |
 | `.stitch/designs/` | Current local final HTML/PNG pairs, logo, and ordered `final-flow-pngs/`. |
 | `concepts/` | The three pre-approval visual direction HTMLs and a comparison image. |
-| `DATABASE-DESIGN.md` | Approved PostgreSQL logical/physical database baseline. |
-| `exhibition_portal_schema.sql` | Complete singleton PostgreSQL DDL: schema, tables, constraints, indexes, triggers, roles, and standards. |
+| `specs/DATABASE-DESIGN.md` | Approved PostgreSQL logical/physical database baseline. |
+| `specs/exhibition_portal_schema.sql` | Complete singleton PostgreSQL DDL: schema, tables, constraints, indexes, triggers, roles, and standards. |
+| `specs/FRONTEND_BUILD_PROMPT.md` | Historical visitor-frontend implementation contract. |
+| `frontend/` | React + Vite visitor app; HTTP to the Java POC with local fallback. |
+| `backend/` | Spring Boot POC (draft/submit + taxonomy). |
 | `.agents/skills/` and `skills-lock.json` | Project-local agent capabilities and pinned sources. |
 
 ### Accessible conversation history used for this consolidation
@@ -442,10 +453,11 @@ Use this compact brief when starting implementation or the next design phase:
 ```text
 You are working on the Sarv Biolabs Exhibition Portal.
 
-Read PLATFORM_CONTEXT.md first, then read only the primary files relevant to the requested task:
+Read specs/PLATFORM_CONTEXT.md first, then specs/BUILD-PLAN.md, then only the primary files relevant to the requested task:
 - product/architecture: raw/biotech-exhibition-inquiry-portal-hld.pdf and raw/ABOUT-PLATFORM.TXT
-- data: DATABASE-DESIGN.md and exhibition_portal_schema.sql
+- data: specs/DATABASE-DESIGN.md and specs/exhibition_portal_schema.sql
 - visual/UI: .stitch/DESIGN.md, .stitch/DESIGN.dark.md, .stitch/metadata.json, and .stitch/designs/final-flow-pngs/
+- visitor code: frontend/
 
 Non-negotiables:
 - It is one reusable QR-exhibition and normal-web inquiry portal.
@@ -455,9 +467,11 @@ Non-negotiables:
 - QR detected on a card is saved internally only; never redirect/expose it to the visitor.
 - AI/voice/card scan are optional, consented, reviewable assists; manual fallback is mandatory; AI cannot make business decisions.
 - Follow HLD/database consent and audit rules. Do not copy stale legacy labels from old desktop/prototype screens into requirements.
-- Keep the approved Alpine Blue system. Do not restyle or add generic dashboard/marketing patterns unless explicitly asked.
-- No app code exists yet. Do not claim a feature is implemented merely because a Stitch prototype/DDL exists.
+- Keep the approved Alpine Blue system. Staff uses Alpine Blue After Dark at `/staff`. Do not restyle or add generic dashboard/marketing patterns unless explicitly asked.
+- Visitor UI is a React app in frontend/ wired to the Java API. Staff is a separate `/staff` route. Do not claim OCR or a live CRM/vendor API. Outbox stubs are local JSON files. Card/catalogue files are stored privately when the API is up. Add to production enqueues vendor delivery only.
 
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
+
+**Changelog — 1 Sep 2026:** Specs in `specs/`. Phases 1–5: visitor API, files, consent, staff review, `integration_deliveries` outbox stubs. Build sequence: [BUILD-PLAN.md](BUILD-PLAN.md). Verification: [TESTING.md](TESTING.md).
 

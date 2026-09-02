@@ -21,6 +21,16 @@ export function InquiryApp() {
     }
   }
 
+  if (!journey.ready) {
+    return (
+      <div className="portal-viewport">
+        <p className="screen-subtitle" style={{ padding: 24 }}>
+          Loading inquiry…
+        </p>
+      </div>
+    )
+  }
+
   const screen = (() => {
     switch (journey.draft.currentStep) {
       case 'card-capture':
@@ -60,6 +70,11 @@ export function InquiryApp() {
       <p className="sr-only" role="status">
         {copy.prototypeBanner}
       </p>
+      {!journey.apiAvailable ? (
+        <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }}>
+          {copy.prototypeBanner}
+        </p>
+      ) : null}
       <div className="portal-viewport">{screen}</div>
     </>
   )
