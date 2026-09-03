@@ -57,6 +57,10 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                 if (Test-Path -LiteralPath \$verifySrc) {
                     Copy-Item -LiteralPath \$verifySrc -Destination (Join-Path \$installDir 'verify-staging.ps1') -Force
                 }
+                \$verifyCmd = Join-Path \$workspace 'deploy\\windows\\verify-staging.cmd'
+                if (Test-Path -LiteralPath \$verifyCmd) {
+                    Copy-Item -LiteralPath \$verifyCmd -Destination (Join-Path \$installDir 'verify-staging.cmd') -Force
+                }
 
                 \$envTarget = Join-Path \$installDir 'portal.env.ps1'
                 \$envExample = Join-Path \$workspace 'deploy\\windows\\portal.env.example.ps1'

@@ -45,13 +45,12 @@ Does **not** print passwords. The 15:33 Jenkins failure is this script’s FAIL 
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-# After the next Jenkins copy:
-powershell -NoProfile -ExecutionPolicy Bypass -File C:\exhibition-portal-staging\verify-staging.ps1
-# Or from a git clone:
-.\deploy\windows\verify-staging.ps1
+cd C:\exhibition-portal-staging
+.\verify-staging.ps1
+# or: C:\exhibition-portal-staging\verify-staging.cmd
 ```
 
-Paste the full console (RESULT line included) into chat.
+Paste **one** command, then Enter. Do not paste the same line twice (PowerShell joins them into `verify-staging.ps1powershell` and fails). From a git clone: `.\deploy\windows\verify-staging.ps1`. Paste the full console (RESULT line included) into chat.
 
 ## One-time host setup
 

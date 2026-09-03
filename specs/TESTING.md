@@ -56,7 +56,7 @@ Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Jav
 
 **Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the bootstrap password. MySQL must not be reachable on the public IP.
 
-**Staging host diagnose:** `deploy/windows/verify-staging.ps1` (or `C:\exhibition-portal-staging\verify-staging.ps1` after Jenkins copies it). Paste the console; it never prints password values. The 15:33 pipeline FAIL was placeholder `change-me-*` in `portal.env.ps1`.
+**Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. The 15:33 and later pipeline FAIL is placeholder `change-me-*` in `portal.env.ps1` while the service exists and is Stopped.
 
 ## Reply footer (agents)
 
