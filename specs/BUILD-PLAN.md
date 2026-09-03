@@ -1,7 +1,7 @@
 # Exhibition Portal — project build plan
 
 **Status:** Phases 1–5 **implemented** (POC through outbox). OCR and live CRM/vendor APIs are not started.  
-**Updated:** 1 September 2026  
+**Updated:** 3 September 2026  
 **Product SSOT:** [PLATFORM_CONTEXT.md](PLATFORM_CONTEXT.md)  
 **Data SSOT:** [DATABASE-DESIGN.md](DATABASE-DESIGN.md), [exhibition_portal_schema.sql](exhibition_portal_schema.sql)  
 **Applied schema:** `backend/src/main/resources/db/migration/` (Flyway V1–V5)  
@@ -15,13 +15,13 @@ This is the build sequence for a **Java Spring Boot** backend plus the existing 
 |---|---|
 | Product / HLD | Approved scan-first visitor flow |
 | Design | Alpine Blue; 11 mobile screens |
-| PostgreSQL design | Approved full DDL in this folder; **POC applies a subset** via Flyway (see §3) |
+| PostgreSQL singleton DDL | Historical full DDL in this folder; **not applied**. POC applies a MySQL subset via Flyway (see §3) |
 | Visitor UI | React 19 + TypeScript + Vite in `frontend/`; HTTP adapter to Java with `localStorage` fallback |
-| Backend | **Running:** `backend/` Spring Boot 3.5, Java 21, JDBC, Flyway V1–V5, visitor API + staff + outbox worker |
-| Admin UI | **POC:** `https://localhost:5173/staff` (Alpine Blue After Dark). Not bolted into the visitor inquiry shell. |
+| Backend | **Running:** `backend/` Spring Boot 3.5, **Java 17**, JDBC, Flyway V1–V5, visitor API + staff + outbox worker |
+| Admin UI | **POC:** `/staff` (Alpine Blue After Dark), local Vite or same-origin from the packaged JAR. Not bolted into the visitor inquiry shell. |
 | CRM / vendor / OCR | Deferred until providers are chosen |
 
-How to run the POC: [backend/README.md](../backend/README.md). API `http://localhost:8080`, UI `https://localhost:5173` (Vite proxies `/api`).
+How to run the POC: [backend/README.md](../backend/README.md). API `http://localhost:8080`, UI `https://localhost:5173` (Vite proxies `/api`). Public Windows Server: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) (`http://43.225.195.200/` — Java 17 JAR + Jenkins, native MySQL 8 on 3306, no Docker, no Vite).
 
 POC **does not** include: OCR, a real CRM product, or a real vendor ERP API. Outbox destinations are local stubs (`poc-mailbox`, `poc-vendor-stub`).
 
@@ -30,11 +30,11 @@ POC **does not** include: OCR, a real CRM product, or a real vendor ERP API. Out
 | Concern | Choice |
 |---|---|
 | Visitor UI | React 19 + TypeScript + Vite (existing `frontend/`) |
-| Backend | **Java 21**, **Spring Boot 3.x** (Web, Validation, Security) |
-| Persistence | PostgreSQL; **Flyway** migrations derived from `exhibition_portal_schema.sql` |
+| Backend | **Java 17**, **Spring Boot 3.x** (Web, Validation, Security) — same JDK line as pharma-erp |
+| Persistence | **MySQL 8** (same engine as pharma-erp); **Flyway** migrations. Logical entities still match [DATABASE-DESIGN.md](DATABASE-DESIGN.md); do not load `exhibition_portal_schema.sql`. |
 | ORM | **POC uses JDBC** (`JdbcClient`). Spring Data JPA (or another Java ORM) remains replaceable later |
 | API | JSON REST under `/api/v1` (HTTPS) |
-| Files | Local private directory for now (`./var/exhibition-files`). PostgreSQL holds `file_assets` metadata only. Object-storage provider is still an open decision. |
+| Files | Local private directory for now (`./var/exhibition-files`). MySQL holds `file_assets` metadata only. Object-storage provider is still an open decision. |
 | Auth (visitors) | No visitor login for the pilot; draft identity is the confirmed contact + server-issued draft id |
 | Auth (staff) | Internal users via `app_users` / roles (`ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`, `TAXONOMY_MANAGER`) |
 | Async | Outbox table `integration_deliveries` + scheduled worker |
@@ -52,7 +52,8 @@ sarv-exhibition-portal/
     src/main/resources/application.yml
     src/main/resources/db/migration/   # Flyway V1+
     src/test/java/
-  docker-compose.yml     # Postgres 16 on host port 5433 (local run, not required for mvn test)
+  Jenkinsfile             # Checkout, npm, mvn (Java17/Maven3), Windows service deploy
+  deploy/windows/        # Public Windows Server + Jenkins service scripts
 ```
 
 Java package `com.sarv.exhibitionportal` is a placeholder until Sarv confirms the Maven `groupId`.
@@ -83,11 +84,10 @@ Do not start a later phase’s integrations until the earlier phase’s DoD is m
 
 ### Phase 1 — Java service skeleton (**POC done**)
 
-- `backend/` Spring Boot app with health endpoint, Flyway, PostgreSQL.
+- `backend/` Spring Boot app with health endpoint, Flyway, MySQL.
 - Versioned migrations with §3 fixes (POC subset, not the full singleton DDL).
 - Package layout started: `inquiry`, `taxonomy`, `api`, `config`. Remaining packages wait for later phases.
-- Dev compose: `docker-compose.yml` (Postgres **5433**, user/db/password `exhibition`).
-- `mvn test` uses **embedded PostgreSQL** (Zonky); Docker Desktop is **not** required for tests.
+- Native MySQL 8 on **3306** for `mvn spring-boot:run` / Jenkins. `mvn test` uses **embedded MariaDB** (mariaDB4j); Docker is **not** required.
 
 **DoD met:** `mvn test` passes; schema applies on a clean database.
 
@@ -111,7 +111,7 @@ Visitor API:
 
 ### Phase 3 — Files, consent, audit (**done**)
 
-Visitor uploads are scoped to the draft id (no visitor login). Bytes go to a **local private directory**; PostgreSQL stores `file_assets` only.
+Visitor uploads are scoped to the draft id (no visitor login). Bytes go to a **local private directory**; MySQL stores `file_assets` only.
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -126,7 +126,7 @@ Consent: `BUSINESS_CARD_EXTRACTION` granted on card upload, declined on continue
 
 Audit: `audit_events` on create, contact confirm, submit, file upload, scan reject, and consent. No PII in `metadata`. `workflow_events` still on create/submit.
 
-**DoD met:** Catalogue/card bytes never in PostgreSQL; failed content check does not delete the stored original; `INQUIRY_SUBMITTED` audit exists. Derived catalogue PDF and ClamAV are **not** in this phase.
+**DoD met:** Catalogue/card bytes never in MySQL; failed content check does not delete the stored original; `INQUIRY_SUBMITTED` audit exists. Derived catalogue PDF and ClamAV are **not** in this phase.
 
 ### Phase 4 — Internal admin (**POC done**)
 
@@ -189,3 +189,9 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 ---
 
 **Chat-independent reference — Phase 5 (2026-09-01):** Flyway V5 `integration_deliveries`. Buyer submit enqueues `MARKETING_LEAD`; Add to production enqueues `VENDOR_UPSERT`. Worker writes stub JSON; retries; never drops the inquiry. Tests: `OutboxApiTest`, `OutboxRetryApiTest`.
+
+**Chat-independent reference — Windows public IP (2026-09-02):** Visitor UI is packaged into the Spring Boot JAR (`with-frontend` when `frontend/dist` exists). Prod profile binds port 80, CORS origin `http://43.225.195.200`, SPA forward for `/staff`. `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` rotates ACTIVE `app_users` hashes. Runbook: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md). In-page camera still needs HTTPS.
+
+**Chat-independent reference — Java 17 + Jenkins (2026-09-03):** Target JDK is **17** (Windows Server `17.0.18`), same Jenkins tool ids as pharma-erp (`Java17`, `Maven3`). Pipeline: npm in `frontend/` then `mvn` in `backend/`; `dev` → `exhibition-portal-staging`, `main` → `exhibition-portal` Windows services. Docker is not part of deploy.
+
+**Chat-independent reference — MySQL 8 (2026-09-03):** Applied store is **MySQL 8** on **3306** (same engine as pharma-erp). Flyway V1–V5 is MySQL/MariaDB DDL (`CHAR(36)` UUIDs, `DATETIME(6)`, `JSON`). `mvn test` uses embedded MariaDB (mariaDB4j). `exhibition_portal_schema.sql` remains a historical PostgreSQL singleton and must not be loaded. Create the host database with `deploy/windows/init-mysql.sql`.

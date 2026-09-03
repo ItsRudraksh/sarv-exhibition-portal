@@ -15,8 +15,15 @@ public record ExhibitionProperties(
         long catalogueMaxBytes,
         String consentPolicyVersion,
         int exportRetentionHours,
-        Outbox outbox
+        Outbox outbox,
+        String staffBootstrapPassword
 ) {
+    public ExhibitionProperties {
+        if (staffBootstrapPassword == null) {
+            staffBootstrapPassword = "";
+        }
+    }
+
     public record Outbox(
             boolean scheduleEnabled,
             int maxAttempts,

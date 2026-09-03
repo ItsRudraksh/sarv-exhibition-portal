@@ -9,23 +9,17 @@ import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.api.dto.SupplierDto;
 import com.sarv.exhibitionportal.api.dto.SupplierReviewDto;
 import com.sarv.exhibitionportal.outbox.OutboxService;
-import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureEmbeddedDatabase(
-        type = AutoConfigureEmbeddedDatabase.DatabaseType.POSTGRES,
-        provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY)
-class OutboxApiTest {
+class OutboxApiTest extends MysqlSpringBootTest {
 
     @Autowired
     private TestRestTemplate rest;

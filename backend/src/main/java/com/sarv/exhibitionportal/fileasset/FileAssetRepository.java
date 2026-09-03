@@ -1,6 +1,7 @@
 package com.sarv.exhibitionportal.fileasset;
 
 import com.sarv.exhibitionportal.api.dto.FileAssetDto;
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -26,18 +27,18 @@ public class FileAssetRepository {
                      :scan, :proc, :retain
                  )
                  """)
-                .param("id", row.id())
-                .param("inquiry", row.inquiryId())
-                .param("bundle", row.catalogueBundleId())
-                .param("purpose", row.purpose())
-                .param("name", row.originalFilename())
-                .param("type", row.mediaType())
-                .param("size", row.byteSize())
-                .param("sha", row.sha256())
-                .param("key", row.storageKey())
-                .param("scan", row.securityScanState())
-                .param("proc", row.processingState())
-                .param("retain", java.sql.Timestamp.from(row.retentionUntil()))
+                .param("id", JdbcUuids.mysql(row.id()))
+                .param("inquiry", JdbcUuids.mysql(row.inquiryId()))
+                .param("bundle", JdbcUuids.mysql(row.catalogueBundleId()))
+                .param("purpose", JdbcUuids.mysql(row.purpose()))
+                .param("name", JdbcUuids.mysql(row.originalFilename()))
+                .param("type", JdbcUuids.mysql(row.mediaType()))
+                .param("size", JdbcUuids.mysql(row.byteSize()))
+                .param("sha", JdbcUuids.mysql(row.sha256()))
+                .param("key", JdbcUuids.mysql(row.storageKey()))
+                .param("scan", JdbcUuids.mysql(row.securityScanState()))
+                .param("proc", JdbcUuids.mysql(row.processingState()))
+                .param("retain", JdbcUuids.mysql(java.sql.Timestamp.from(row.retentionUntil())))
                 .update();
     }
 
@@ -49,9 +50,9 @@ public class FileAssetRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where id = :id
                  """)
-                .param("scan", scanState)
-                .param("proc", processingState)
-                .param("id", id)
+                .param("scan", JdbcUuids.mysql(scanState))
+                .param("proc", JdbcUuids.mysql(processingState))
+                .param("id", JdbcUuids.mysql(id))
                 .update();
     }
 
@@ -62,12 +63,12 @@ public class FileAssetRepository {
                         from file_assets
                         where inquiry_id = :inquiry and id = :id
                         """)
-                .param("inquiry", inquiryId)
-                .param("id", assetId)
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("id", JdbcUuids.mysql(assetId))
                 .query((rs, n) -> new FileAssetRow(
-                        rs.getObject("id", UUID.class),
-                        rs.getObject("inquiry_id", UUID.class),
-                        rs.getObject("catalogue_bundle_id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
+                        JdbcUuids.get(rs, "inquiry_id"),
+                        JdbcUuids.get(rs, "catalogue_bundle_id"),
                         rs.getString("purpose"),
                         rs.getString("original_filename"),
                         rs.getString("media_type"),
@@ -83,11 +84,10 @@ public class FileAssetRepository {
 
     public void ensureSupplierInquiry(UUID inquiryId) {
         jdbc.sql("""
-                 insert into supplier_inquiries (inquiry_id)
+                 insert ignore into supplier_inquiries (inquiry_id)
                  values (:id)
-                 on conflict (inquiry_id) do nothing
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -103,11 +103,11 @@ public class FileAssetRepository {
                      :id, :inquiry, :format, :state, :completed
                  )
                  """)
-                .param("id", id)
-                .param("inquiry", inquiryId)
-                .param("format", format)
-                .param("state", processingState)
-                .param("completed", complete ? java.sql.Timestamp.from(java.time.Instant.now()) : null)
+                .param("id", JdbcUuids.mysql(id))
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("format", JdbcUuids.mysql(format))
+                .param("state", JdbcUuids.mysql(processingState))
+                .param("completed", JdbcUuids.mysql(complete ? java.sql.Timestamp.from(java.time.Instant.now()) : null))
                 .update();
         return id;
     }
@@ -121,9 +121,9 @@ public class FileAssetRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where id = :id
                  """)
-                .param("state", processingState)
-                .param("reason", failureReason)
-                .param("id", bundleId)
+                .param("state", JdbcUuids.mysql(processingState))
+                .param("reason", JdbcUuids.mysql(failureReason))
+                .param("id", JdbcUuids.mysql(bundleId))
                 .update();
     }
 
@@ -138,11 +138,11 @@ public class FileAssetRepository {
                          updated_at = CURRENT_TIMESTAMP
                      where inquiry_id = :id
                      """)
-                    .param("asset", assetId)
-                    .param("name", name)
-                    .param("size", size)
-                    .param("type", type)
-                    .param("id", inquiryId)
+                    .param("asset", JdbcUuids.mysql(assetId))
+                    .param("name", JdbcUuids.mysql(name))
+                    .param("size", JdbcUuids.mysql(size))
+                    .param("type", JdbcUuids.mysql(type))
+                    .param("id", JdbcUuids.mysql(inquiryId))
                     .update();
             return;
         }
@@ -155,11 +155,11 @@ public class FileAssetRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("asset", assetId)
-                .param("name", name)
-                .param("size", size)
-                .param("type", type)
-                .param("id", inquiryId)
+                .param("asset", JdbcUuids.mysql(assetId))
+                .param("name", JdbcUuids.mysql(name))
+                .param("size", JdbcUuids.mysql(size))
+                .param("type", JdbcUuids.mysql(type))
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -174,12 +174,12 @@ public class FileAssetRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("bundle", bundleId)
-                .param("asset", assetId)
-                .param("name", name)
-                .param("type", type)
-                .param("size", size)
-                .param("id", inquiryId)
+                .param("bundle", JdbcUuids.mysql(bundleId))
+                .param("asset", JdbcUuids.mysql(assetId))
+                .param("name", JdbcUuids.mysql(name))
+                .param("type", JdbcUuids.mysql(type))
+                .param("size", JdbcUuids.mysql(size))
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 

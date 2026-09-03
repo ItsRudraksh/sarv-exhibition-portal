@@ -12,8 +12,8 @@ type Tab = 'suppliers' | 'buyers' | 'exports'
 
 export function StaffApp() {
   const [me, setMe] = useState<StaffMe | null>(null)
-  const [email, setEmail] = useState('reviewer@sarv.local')
-  const [password, setPassword] = useState('poc-staff')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [tab, setTab] = useState<Tab>('suppliers')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -69,13 +69,18 @@ export function StaffApp() {
           <p className="staff-kicker">Internal</p>
           <h1>Staff review</h1>
           <p className="staff-lede">
-            Separate from the visitor portal. Local POC sign-in only — not SSO.
+            Separate from the visitor portal. HTTP Basic against app_users — not SSO.
           </p>
         </header>
         <form className="staff-card" onSubmit={(event) => void signIn(event)}>
           <label>
             Work email
-            <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" />
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              placeholder="reviewer@sarv.local"
+            />
           </label>
           <label>
             Password
@@ -84,6 +89,7 @@ export function StaffApp() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
+              required
             />
           </label>
           {error ? <p className="staff-error">{error}</p> : null}
@@ -91,7 +97,8 @@ export function StaffApp() {
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
           <p className="staff-hint">
-            Seeded: reviewer@sarv.local, marketing@sarv.local, admin@sarv.local — password poc-staff
+            Seeded emails: reviewer@sarv.local, marketing@sarv.local, admin@sarv.local. Use the
+            staff password set on this server.
           </p>
         </form>
       </div>

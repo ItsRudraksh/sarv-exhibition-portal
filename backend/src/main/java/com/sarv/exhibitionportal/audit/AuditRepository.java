@@ -1,5 +1,6 @@
 package com.sarv.exhibitionportal.audit;
 
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
@@ -31,17 +32,17 @@ public class AuditRepository {
                  insert into audit_events (
                      id, inquiry_id, entity_type, entity_id, event_type, actor_kind, actor_user_id, metadata
                  ) values (
-                     :id, :inquiry, :etype, :eid, :event, :actor, :user, CAST(:meta AS jsonb)
+                     :id, :inquiry, :etype, :eid, :event, :actor, :user, :meta
                  )
                  """)
-                .param("id", UUID.randomUUID())
-                .param("inquiry", inquiryId)
-                .param("etype", entityType)
-                .param("eid", entityId)
-                .param("event", eventType)
-                .param("actor", actorKind)
-                .param("user", actorUserId)
-                .param("meta", json(metadata))
+                .param("id", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("etype", JdbcUuids.mysql(entityType))
+                .param("eid", JdbcUuids.mysql(entityId))
+                .param("event", JdbcUuids.mysql(eventType))
+                .param("actor", JdbcUuids.mysql(actorKind))
+                .param("user", JdbcUuids.mysql(actorUserId))
+                .param("meta", JdbcUuids.mysql(json(metadata)))
                 .update();
     }
 
@@ -61,8 +62,8 @@ public class AuditRepository {
                               select count(*) from audit_events
                               where inquiry_id = :id and event_type = :event
                               """)
-                .param("id", inquiryId)
-                .param("event", eventType)
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .param("event", JdbcUuids.mysql(eventType))
                 .query(Long.class)
                 .single();
         return count == null ? 0 : count;

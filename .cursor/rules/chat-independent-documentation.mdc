@@ -16,6 +16,7 @@ alwaysApply: true
 | Delivery sequence | `specs/BUILD-PLAN.md` |
 | Verification commands | `specs/TESTING.md` |
 | Visitor UI behaviour | `frontend/README.md`, `specs/FRONTEND_BUILD_PROMPT.md` if the contract changed, `frontend/src/features/inquiry/copy.ts` for visitor strings |
+| Public Windows host | `specs/DEPLOY-WINDOWS.md` |
 | Visual system | `.stitch/DESIGN.md` only when the design system itself changed — do not restyle from stale HTML |
 
 A short dated subsection is enough. Do not leave “how to repeat this” only in chat.

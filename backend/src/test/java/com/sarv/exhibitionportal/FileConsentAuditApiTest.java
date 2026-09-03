@@ -4,11 +4,9 @@ import com.sarv.exhibitionportal.api.dto.ConsentDto;
 import com.sarv.exhibitionportal.api.dto.FileAssetDto;
 import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.audit.AuditService;
-import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
@@ -21,11 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureEmbeddedDatabase(
-        type = AutoConfigureEmbeddedDatabase.DatabaseType.POSTGRES,
-        provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY)
-class FileConsentAuditApiTest {
+class FileConsentAuditApiTest extends MysqlSpringBootTest {
 
     private static final byte[] JPEG = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x10, 0x11, 0x12};
 

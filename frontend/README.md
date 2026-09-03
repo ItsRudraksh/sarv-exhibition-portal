@@ -12,7 +12,9 @@ npm run lint  # ESLint
 npm run preview -- --host  # preview production build on LAN
 ```
 
-Start Postgres + the API first (`docker compose up -d db` then `mvn spring-boot:run` in `backend/`). See [backend/README.md](../backend/README.md).
+Start native MySQL 8 on `localhost:3306`, then the API (`.\run.ps1` in `backend/`). See [backend/README.md](../backend/README.md). Docker is not required.
+
+**Public Windows Server** (`http://43.225.195.200/`): Java 17 + Jenkins. Do not run this Vite dev server on the public IP. `npm run build` is copied into the Spring Boot JAR. See [DEPLOY-WINDOWS.md](../specs/DEPLOY-WINDOWS.md). In-page camera still needs HTTPS; upload still works on HTTP.
 
 ### Test on your phone (same Wi‑Fi)
 

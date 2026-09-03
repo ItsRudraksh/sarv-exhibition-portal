@@ -3,6 +3,7 @@ package com.sarv.exhibitionportal.exportjob;
 import com.sarv.exhibitionportal.api.dto.ExportJobDto;
 import com.sarv.exhibitionportal.audit.AuditService;
 import com.sarv.exhibitionportal.config.ExhibitionProperties;
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import com.sarv.exhibitionportal.fileasset.LocalObjectStorage;
 import com.sarv.exhibitionportal.inquiry.InquiryValidationException;
 import com.sarv.exhibitionportal.review.ReviewRepository;
@@ -58,9 +59,9 @@ public class ExportService {
                      :id, :actor, 'PURCHASE_LEADS', 'GENERATING', :expires
                  )
                  """)
-                .param("id", id)
-                .param("actor", actor.id())
-                .param("expires", Timestamp.from(expires))
+                .param("id", JdbcUuids.mysql(id))
+                .param("actor", JdbcUuids.mysql(actor.id()))
+                .param("expires", JdbcUuids.mysql(Timestamp.from(expires)))
                 .update();
         try {
             String csv = toCsv(reviews.listBuyers());
@@ -78,9 +79,9 @@ public class ExportService {
                          updated_at = CURRENT_TIMESTAMP
                      where id = :id
                      """)
-                    .param("id", id)
-                    .param("key", key)
-                    .param("size", (long) bytes.length)
+                    .param("id", JdbcUuids.mysql(id))
+                    .param("key", JdbcUuids.mysql(key))
+                    .param("size", JdbcUuids.mysql((long) bytes.length))
                     .update();
             audits.recordUser(null, "EXPORT_JOB", id, "EXPORT_GENERATED", actor.id(), Map.of(
                     "scope", "PURCHASE_LEADS",
@@ -92,7 +93,7 @@ public class ExportService {
                      set state = 'FAILED', failure_reason = 'generation-failed', updated_at = CURRENT_TIMESTAMP
                      where id = :id
                      """)
-                    .param("id", id)
+                    .param("id", JdbcUuids.mysql(id))
                     .update();
             throw new InquiryValidationException("Could not generate the export file.");
         }
@@ -110,9 +111,9 @@ public class ExportService {
                        expires_at, generated_at, failure_reason
                 from export_jobs where id = :id
                 """)
-                .param("id", id)
+                .param("id", JdbcUuids.mysql(id))
                 .query((rs, n) -> new ExportRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("scope"),
                         rs.getString("state"),
                         rs.getString("storage_key"),
@@ -127,7 +128,7 @@ public class ExportService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Export job not found"));
         if (row.expiresAt() != null && row.expiresAt().isBefore(Instant.now())) {
             jdbc.sql("update export_jobs set state = 'EXPIRED', updated_at = CURRENT_TIMESTAMP where id = :id")
-                    .param("id", id)
+                    .param("id", JdbcUuids.mysql(id))
                     .update();
             throw new ResponseStatusException(HttpStatus.GONE, "This export has expired.");
         }
@@ -146,9 +147,9 @@ public class ExportService {
                 select id, scope, state, original_filename, media_type, byte_size, expires_at, generated_at, failure_reason
                 from export_jobs where id = :id
                 """)
-                .param("id", id)
+                .param("id", JdbcUuids.mysql(id))
                 .query((rs, n) -> new ExportJobDto(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("scope"),
                         rs.getString("state"),
                         rs.getString("original_filename"),

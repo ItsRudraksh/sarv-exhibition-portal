@@ -1,29 +1,24 @@
 # Exhibition Portal API (POC)
 
-Java 21 + Spring Boot 3.5 + PostgreSQL + Flyway. Draft and submit API for the visitor React app.
+Java 17 + Spring Boot 3.5 + **MySQL 8** + Flyway. Draft and submit API for the visitor React app. Same JDK and database engine as pharma-erp (`17.0.x`, MySQL on 3306).
 
 ## Tests
 
-`mvn test` uses **embedded PostgreSQL** (Zonky). Docker Desktop is not required for tests.
+`mvn test` uses **embedded MariaDB** (mariaDB4j). Docker is not required.
 
-For `mvn spring-boot:run`, start Postgres first:
-
-```bash
-docker compose up -d db   # from repo root
-```
+For `mvn spring-boot:run` or `.\run.ps1`, use **native MySQL 8** on `localhost:3306` (database `exhibition_portal`, user `exhibition`). See `deploy/windows/init-mysql.sql`.
 
 ## Start
 
 ```bash
-docker compose up -d db
 cd backend
 mvn test
-mvn spring-boot:run
+.\run.ps1
 ```
 
 API: `http://localhost:8080/api/v1`  
 Health: `http://localhost:8080/actuator/health`  
-Postgres: `localhost:5433` (user/password/db `exhibition`)
+MySQL: `localhost:3306`
 
 Then in `frontend/`: `npm run dev` (Vite proxies `/api` to port 8080).
 
@@ -58,6 +53,10 @@ Seeded local users (password `poc-staff`): `reviewer@sarv.local`, `marketing@sar
 | GET | `/api/v1/staff/exports/{id}` |
 | GET | `/api/v1/staff/exports/{id}/file` |
 
-Files are stored under `exhibition.storage-root` (default `./var/exhibition-files`). PostgreSQL holds metadata only. Content allowlist is not an antivirus product. Location is not collected.
+Files are stored under `exhibition.storage-root` (default `./var/exhibition-files`). MySQL holds metadata only. Content allowlist is not an antivirus product. Location is not collected.
 
 POC limits: no OCR, live CRM, or live vendor API. Outbox stubs: `poc-mailbox` / `poc-vendor-stub`. See `specs/BUILD-PLAN.md`.
+
+## Public Windows Server + Jenkins
+
+Java **17** only. Native MySQL on **3306**. Jenkinsfile at the repo root uses the same **Java17** / **Maven3** tool ids as pharma-erp and deploys with `net stop` / `net start` on Windows service `exhibition-portal`. Runbook: [specs/DEPLOY-WINDOWS.md](../specs/DEPLOY-WINDOWS.md).

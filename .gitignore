@@ -17,6 +17,9 @@ Thumbs.db
 # Env
 *.local
 .env
+.env.prod
+portal.env.ps1
+**/portal.env.ps1
 
 # Local private file store (Phase 3)
 backend/var/

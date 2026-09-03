@@ -1,0 +1,22 @@
+server:
+  port: ${SERVER_PORT:80}
+  address: 0.0.0.0
+
+spring:
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/exhibition_portal?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8}
+    username: ${DATASOURCE_USERNAME:exhibition}
+    password: ${DATASOURCE_PASSWORD}
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+exhibition:
+  cors-origins:
+    - http://43.225.195.200
+    - http://127.0.0.1
+    - http://localhost
+  storage-root: ${EXHIBITION_STORAGE_ROOT:C:/exhibition-portal/files}
+  staff-bootstrap-password: ${EXHIBITION_STAFF_BOOTSTRAP_PASSWORD:}

@@ -1,209 +1,224 @@
--- POC core schema. Scan-first fixes vs the approved singleton DDL:
+-- POC core schema (MySQL 8 / MariaDB 10+). Scan-first fixes vs the historical PostgreSQL singleton DDL:
 -- * inquiries.route nullable until the visitor chooses sell/buy
 -- * inquiry_parties.company_name_submitted nullable (buyer company is optional)
 -- * EXHIBITION_QR still requires qr_campaign_id (seeded in V2)
--- Consent uniqueness vs revocation is deferred (no consent tables in this POC).
-
-CREATE SCHEMA IF NOT EXISTS exhibition_portal;
-SET search_path TO exhibition_portal, public;
+-- UUIDs are CHAR(36). Applied store is MySQL, not PostgreSQL.
 
 CREATE TABLE exhibitions (
-    id uuid PRIMARY KEY,
-    name text NOT NULL,
-    starts_at timestamptz NOT NULL,
-    ends_at timestamptz NOT NULL,
-    timezone_name text NOT NULL,
-    venue_name text,
-    status text NOT NULL DEFAULT 'ACTIVE'
-        CHECK (status IN ('DRAFT', 'ACTIVE', 'CLOSED', 'ARCHIVED')),
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    starts_at DATETIME(6) NOT NULL,
+    ends_at DATETIME(6) NOT NULL,
+    timezone_name VARCHAR(64) NOT NULL,
+    venue_name VARCHAR(255),
+    status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT exhibitions_status_valid CHECK (status IN ('DRAFT', 'ACTIVE', 'CLOSED', 'ARCHIVED')),
     CONSTRAINT exhibitions_time_range_valid CHECK (ends_at > starts_at)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE qr_campaigns (
-    id uuid PRIMARY KEY,
-    exhibition_id uuid REFERENCES exhibitions(id) ON DELETE RESTRICT,
-    code text NOT NULL UNIQUE,
-    label text NOT NULL,
-    landing_route text NOT NULL DEFAULT 'CHOICE'
-        CHECK (landing_route IN ('CHOICE', 'SUPPLIER', 'PURCHASE')),
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    exhibition_id CHAR(36),
+    code VARCHAR(64) NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    landing_route VARCHAR(32) NOT NULL DEFAULT 'CHOICE',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT qr_campaigns_code_unique UNIQUE (code),
+    CONSTRAINT qr_campaigns_landing_valid CHECK (landing_route IN ('CHOICE', 'SUPPLIER', 'PURCHASE')),
+    CONSTRAINT qr_campaigns_exhibition_fk FOREIGN KEY (exhibition_id) REFERENCES exhibitions(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE departments (
-    id uuid PRIMARY KEY,
-    code varchar(50) NOT NULL UNIQUE,
-    name text NOT NULL,
-    display_order integer NOT NULL DEFAULT 0,
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT departments_code_unique UNIQUE (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_types (
-    id uuid PRIMARY KEY,
-    code varchar(50) NOT NULL UNIQUE,
-    name text NOT NULL,
-    display_order integer NOT NULL DEFAULT 0,
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT product_types_code_unique UNIQUE (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE department_product_types (
-    department_id uuid NOT NULL REFERENCES departments(id) ON DELETE RESTRICT,
-    product_type_id uuid NOT NULL REFERENCES product_types(id) ON DELETE RESTRICT,
-    display_order integer NOT NULL DEFAULT 0,
-    is_active boolean NOT NULL DEFAULT true,
-    PRIMARY KEY (department_id, product_type_id)
-);
+    department_id CHAR(36) NOT NULL,
+    product_type_id CHAR(36) NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    PRIMARY KEY (department_id, product_type_id),
+    CONSTRAINT dpt_department_fk FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT,
+    CONSTRAINT dpt_product_type_fk FOREIGN KEY (product_type_id) REFERENCES product_types(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE pharmacopoeial_standards (
-    id uuid PRIMARY KEY,
-    code varchar(16) NOT NULL UNIQUE,
-    name text NOT NULL,
-    is_active boolean NOT NULL DEFAULT true,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    code VARCHAR(16) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT pharmacopoeial_standards_code_unique UNIQUE (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE inquiries (
-    id uuid PRIMARY KEY,
-    reference_code text NOT NULL UNIQUE,
-    route text CHECK (route IS NULL OR route IN ('SUPPLIER', 'PURCHASE')),
-    entry_channel text NOT NULL
-        CHECK (entry_channel IN ('EXHIBITION_QR', 'WEBSITE', 'DIRECT')),
-    qr_campaign_id uuid REFERENCES qr_campaigns(id) ON DELETE RESTRICT,
-    exhibition_id uuid REFERENCES exhibitions(id) ON DELETE RESTRICT,
-    lifecycle_state text NOT NULL DEFAULT 'DRAFT'
-        CHECK (lifecycle_state IN (
-            'DRAFT', 'SUBMITTED', 'CANCELLED', 'ARCHIVED', 'RETENTION_PURGED'
-        )),
-    submitted_at timestamptz,
-    ui_step text NOT NULL DEFAULT 'card-capture',
-    contact_confirmed boolean NOT NULL DEFAULT false,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    reference_code VARCHAR(64) NOT NULL,
+    route VARCHAR(32),
+    entry_channel VARCHAR(32) NOT NULL,
+    qr_campaign_id CHAR(36),
+    exhibition_id CHAR(36),
+    lifecycle_state VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+    submitted_at DATETIME(6),
+    ui_step VARCHAR(64) NOT NULL DEFAULT 'card-capture',
+    contact_confirmed TINYINT(1) NOT NULL DEFAULT 0,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT inquiries_reference_unique UNIQUE (reference_code),
+    CONSTRAINT inquiries_route_valid CHECK (route IS NULL OR route IN ('SUPPLIER', 'PURCHASE')),
+    CONSTRAINT inquiries_entry_valid CHECK (entry_channel IN ('EXHIBITION_QR', 'WEBSITE', 'DIRECT')),
+    CONSTRAINT inquiries_lifecycle_valid CHECK (lifecycle_state IN (
+        'DRAFT', 'SUBMITTED', 'CANCELLED', 'ARCHIVED', 'RETENTION_PURGED'
+    )),
     CONSTRAINT inquiries_submission_state_valid CHECK (
         (lifecycle_state = 'SUBMITTED' AND submitted_at IS NOT NULL AND route IS NOT NULL)
         OR lifecycle_state <> 'SUBMITTED'
     ),
     CONSTRAINT inquiries_qr_channel_valid CHECK (
         entry_channel <> 'EXHIBITION_QR' OR qr_campaign_id IS NOT NULL
-    )
-);
+    ),
+    CONSTRAINT inquiries_qr_fk FOREIGN KEY (qr_campaign_id) REFERENCES qr_campaigns(id) ON DELETE RESTRICT,
+    CONSTRAINT inquiries_exhibition_fk FOREIGN KEY (exhibition_id) REFERENCES exhibitions(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE inquiry_parties (
-    id uuid PRIMARY KEY,
-    inquiry_id uuid NOT NULL REFERENCES inquiries(id) ON DELETE RESTRICT,
-    role text NOT NULL CHECK (role IN ('SUPPLIER_CONTACT', 'BUYER_CONTACT')),
-    company_name_submitted text,
-    person_name_submitted text NOT NULL,
-    email_submitted text NOT NULL,
-    email_normalized text NOT NULL,
-    phone_submitted text,
-    phone_e164 varchar(32),
-    job_title_submitted text,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (inquiry_id, role)
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    inquiry_id CHAR(36) NOT NULL,
+    role VARCHAR(32) NOT NULL,
+    company_name_submitted VARCHAR(255),
+    person_name_submitted VARCHAR(255) NOT NULL,
+    email_submitted VARCHAR(255) NOT NULL,
+    email_normalized VARCHAR(255) NOT NULL,
+    phone_submitted VARCHAR(64),
+    phone_e164 VARCHAR(32),
+    job_title_submitted VARCHAR(255),
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT inquiry_parties_role_valid CHECK (role IN ('SUPPLIER_CONTACT', 'BUYER_CONTACT')),
+    CONSTRAINT inquiry_parties_inquiry_role UNIQUE (inquiry_id, role),
+    CONSTRAINT inquiry_parties_inquiry_fk FOREIGN KEY (inquiry_id) REFERENCES inquiries(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE supplier_inquiries (
-    inquiry_id uuid PRIMARY KEY REFERENCES inquiries(id) ON DELETE RESTRICT,
-    review_state text NOT NULL DEFAULT 'DRAFT'
-        CHECK (review_state IN (
-            'DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'NEEDS_INFORMATION', 'APPROVED', 'REJECTED'
-        )),
-    production_state text NOT NULL DEFAULT 'NOT_REQUESTED'
-        CHECK (production_state IN (
-            'NOT_REQUESTED', 'QUEUED', 'IN_PROGRESS', 'SUCCEEDED', 'FAILED'
-        )),
-    website_url text,
-    catalogue_filename text,
-    catalogue_media_type text,
-    catalogue_byte_size bigint,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    inquiry_id CHAR(36) NOT NULL PRIMARY KEY,
+    review_state VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+    production_state VARCHAR(32) NOT NULL DEFAULT 'NOT_REQUESTED',
+    website_url VARCHAR(512),
+    catalogue_filename VARCHAR(255),
+    catalogue_media_type VARCHAR(128),
+    catalogue_byte_size BIGINT,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT supplier_review_state_valid CHECK (review_state IN (
+        'DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'NEEDS_INFORMATION', 'APPROVED', 'REJECTED'
+    )),
+    CONSTRAINT supplier_production_state_valid CHECK (production_state IN (
+        'NOT_REQUESTED', 'QUEUED', 'IN_PROGRESS', 'SUCCEEDED', 'FAILED'
+    )),
+    CONSTRAINT supplier_inquiries_inquiry_fk FOREIGN KEY (inquiry_id) REFERENCES inquiries(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE supplier_inquiry_departments (
-    inquiry_id uuid NOT NULL REFERENCES supplier_inquiries(inquiry_id) ON DELETE CASCADE,
-    department_id uuid NOT NULL REFERENCES departments(id) ON DELETE RESTRICT,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (inquiry_id, department_id)
-);
+    inquiry_id CHAR(36) NOT NULL,
+    department_id CHAR(36) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (inquiry_id, department_id),
+    CONSTRAINT sid_inquiry_fk FOREIGN KEY (inquiry_id) REFERENCES supplier_inquiries(inquiry_id) ON DELETE CASCADE,
+    CONSTRAINT sid_department_fk FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE supplier_inquiry_product_types (
-    inquiry_id uuid NOT NULL,
-    department_id uuid NOT NULL,
-    product_type_id uuid NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    inquiry_id CHAR(36) NOT NULL,
+    department_id CHAR(36) NOT NULL,
+    product_type_id CHAR(36) NOT NULL,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     PRIMARY KEY (inquiry_id, department_id, product_type_id),
-    CONSTRAINT supplier_product_type_selected_department_fk
+    CONSTRAINT sipt_selected_department_fk
         FOREIGN KEY (inquiry_id, department_id)
         REFERENCES supplier_inquiry_departments(inquiry_id, department_id)
         ON DELETE CASCADE,
-    CONSTRAINT supplier_product_type_department_mapping_fk
+    CONSTRAINT sipt_department_mapping_fk
         FOREIGN KEY (department_id, product_type_id)
         REFERENCES department_product_types(department_id, product_type_id)
         ON DELETE RESTRICT
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE purchase_inquiries (
-    inquiry_id uuid PRIMARY KEY REFERENCES inquiries(id) ON DELETE RESTRICT,
-    lead_state text NOT NULL DEFAULT 'DRAFT'
-        CHECK (lead_state IN (
-            'DRAFT', 'SUBMITTED', 'QUEUED', 'DISPATCHED', 'DELIVERY_FAILED',
-            'IN_PROGRESS', 'CLOSED', 'DISQUALIFIED'
-        )),
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    inquiry_id CHAR(36) NOT NULL PRIMARY KEY,
+    lead_state VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT purchase_lead_state_valid CHECK (lead_state IN (
+        'DRAFT', 'SUBMITTED', 'QUEUED', 'DISPATCHED', 'DELIVERY_FAILED',
+        'IN_PROGRESS', 'CLOSED', 'DISQUALIFIED'
+    )),
+    CONSTRAINT purchase_inquiries_inquiry_fk FOREIGN KEY (inquiry_id) REFERENCES inquiries(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE purchase_line_items (
-    id uuid PRIMARY KEY,
-    purchase_inquiry_id uuid NOT NULL REFERENCES purchase_inquiries(inquiry_id) ON DELETE CASCADE,
-    requirement_text text,
-    quantity_text text,
-    pack_size_text text,
-    needed_by_date text,
-    notes text,
-    product_area_search text,
-    standard_code varchar(16),
-    display_order integer NOT NULL DEFAULT 0,
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    purchase_inquiry_id CHAR(36) NOT NULL,
+    requirement_text TEXT,
+    quantity_text VARCHAR(128),
+    pack_size_text VARCHAR(128),
+    needed_by_date VARCHAR(64),
+    notes TEXT,
+    product_area_search VARCHAR(255),
+    standard_code VARCHAR(16),
+    display_order INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT pli_purchase_fk FOREIGN KEY (purchase_inquiry_id) REFERENCES purchase_inquiries(inquiry_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE workflow_events (
-    id uuid PRIMARY KEY,
-    inquiry_id uuid NOT NULL REFERENCES inquiries(id) ON DELETE RESTRICT,
-    workflow text NOT NULL,
-    from_state text,
-    to_state text NOT NULL,
-    actor_kind text NOT NULL DEFAULT 'VISITOR'
-        CHECK (actor_kind IN ('VISITOR', 'USER', 'SYSTEM', 'INTEGRATION')),
-    occurred_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    id CHAR(36) NOT NULL PRIMARY KEY,
+    inquiry_id CHAR(36) NOT NULL,
+    workflow VARCHAR(64) NOT NULL,
+    from_state VARCHAR(64),
+    to_state VARCHAR(64) NOT NULL,
+    actor_kind VARCHAR(32) NOT NULL DEFAULT 'VISITOR',
+    occurred_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT workflow_events_actor_valid CHECK (actor_kind IN ('VISITOR', 'USER', 'SYSTEM', 'INTEGRATION')),
+    CONSTRAINT workflow_events_inquiry_fk FOREIGN KEY (inquiry_id) REFERENCES inquiries(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE inquiry_ui_state (
-    inquiry_id uuid PRIMARY KEY REFERENCES inquiries(id) ON DELETE CASCADE,
-    card_front_name text,
-    card_front_size bigint,
-    card_front_type text,
-    card_back_name text,
-    card_back_size bigint,
-    card_back_type text,
-    card_qr_payload_internal text,
-    location_from_card text,
-    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    inquiry_id CHAR(36) NOT NULL PRIMARY KEY,
+    card_front_name VARCHAR(255),
+    card_front_size BIGINT,
+    card_front_type VARCHAR(128),
+    card_back_name VARCHAR(255),
+    card_back_size BIGINT,
+    card_back_type VARCHAR(128),
+    card_qr_payload_internal TEXT,
+    location_from_card VARCHAR(255),
+    updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    CONSTRAINT inquiry_ui_state_inquiry_fk FOREIGN KEY (inquiry_id) REFERENCES inquiries(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX inquiries_lifecycle_idx
-    ON inquiries (route, lifecycle_state, submitted_at DESC);
-CREATE INDEX inquiry_parties_email_idx
-    ON inquiry_parties (email_normalized);
+CREATE INDEX inquiries_lifecycle_idx ON inquiries (route, lifecycle_state, submitted_at);
+CREATE INDEX inquiry_parties_email_idx ON inquiry_parties (email_normalized);

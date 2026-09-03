@@ -26,6 +26,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/favicon.ico",
+                                "/favicon.svg",
+                                "/icons.svg",
+                                "/assets/**",
+                                "/staff",
+                                "/staff/**",
+                                "/error")
+                        .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/api/v1/inquiries/**", "/api/v1/taxonomy/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/staff/me").authenticated()

@@ -1,6 +1,7 @@
 package com.sarv.exhibitionportal.consent;
 
 import com.sarv.exhibitionportal.api.dto.ConsentDto;
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -33,12 +34,12 @@ public class ConsentRepository {
                      :id, :inquiry, :purpose, :policy, :decision, :revoked
                  )
                  """)
-                .param("id", id)
-                .param("inquiry", inquiryId)
-                .param("purpose", purpose)
-                .param("policy", policyVersion)
-                .param("decision", decision)
-                .param("revoked", revokedAt == null ? null : Timestamp.from(revokedAt))
+                .param("id", JdbcUuids.mysql(id))
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("purpose", JdbcUuids.mysql(purpose))
+                .param("policy", JdbcUuids.mysql(policyVersion))
+                .param("decision", JdbcUuids.mysql(decision))
+                .param("revoked", JdbcUuids.mysql(revokedAt == null ? null : Timestamp.from(revokedAt)))
                 .update();
     }
 
@@ -50,10 +51,10 @@ public class ConsentRepository {
                         order by decided_at desc
                         limit 1
                         """)
-                .param("id", inquiryId)
-                .param("purpose", purpose)
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .param("purpose", JdbcUuids.mysql(purpose))
                 .query((rs, n) -> new ConsentDto(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("purpose"),
                         rs.getString("policy_version"),
                         rs.getString("decision"),
@@ -69,9 +70,9 @@ public class ConsentRepository {
                         where inquiry_id = :id
                         order by decided_at desc
                         """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .query((rs, n) -> new ConsentDto(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("purpose"),
                         rs.getString("policy_version"),
                         rs.getString("decision"),

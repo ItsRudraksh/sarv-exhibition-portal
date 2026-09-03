@@ -1,5 +1,7 @@
 package com.sarv.exhibitionportal.outbox;
 
+import com.sarv.exhibitionportal.config.JdbcUuids;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -24,20 +26,19 @@ public class OutboxRepository {
             String idempotencyKey
     ) {
         int updated = jdbc.sql("""
-                insert into integration_deliveries (
+                insert ignore into integration_deliveries (
                     id, inquiry_id, delivery_kind, destination, idempotency_key,
                     state, next_attempt_at, request_payload_version
                 ) values (
                     :id, :inquiry, :kind, :dest, :key,
                     'PENDING', CURRENT_TIMESTAMP, 'v1'
                 )
-                on conflict (idempotency_key) do nothing
                 """)
-                .param("id", UUID.randomUUID())
-                .param("inquiry", inquiryId)
-                .param("kind", kind)
-                .param("dest", destination)
-                .param("key", idempotencyKey)
+                .param("id", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("kind", JdbcUuids.mysql(kind))
+                .param("dest", JdbcUuids.mysql(destination))
+                .param("key", JdbcUuids.mysql(idempotencyKey))
                 .update();
         return updated > 0;
     }
@@ -47,8 +48,8 @@ public class OutboxRepository {
                 select count(*) from integration_deliveries
                 where inquiry_id = :id and delivery_kind = :kind
                 """)
-                .param("id", inquiryId)
-                .param("kind", kind)
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .param("kind", JdbcUuids.mysql(kind))
                 .query(Long.class)
                 .single();
         return count == null ? 0 : count;
@@ -61,8 +62,8 @@ public class OutboxRepository {
                 order by created_at desc
                 limit 1
                 """)
-                .param("id", inquiryId)
-                .param("kind", kind)
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .param("kind", JdbcUuids.mysql(kind))
                 .query(String.class)
                 .optional();
     }
@@ -77,10 +78,10 @@ public class OutboxRepository {
                 order by created_at
                 limit :limit
                 """)
-                .param("limit", limit)
+                .param("limit", JdbcUuids.mysql(limit))
                 .query((rs, n) -> new DeliveryRow(
-                        rs.getObject("id", UUID.class),
-                        rs.getObject("inquiry_id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
+                        JdbcUuids.get(rs, "inquiry_id"),
                         rs.getString("delivery_kind"),
                         rs.getString("destination"),
                         rs.getString("idempotency_key"),
@@ -99,7 +100,7 @@ public class OutboxRepository {
                     updated_at = CURRENT_TIMESTAMP
                 where id = :id and state in ('PENDING', 'RETRY_SCHEDULED')
                 """)
-                .param("id", id)
+                .param("id", JdbcUuids.mysql(id))
                 .update();
         return updated == 1;
     }
@@ -117,8 +118,8 @@ public class OutboxRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where id = :id
                  """)
-                .param("id", id)
-                .param("ref", externalReference)
+                .param("id", JdbcUuids.mysql(id))
+                .param("ref", JdbcUuids.mysql(externalReference))
                 .update();
     }
 
@@ -134,10 +135,10 @@ public class OutboxRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where id = :id
                  """)
-                .param("id", id)
-                .param("next", Timestamp.from(nextAttempt))
-                .param("code", code)
-                .param("message", message)
+                .param("id", JdbcUuids.mysql(id))
+                .param("next", JdbcUuids.mysql(Timestamp.from(nextAttempt)))
+                .param("code", JdbcUuids.mysql(code))
+                .param("message", JdbcUuids.mysql(message))
                 .update();
     }
 
@@ -153,22 +154,22 @@ public class OutboxRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where id = :id
                  """)
-                .param("id", id)
-                .param("code", code)
-                .param("message", message)
+                .param("id", JdbcUuids.mysql(id))
+                .param("code", JdbcUuids.mysql(code))
+                .param("message", JdbcUuids.mysql(message))
                 .update();
     }
 
     public Optional<String> referenceCode(UUID inquiryId) {
         return jdbc.sql("select reference_code from inquiries where id = :id")
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .query(String.class)
                 .optional();
     }
 
     public boolean inquiryExists(UUID inquiryId) {
         Long count = jdbc.sql("select count(*) from inquiries where id = :id")
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .query(Long.class)
                 .single();
         return count != null && count > 0;
@@ -180,7 +181,7 @@ public class OutboxRepository {
                  set lead_state = 'QUEUED', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id and lead_state in ('SUBMITTED', 'QUEUED')
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -192,7 +193,7 @@ public class OutboxRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -202,7 +203,7 @@ public class OutboxRepository {
                  set lead_state = 'DELIVERY_FAILED', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -212,7 +213,7 @@ public class OutboxRepository {
                  set production_state = 'IN_PROGRESS', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id and production_state in ('QUEUED', 'IN_PROGRESS', 'FAILED')
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -222,7 +223,7 @@ public class OutboxRepository {
                  set production_state = 'SUCCEEDED', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -232,7 +233,7 @@ public class OutboxRepository {
                  set production_state = 'FAILED', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 

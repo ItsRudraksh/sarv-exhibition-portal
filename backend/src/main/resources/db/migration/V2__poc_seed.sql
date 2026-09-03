@@ -1,11 +1,9 @@
-SET search_path TO exhibition_portal, public;
-
 INSERT INTO exhibitions (id, name, starts_at, ends_at, timezone_name, venue_name, status)
 VALUES (
     '11111111-1111-4111-8111-111111111111',
     'POC Exhibition',
-    TIMESTAMPTZ '2026-01-01 00:00:00+00',
-    TIMESTAMPTZ '2026-12-31 23:59:59+00',
+    '2026-01-01 00:00:00',
+    '2026-12-31 23:59:59',
     'Asia/Kolkata',
     'POC venue',
     'ACTIVE'
@@ -18,7 +16,7 @@ VALUES (
     'POC-STALL-1',
     'POC stall QR',
     'CHOICE',
-    true
+    1
 );
 
 INSERT INTO departments (id, code, name, display_order) VALUES

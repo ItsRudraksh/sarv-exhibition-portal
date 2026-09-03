@@ -1,5 +1,7 @@
 package com.sarv.exhibitionportal.review;
 
+import com.sarv.exhibitionportal.config.JdbcUuids;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -22,18 +24,18 @@ public class ReviewRepository {
                 select count(*) from review_cases
                 where supplier_inquiry_id = :id and state <> 'CLOSED'
                 """)
-                .param("id", supplierInquiryId)
+                .param("id", JdbcUuids.mysql(supplierInquiryId))
                 .query(Long.class)
                 .single();
         if (open != null && open > 0) {
             return;
         }
         jdbc.sql("""
-                 insert into review_cases (id, supplier_inquiry_id, state)
-                 values (:id, :sid, 'OPEN')
+                 insert ignore into review_cases (id, supplier_inquiry_id, state, open_supplier_key)
+                 values (:id, :sid, 'OPEN', :sid)
                  """)
-                .param("id", UUID.randomUUID())
-                .param("sid", supplierInquiryId)
+                .param("id", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("sid", JdbcUuids.mysql(supplierInquiryId))
                 .update();
     }
 
@@ -44,9 +46,10 @@ public class ReviewRepository {
                 order by opened_at desc
                 limit 1
                 """)
-                .param("id", supplierInquiryId)
-                .query(UUID.class)
-                .optional();
+                .param("id", JdbcUuids.mysql(supplierInquiryId))
+                .query(String.class)
+                .optional()
+                .flatMap(JdbcUuids::optional);
     }
 
     public void insertDecision(UUID caseId, String decision, String notes, UUID actorId) {
@@ -57,21 +60,24 @@ public class ReviewRepository {
                      :id, :case, :decision, :notes, :actor
                  )
                  """)
-                .param("id", UUID.randomUUID())
-                .param("case", caseId)
-                .param("decision", decision)
-                .param("notes", notes)
-                .param("actor", actorId)
+                .param("id", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("case", JdbcUuids.mysql(caseId))
+                .param("decision", JdbcUuids.mysql(decision))
+                .param("notes", JdbcUuids.mysql(notes))
+                .param("actor", JdbcUuids.mysql(actorId))
                 .update();
     }
 
     public void closeCase(UUID caseId) {
         jdbc.sql("""
                  update review_cases
-                 set state = 'CLOSED', closed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                 set state = 'CLOSED',
+                     closed_at = CURRENT_TIMESTAMP,
+                     open_supplier_key = NULL,
+                     updated_at = CURRENT_TIMESTAMP
                  where id = :id and state <> 'CLOSED'
                  """)
-                .param("id", caseId)
+                .param("id", JdbcUuids.mysql(caseId))
                 .update();
     }
 
@@ -81,7 +87,7 @@ public class ReviewRepository {
                  set state = 'WAITING_FOR_INFO', updated_at = CURRENT_TIMESTAMP
                  where id = :id and state <> 'CLOSED'
                  """)
-                .param("id", caseId)
+                .param("id", JdbcUuids.mysql(caseId))
                 .update();
     }
 
@@ -95,16 +101,16 @@ public class ReviewRepository {
                 left join inquiry_parties p on p.inquiry_id = i.id and p.role = 'SUPPLIER_CONTACT'
                 where i.id = :id and i.lifecycle_state = 'SUBMITTED' and i.route = 'SUPPLIER'
                 """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .query((rs, n) -> new SupplierReviewRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("reference_code"),
                         ts(rs.getTimestamp("submitted_at")),
                         rs.getString("review_state"),
                         rs.getString("production_state"),
                         rs.getString("website_url"),
                         ts(rs.getTimestamp("approved_at")),
-                        rs.getObject("approved_by_user_id", UUID.class),
+                        JdbcUuids.get(rs, "approved_by_user_id"),
                         rs.getString("company_name_submitted"),
                         rs.getString("person_name_submitted"),
                         rs.getString("email_submitted"),
@@ -125,14 +131,14 @@ public class ReviewRepository {
                 order by i.submitted_at desc
                 """)
                 .query((rs, n) -> new SupplierReviewRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("reference_code"),
                         ts(rs.getTimestamp("submitted_at")),
                         rs.getString("review_state"),
                         rs.getString("production_state"),
                         rs.getString("website_url"),
                         ts(rs.getTimestamp("approved_at")),
-                        rs.getObject("approved_by_user_id", UUID.class),
+                        JdbcUuids.get(rs, "approved_by_user_id"),
                         rs.getString("company_name_submitted"),
                         rs.getString("person_name_submitted"),
                         rs.getString("email_submitted"),
@@ -151,8 +157,8 @@ public class ReviewRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
-                .param("actor", actorId)
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .param("actor", JdbcUuids.mysql(actorId))
                 .update();
     }
 
@@ -166,7 +172,7 @@ public class ReviewRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -178,7 +184,7 @@ public class ReviewRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -195,7 +201,7 @@ public class ReviewRepository {
                 order by i.submitted_at desc
                 """)
                 .query((rs, n) -> new BuyerLeadRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("reference_code"),
                         ts(rs.getTimestamp("submitted_at")),
                         rs.getString("lead_state"),
@@ -215,7 +221,7 @@ public class ReviewRepository {
                 join purchase_inquiries pi on pi.inquiry_id = i.id
                 where i.id = :id and i.lifecycle_state = 'SUBMITTED' and i.route = 'PURCHASE'
                 """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .query(Long.class)
                 .single();
         return count != null && count > 0;
@@ -227,8 +233,8 @@ public class ReviewRepository {
                  set marketing_notes = :notes, updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("id", inquiryId)
-                .param("notes", notes)
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .param("notes", JdbcUuids.mysql(notes))
                 .update();
     }
 

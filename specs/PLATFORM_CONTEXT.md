@@ -4,7 +4,7 @@
 >
 > **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** Phases 1–5 are running: visitor API, files/consent/audit, `/staff` review, and an **outbox** that stubs mailbox/vendor delivery. OCR and live CRM/vendor APIs are **not** live. Delivery sequence: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
+> **Current stage:** Phases 1–5 are running: visitor API, files/consent/audit, `/staff` review, and an **outbox** that stubs mailbox/vendor delivery. OCR and live CRM/vendor APIs are **not** live. Public Windows Server: **Java 17** JAR + Jenkins (no Docker) — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`; in-page camera still needs HTTPS). Delivery sequence: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -199,7 +199,7 @@ The buyer does **not** have a mandatory separate pharmacopeial/category/quantity
 ### Files and catalogue handling
 
 - Supplier catalogue inputs can be approved PDFs or images.
-- Store file bytes in secure/private object storage, not in PostgreSQL.
+- Store file bytes in secure/private object storage, not in the database.
 - Store metadata, secure storage key, checksum, scan/processing state, and lineage in the database.
 - For image bundles, preserve originals and create a derived review PDF package. Do not destroy originals merely because a derivative was created.
 - File types/sizes need allowlisting and security scanning. Admin access should use authorized, time-limited access rather than public paths.
@@ -296,19 +296,19 @@ The original local design cleanup removed obsolete local exports and preserved t
 
 ### Confirmed technology direction
 
-- **Database:** PostgreSQL (confirmed).
+- **Database:** **MySQL 8** (user decision 3 September 2026; same engine as pharma-erp). Do not use PostgreSQL for this app.
 - **Backend target:** Java Spring Boot.
-- **Migrations:** Flyway.
+- **Migrations:** Flyway (`backend/src/main/resources/db/migration/`).
 - **ORM:** POC uses JDBC (`JdbcClient`); still replaceable later. The logical design does not depend on a particular ORM.
 - **Frontend:** React 19 + TypeScript + Vite in `frontend/`; POC talks to `/api/v1` with `localStorage` fallback.
-- **POC API:** `backend/` Spring Boot 3.5, Flyway V1–V2. Run notes: `backend/README.md`.
+- **POC API:** `backend/` Spring Boot 3.5, Flyway V1–V5. Run notes: `backend/README.md`.
 - **Delivery plan:** [BUILD-PLAN.md](BUILD-PLAN.md).
 
-The database design is approved as a logical/physical baseline in [DATABASE-DESIGN.md](DATABASE-DESIGN.md). The one-file PostgreSQL DDL is [exhibition_portal_schema.sql](exhibition_portal_schema.sql); its historical task report says it was validated against PostgreSQL 18 in a rolled-back transaction, so no validation schema/data was persisted.
+The entity/invariant design is the baseline in [DATABASE-DESIGN.md](DATABASE-DESIGN.md). `exhibition_portal_schema.sql` is a **historical PostgreSQL singleton** (validated once against PostgreSQL 18 in a rolled-back transaction). It is **not** applied. The running schema is MySQL 8 Flyway V1–V5 (`CHAR(36)` UUIDs, `DATETIME(6)`, `JSON`).
 
 ### Database model in plain language
 
-`inquiries` is the durable top-level record. Every inquiry routes to exactly one specialised workflow: `supplier_inquiries` or `purchase_inquiries`. The model uses UUID application-generated primary keys, a unique visitor-facing `reference_code`, UTC `timestamptz`, relational business data, constrained `jsonb` only for technical metadata, and explicit `CHECK`-constraint status vocabularies rather than hard-to-change PostgreSQL enums.
+`inquiries` is the durable top-level record. Every inquiry routes to exactly one specialised workflow: `supplier_inquiries` or `purchase_inquiries`. The model uses UUID application-generated primary keys, a unique visitor-facing `reference_code`, UTC event times, relational business data, constrained JSON only for technical metadata, and explicit `CHECK`-constraint status vocabularies rather than engine-specific enums.
 
 Important entity groups:
 
@@ -330,7 +330,7 @@ Key invariants:
 - `purchase_line_items` require a selected product or free-text requirement (or both).
 - A selected supplier product type must be valid for a department selected on that supplier inquiry.
 - An approved supplier needs recorded approver and approval time before vendor delivery.
-- A file registry stores metadata only; no file bytes in PostgreSQL.
+- A file registry stores metadata only; no file bytes in the database.
 - Canonical contact/organisation matching is reviewable; it must not silently overwrite original submitted snapshots.
 
 Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`, `TAXONOMY_MANAGER`. Initial standards: `IP`, `USP`, `BP`, `EP`.
@@ -345,9 +345,9 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 - Alpine Blue light and dark design systems.
 - Stitch project, logo/design-system upload, design tracker, and final local mobile screen exports.
 - Scan-first UX revision, approved screen-by-screen except the final buyer-confirmation tracker nuance above.
-- Approved PostgreSQL database design and a single full DDL file (now under `specs/`).
+- Approved logical database design (entities/invariants) and a historical PostgreSQL singleton DDL (now under `specs/`; **not applied**). Running store is **MySQL 8**.
 - Visitor-flow React app (`frontend/`) covering the 11 scan-first screens, wired to the POC API with `localStorage` fallback.
-- Java 21 Spring Boot POC (`backend/`): Flyway V1–V2, JDBC draft/submit + taxonomy API, `workflow_events` on create/submit.
+- Java 17 Spring Boot POC (`backend/`): Flyway, JDBC draft/submit + taxonomy API, staff, outbox. Same JDK line as pharma-erp.
 - Project-local skill set for database work, Stitch design workflows, React/Vite/dashboard work, shadcn, static extraction, and Remotion walkthroughs.
 - Phased Java/React build plan: [BUILD-PLAN.md](BUILD-PLAN.md).
 
@@ -394,7 +394,7 @@ All project-local skills live under `.agents/skills/`; their checked sources/has
 
 | Skill | Use in this project |
 | --- | --- |
-| `database-design` | Schema decisions, indexing, migrations, ORM selection, validation. Already informed the approved PostgreSQL design. |
+| `database-design` | Schema decisions, indexing, migrations, ORM selection, validation. Informed the original logical design; applied store is now MySQL 8. |
 | `design-md`, `taste-design` | Analyse/synthesise semantic design systems. The current source of truth is the existing light/dark DESIGN files, not a fresh generic restyle. |
 | `enhance-prompt`, `stitch::generate-design` | Formulate constrained prompts and generate/edit/variant individual Stitch screens. Preserve Alpine Blue and follow approval gates. |
 | `stitch::manage-design-system`, `stitch::upload-to-stitch` | Retrieve/update Stitch systems and safely upload local assets/design docs. |
@@ -427,8 +427,8 @@ No skill changes the product requirements above. They are implementation tools, 
 | `.stitch/metadata.json` | Stitch project IDs/assets/tracking; contains the current visibility conflict noted above. |
 | `.stitch/designs/` | Current local final HTML/PNG pairs, logo, and ordered `final-flow-pngs/`. |
 | `concepts/` | The three pre-approval visual direction HTMLs and a comparison image. |
-| `specs/DATABASE-DESIGN.md` | Approved PostgreSQL logical/physical database baseline. |
-| `specs/exhibition_portal_schema.sql` | Complete singleton PostgreSQL DDL: schema, tables, constraints, indexes, triggers, roles, and standards. |
+| `specs/DATABASE-DESIGN.md` | Logical/physical database baseline. Applied engine is MySQL 8. |
+| `specs/exhibition_portal_schema.sql` | Historical PostgreSQL singleton DDL. Do not load; Flyway V1–V5 is the applied schema. |
 | `specs/FRONTEND_BUILD_PROMPT.md` | Historical visitor-frontend implementation contract. |
 | `frontend/` | React + Vite visitor app; HTTP to the Java POC with local fallback. |
 | `backend/` | Spring Boot POC (draft/submit + taxonomy). |
@@ -441,7 +441,7 @@ The Codex task history is available but consists of continuation/fork-style task
 I also inspected these separate relevant task histories:
 
 - **“Create portal flow diagrams”** (`019f929b-ea9b-7060-b720-bec84419c3e0`): original product discussion, diagrams, landscape exports, and instruction to prepare the HLD.
-- **“DB-Design”** (`019fac42-4a96-7bc2-a9d4-8f0fd2de0f81`): PostgreSQL approval, `PP` typo correction, admin-managed catalogue, 14-day encrypted location policy, and singleton DDL validation report.
+- **“DB-Design”** (`019fac42-4a96-7bc2-a9d4-8f0fd2de0f81`): original PostgreSQL-shaped approval, `PP` typo correction, admin-managed catalogue, 14-day encrypted location policy, and singleton DDL validation report. **Superseded for the engine:** applied store is MySQL 8 (3 September 2026).
 - Same-workspace historical Stitch continuations, including `019fac4a-8daf-7991-af90-8f6cd1e74719` and `019fda9f-fdfc-7e32-aa84-5cf80fc0e4ee`, which confirm the design-system/desktop-flow sequence and overlap with the canonical latest history.
 
 No archived task returned for this project/workspace during the consolidation. This document cannot include private conversations unavailable to the current Codex account or any history that was not retained by the task-history service.

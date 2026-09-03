@@ -2,6 +2,7 @@ package com.sarv.exhibitionportal.taxonomy;
 
 import com.sarv.exhibitionportal.api.dto.DepartmentDto;
 import com.sarv.exhibitionportal.api.dto.ProductTypeDto;
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,7 +28,7 @@ public class TaxonomyRepository {
                         order by display_order, name
                         """)
                 .query((rs, n) -> new DepartmentDto(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("code"),
                         rs.getString("name")))
                 .list();
@@ -43,10 +44,10 @@ public class TaxonomyRepository {
                 order by pt.display_order, pt.name
                 """)
                 .query((rs, n) -> new TypeRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("code"),
                         rs.getString("name"),
-                        rs.getObject("department_id", UUID.class)))
+                        JdbcUuids.get(rs, "department_id")))
                 .list();
         Map<UUID, ProductTypeDto> byId = new LinkedHashMap<>();
         for (TypeRow row : rows) {

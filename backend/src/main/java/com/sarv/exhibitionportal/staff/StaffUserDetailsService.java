@@ -1,5 +1,7 @@
 package com.sarv.exhibitionportal.staff;
 
+import com.sarv.exhibitionportal.config.JdbcUuids;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +31,9 @@ public class StaffUserDetailsService implements UserDetailsService {
                 join roles r on r.id = ur.role_id
                 where u.email_normalized = :email
                 """)
-                .param("email", email)
+                .param("email", JdbcUuids.mysql(email))
                 .query((rs, n) -> new StaffRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("email_normalized"),
                         rs.getString("display_name"),
                         rs.getString("password_hash"),
@@ -42,7 +44,7 @@ public class StaffUserDetailsService implements UserDetailsService {
         if (rows.isEmpty()) {
             throw new UsernameNotFoundException("Unknown staff user");
         }
-        StaffRow first = rows.getFirst();
+        StaffRow first = rows.get(0);
         Set<String> roles = new HashSet<>();
         for (StaffRow row : rows) {
             roles.add(row.roleCode());

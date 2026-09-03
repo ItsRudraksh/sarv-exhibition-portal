@@ -2,15 +2,11 @@ spring:
   application:
     name: exhibition-portal
   datasource:
-    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5433/exhibition_portal?currentSchema=exhibition_portal}
+    url: ${DATASOURCE_URL:jdbc:mysql://localhost:3306/exhibition_portal?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8}
     username: ${DATASOURCE_USERNAME:exhibition}
     password: ${DATASOURCE_PASSWORD:exhibition}
-    hikari:
-      connection-init-sql: SET search_path TO exhibition_portal, public
   flyway:
     enabled: true
-    default-schema: exhibition_portal
-    schemas: exhibition_portal
     locations: classpath:db/migration
   servlet:
     multipart:
@@ -51,3 +47,4 @@ exhibition:
     marketing-destination: poc-mailbox
     vendor-destination: poc-vendor-stub
     force-failure-code: ""
+  staff-bootstrap-password: ${EXHIBITION_STAFF_BOOTSTRAP_PASSWORD:}

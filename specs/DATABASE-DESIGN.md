@@ -1,9 +1,10 @@
 # Exhibition Portal Database Design
 
 **Status:** Approved logical and physical design baseline  
-**Database:** PostgreSQL  
-**Application target:** Java Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
-**Scope:** Data design. The singleton DDL in this folder is the **full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
+**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V5 in `backend/src/main/resources/db/migration/`.  
+**Logical types in this document:** Originally written for PostgreSQL (`uuid`, `timestamptz`, `jsonb`, `text`). Keep them as the entity/invariant SSOT. The applied store maps them to `CHAR(36)`, `DATETIME(6)`, `JSON`, and `VARCHAR`/`TEXT`. Do **not** load `exhibition_portal_schema.sql`.  
+**Application target:** Java 17 Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
+**Scope:** Data design. The singleton DDL in this folder is the **historical full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
 **Delivery:** [BUILD-PLAN.md](BUILD-PLAN.md)
 
 ### Scan-first / POC deviations (1 September 2026)
@@ -16,6 +17,7 @@ These are required for the scan-first visitor flow. They are applied in Flyway V
 | `inquiry_parties.company_name_submitted` | `NOT NULL` | **Nullable**. Buyer company must not block submit. Supplier company is still required by service rules. |
 | Consent uniqueness vs revocation | One current row *and* revocation as a new event | **Append-only.** Current consent is the latest row by `decided_at` per `(inquiry_id, purpose)`. Never UPDATE a prior GRANT/DECLINE. |
 | `app_users.password_hash` | Not in singleton DDL (SSO `external_subject`) | **POC V4** local HTTP Basic. |
+| `review_cases.open_supplier_key` | Partial unique index in PostgreSQL | **POC V4** nullable unique column, set to `supplier_inquiry_id` while the case is open and `NULL` when closed. MariaDB rejects generated `CASE`/`IF` over `CHAR(36)`. |
 | `export_jobs` file pointer | `file_asset_id` (requires `inquiries`) | **POC V4** `storage_key` on disk; exports are not one inquiry. |
 
 `EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems.
@@ -40,7 +42,7 @@ The portal is the system of record for the submitted inquiry, consent, location 
 | Time | Every event time is `timestamptz`, stored in UTC. |
 | Statuses | Use `text` columns constrained by `CHECK` constraints or reference tables, not PostgreSQL enums. Status vocabulary can then evolve safely. |
 | Core business data | Normalized relational tables. `jsonb` is reserved for constrained technical metadata such as an audit context or external-provider receipt, never for inquiry details, taxonomy, or workflow state. |
-| Files | Files live in secure object storage. PostgreSQL stores metadata, storage key, digest, security scan status, processing status, and lineage only. |
+| Files | Files live in secure object storage. The database stores metadata, storage key, digest, security scan status, processing status, and lineage only. |
 | Deletion | No routine hard deletion of submitted inquiries, reviews, audit events, or delivery history. Retention jobs may purge sensitive values while retaining an auditable outcome. |
 | Taxonomy | Departments, product types, products, and pharmacopoeial standards are admin managed and archived instead of physically deleted when referenced. |
 
@@ -418,7 +420,7 @@ The portal authorizes internal staff; visitor authentication is not needed for t
 
 | Table | Essential columns | Constraints |
 |---|---|---|
-| `app_users` | `id`, `external_subject`, `email_normalized`, `display_name`, `status` | `external_subject` and normalized email are unique. **POC V4** also has `password_hash` for local HTTP Basic (`{noop}…`). Replace with SSO; do not ship noop hashes. |
+| `app_users` | `id`, `external_subject`, `email_normalized`, `display_name`, `status` | `external_subject` and normalized email are unique. **POC V4** also has `password_hash` for local HTTP Basic (`{noop}…`). Public hosts must set `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (bcrypt rotate on start). Replace with SSO; do not ship noop hashes. |
 | `roles` | `id`, `code`, `name` | Codes include `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`, and `TAXONOMY_MANAGER`. |
 | `user_roles` | `user_id`, `role_id` | Composite primary key. |
 

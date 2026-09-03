@@ -18,6 +18,8 @@ export const copy = {
     qrNote:
       'If a QR code is present on your card, it is stored with your inquiry for internal use only. This app does not open or preview QR destinations.',
     cameraUnavailable: 'Camera is not available here. Use upload or continue without a card.',
+    insecureContextNote:
+      'This page is not HTTPS, so the in-page camera is unavailable. Upload a photo, use the phone file picker, or continue without a card.',
     processing: 'Preparing photo…',
     processingFailed:
       'Could not load that photo — it may be too large for this browser. Try again or use a smaller image.',

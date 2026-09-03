@@ -6,6 +6,7 @@ import com.sarv.exhibitionportal.api.dto.CardFileDto;
 import com.sarv.exhibitionportal.api.dto.ContactDto;
 import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.api.dto.SupplierDto;
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -33,27 +34,28 @@ public class InquiryRepository {
                      :id, :ref, null, :channel, :campaign, :exhibition, 'DRAFT', 'card-capture', false
                  )
                  """)
-                .param("id", id)
-                .param("ref", referenceCode)
-                .param("channel", entryChannel)
-                .param("campaign", campaignId)
-                .param("exhibition", exhibitionId)
+                .param("id", JdbcUuids.mysql(id))
+                .param("ref", JdbcUuids.mysql(referenceCode))
+                .param("channel", JdbcUuids.mysql(entryChannel))
+                .param("campaign", JdbcUuids.mysql(campaignId))
+                .param("exhibition", JdbcUuids.mysql(exhibitionId))
                 .update();
         jdbc.sql("insert into inquiry_ui_state (inquiry_id) values (:id)")
-                .param("id", id)
+                .param("id", JdbcUuids.mysql(id))
                 .update();
     }
 
     public Optional<UUID> exhibitionIdForCampaign(UUID campaignId) {
         return jdbc.sql("select exhibition_id from qr_campaigns where id = :id")
-                .param("id", campaignId)
-                .query(UUID.class)
-                .optional();
+                .param("id", JdbcUuids.mysql(campaignId))
+                .query(String.class)
+                .optional()
+                .flatMap(JdbcUuids::optional);
     }
 
     public boolean exists(UUID id) {
         Long count = jdbc.sql("select count(*) from inquiries where id = :id")
-                .param("id", id)
+                .param("id", JdbcUuids.mysql(id))
                 .query(Long.class)
                 .single();
         return count != null && count > 0;
@@ -80,9 +82,9 @@ public class InquiryRepository {
                 left join purchase_line_items pli on pli.purchase_inquiry_id = i.id
                 where i.id = :id
                 """)
-                .param("id", id)
+                .param("id", JdbcUuids.mysql(id))
                 .query((rs, n) -> new InquiryRow(
-                        rs.getObject("id", UUID.class),
+                        JdbcUuids.get(rs, "id"),
                         rs.getString("reference_code"),
                         rs.getString("route"),
                         rs.getString("entry_channel"),
@@ -100,15 +102,15 @@ public class InquiryRepository {
                         rs.getString("catalogue_filename"),
                         rs.getString("catalogue_media_type"),
                         longOrNull(rs.getObject("catalogue_byte_size")),
-                        rs.getObject("catalogue_asset_id", UUID.class),
+                        JdbcUuids.get(rs, "catalogue_asset_id"),
                         rs.getString("card_front_name"),
                         longOrNull(rs.getObject("card_front_size")),
                         rs.getString("card_front_type"),
-                        rs.getObject("card_front_asset_id", UUID.class),
+                        JdbcUuids.get(rs, "card_front_asset_id"),
                         rs.getString("card_back_name"),
                         longOrNull(rs.getObject("card_back_size")),
                         rs.getString("card_back_type"),
-                        rs.getObject("card_back_asset_id", UUID.class),
+                        JdbcUuids.get(rs, "card_back_asset_id"),
                         rs.getString("card_qr_payload_internal"),
                         rs.getString("location_from_card"),
                         rs.getString("requirement_text"),
@@ -126,17 +128,23 @@ public class InquiryRepository {
         InquiryRow r = row.get();
         List<UUID> departments = jdbc.sql(
                         "select department_id from supplier_inquiry_departments where inquiry_id = :id")
-                .param("id", id)
-                .query(UUID.class)
-                .list();
+                .param("id", JdbcUuids.mysql(id))
+                .query(String.class)
+                .list()
+                .stream()
+                .map(UUID::fromString)
+                .toList();
         List<UUID> productTypes = jdbc.sql("""
                         select distinct product_type_id
                         from supplier_inquiry_product_types
                         where inquiry_id = :id
                         """)
-                .param("id", id)
-                .query(UUID.class)
-                .list();
+                .param("id", JdbcUuids.mysql(id))
+                .query(String.class)
+                .list()
+                .stream()
+                .map(UUID::fromString)
+                .toList();
         return Optional.of(toDto(r, departments, productTypes));
     }
 
@@ -152,13 +160,13 @@ public class InquiryRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where id = :id
                  """)
-                .param("route", draft.route())
-                .param("channel", draft.entryChannel() == null ? "EXHIBITION_QR" : draft.entryChannel())
-                .param("life", draft.lifecycleState())
-                .param("submitted", draft.submittedAt() == null ? null : Timestamp.from(draft.submittedAt()))
-                .param("step", draft.currentStep() == null ? "card-capture" : draft.currentStep())
-                .param("confirmed", draft.contactConfirmed())
-                .param("id", draft.id())
+                .param("route", JdbcUuids.mysql(draft.route()))
+                .param("channel", JdbcUuids.mysql(draft.entryChannel() == null ? "EXHIBITION_QR" : draft.entryChannel()))
+                .param("life", JdbcUuids.mysql(draft.lifecycleState()))
+                .param("submitted", JdbcUuids.mysql(draft.submittedAt() == null ? null : Timestamp.from(draft.submittedAt())))
+                .param("step", JdbcUuids.mysql(draft.currentStep() == null ? "card-capture" : draft.currentStep()))
+                .param("confirmed", JdbcUuids.mysql(draft.contactConfirmed()))
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
 
         replaceParty(draft);
@@ -186,13 +194,13 @@ public class InquiryRepository {
                      :id, :inquiry, :workflow, :from, :to, :actor, :user
                  )
                  """)
-                .param("id", UUID.randomUUID())
-                .param("inquiry", inquiryId)
-                .param("workflow", workflow)
-                .param("from", from)
-                .param("to", to)
-                .param("actor", actorKind)
-                .param("user", actorUserId)
+                .param("id", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("workflow", JdbcUuids.mysql(workflow))
+                .param("from", JdbcUuids.mysql(from))
+                .param("to", JdbcUuids.mysql(to))
+                .param("actor", JdbcUuids.mysql(actorKind))
+                .param("user", JdbcUuids.mysql(actorUserId))
                 .update();
     }
 
@@ -202,7 +210,7 @@ public class InquiryRepository {
                  set review_state = 'SUBMITTED', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id and review_state = 'DRAFT'
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
@@ -212,13 +220,13 @@ public class InquiryRepository {
                  set lead_state = 'SUBMITTED', updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id and lead_state = 'DRAFT'
                  """)
-                .param("id", inquiryId)
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 
     private void replaceParty(InquiryDraftDto draft) {
         jdbc.sql("delete from inquiry_parties where inquiry_id = :id")
-                .param("id", draft.id())
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
         ContactDto contact = draft.contact();
         if (contact == null || isBlank(contact.fullName()) || isBlank(contact.workEmail())) {
@@ -239,16 +247,16 @@ public class InquiryRepository {
                      :pid, :id, :role, :company, :name, :email, :emailNorm, :phone, :e164, :job
                  )
                  """)
-                .param("pid", UUID.randomUUID())
-                .param("id", draft.id())
-                .param("role", role)
-                .param("company", company)
-                .param("name", contact.fullName().trim())
-                .param("email", contact.workEmail().trim())
-                .param("emailNorm", contact.workEmail().trim().toLowerCase())
-                .param("phone", phone)
-                .param("e164", phone)
-                .param("job", job)
+                .param("pid", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("id", JdbcUuids.mysql(draft.id()))
+                .param("role", JdbcUuids.mysql(role))
+                .param("company", JdbcUuids.mysql(company))
+                .param("name", JdbcUuids.mysql(contact.fullName().trim()))
+                .param("email", JdbcUuids.mysql(contact.workEmail().trim()))
+                .param("emailNorm", JdbcUuids.mysql(contact.workEmail().trim().toLowerCase()))
+                .param("phone", JdbcUuids.mysql(phone))
+                .param("e164", JdbcUuids.mysql(phone))
+                .param("job", JdbcUuids.mysql(job))
                 .update();
     }
 
@@ -265,32 +273,31 @@ public class InquiryRepository {
                      inquiry_id, website_url, catalogue_filename, catalogue_media_type, catalogue_byte_size,
                      catalogue_asset_id
                  ) values (:id, :url, :fname, :mtype, :size, :asset)
-                 on conflict (inquiry_id) do update set
-                     website_url = excluded.website_url,
-                     catalogue_filename = coalesce(excluded.catalogue_filename, supplier_inquiries.catalogue_filename),
-                     catalogue_media_type = coalesce(excluded.catalogue_media_type, supplier_inquiries.catalogue_media_type),
-                     catalogue_byte_size = coalesce(excluded.catalogue_byte_size, supplier_inquiries.catalogue_byte_size),
-                     catalogue_asset_id = coalesce(excluded.catalogue_asset_id, supplier_inquiries.catalogue_asset_id),
-                     updated_at = CURRENT_TIMESTAMP
+                 on duplicate key update
+                     website_url = VALUES(website_url),
+                     catalogue_filename = COALESCE(VALUES(catalogue_filename), catalogue_filename),
+                     catalogue_media_type = COALESCE(VALUES(catalogue_media_type), catalogue_media_type),
+                     catalogue_byte_size = COALESCE(VALUES(catalogue_byte_size), catalogue_byte_size),
+                     catalogue_asset_id = COALESCE(VALUES(catalogue_asset_id), catalogue_asset_id)
                  """)
-                .param("id", draft.id())
-                .param("url", emptyToNull(supplier.websiteUrl()))
-                .param("fname", cat == null ? null : emptyToNull(cat.name()))
-                .param("mtype", cat == null ? null : emptyToNull(cat.type()))
-                .param("size", cat == null ? null : cat.size())
-                .param("asset", cat == null ? null : cat.assetId())
+                .param("id", JdbcUuids.mysql(draft.id()))
+                .param("url", JdbcUuids.mysql(emptyToNull(supplier.websiteUrl())))
+                .param("fname", JdbcUuids.mysql(cat == null ? null : emptyToNull(cat.name())))
+                .param("mtype", JdbcUuids.mysql(cat == null ? null : emptyToNull(cat.type())))
+                .param("size", JdbcUuids.mysql(cat == null ? null : cat.size()))
+                .param("asset", JdbcUuids.mysql(cat == null ? null : cat.assetId()))
                 .update();
         jdbc.sql("delete from supplier_inquiry_product_types where inquiry_id = :id")
-                .param("id", draft.id())
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
         jdbc.sql("delete from supplier_inquiry_departments where inquiry_id = :id")
-                .param("id", draft.id())
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
         List<UUID> departments = draft.departmentIds() == null ? List.of() : draft.departmentIds();
         for (UUID departmentId : departments) {
             jdbc.sql("insert into supplier_inquiry_departments (inquiry_id, department_id) values (:id, :d)")
-                    .param("id", draft.id())
-                    .param("d", departmentId)
+                    .param("id", JdbcUuids.mysql(draft.id()))
+                    .param("d", JdbcUuids.mysql(departmentId))
                     .update();
         }
         List<UUID> productTypes = draft.productTypeIds() == null ? List.of() : draft.productTypeIds();
@@ -301,8 +308,8 @@ public class InquiryRepository {
                                          select count(*) from department_product_types
                                          where department_id = :d and product_type_id = :p and is_active = true
                                          """)
-                        .param("d", departmentId)
-                        .param("p", productTypeId)
+                        .param("d", JdbcUuids.mysql(departmentId))
+                        .param("p", JdbcUuids.mysql(productTypeId))
                         .query(Long.class)
                         .single();
                 if (count != null && count > 0) {
@@ -310,9 +317,9 @@ public class InquiryRepository {
                              insert into supplier_inquiry_product_types (inquiry_id, department_id, product_type_id)
                              values (:id, :d, :p)
                              """)
-                            .param("id", draft.id())
-                            .param("d", departmentId)
-                            .param("p", productTypeId)
+                            .param("id", JdbcUuids.mysql(draft.id()))
+                            .param("d", JdbcUuids.mysql(departmentId))
+                            .param("p", JdbcUuids.mysql(productTypeId))
                             .update();
                     mapped = true;
                 }
@@ -326,16 +333,16 @@ public class InquiryRepository {
 
     private void replacePurchase(InquiryDraftDto draft) {
         jdbc.sql("delete from purchase_line_items where purchase_inquiry_id = :id")
-                .param("id", draft.id())
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
         if (!"PURCHASE".equals(draft.route())) {
             return;
         }
         jdbc.sql("""
                  insert into purchase_inquiries (inquiry_id) values (:id)
-                 on conflict (inquiry_id) do update set updated_at = CURRENT_TIMESTAMP
+                 on duplicate key update inquiry_id = inquiry_id
                  """)
-                .param("id", draft.id())
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
         BuyerDto buyer = draft.buyer() == null
                 ? new BuyerDto("", "", new BuyerSpecificationsDto("", "", "", "", ""))
@@ -355,15 +362,15 @@ public class InquiryRepository {
                      :lid, :id, :req, :qty, :pack, :needed, :notes, :area, :std, 0
                  )
                  """)
-                .param("lid", UUID.randomUUID())
-                .param("id", draft.id())
-                .param("req", requirement)
-                .param("qty", emptyToNull(spec.quantity()))
-                .param("pack", emptyToNull(spec.packSize()))
-                .param("needed", emptyToNull(spec.neededByDate()))
-                .param("notes", emptyToNull(spec.notes()))
-                .param("area", emptyToNull(buyer.productAreaSearch()))
-                .param("std", emptyToNull(spec.standard()))
+                .param("lid", JdbcUuids.mysql(UUID.randomUUID()))
+                .param("id", JdbcUuids.mysql(draft.id()))
+                .param("req", JdbcUuids.mysql(requirement))
+                .param("qty", JdbcUuids.mysql(emptyToNull(spec.quantity())))
+                .param("pack", JdbcUuids.mysql(emptyToNull(spec.packSize())))
+                .param("needed", JdbcUuids.mysql(emptyToNull(spec.neededByDate())))
+                .param("notes", JdbcUuids.mysql(emptyToNull(spec.notes())))
+                .param("area", JdbcUuids.mysql(emptyToNull(buyer.productAreaSearch())))
+                .param("std", JdbcUuids.mysql(emptyToNull(spec.standard())))
                 .update();
     }
 
@@ -381,17 +388,17 @@ public class InquiryRepository {
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
                  """)
-                .param("fn", front == null ? null : emptyToNull(front.name()))
-                .param("fs", front == null ? null : front.size())
-                .param("ft", front == null ? null : emptyToNull(front.type()))
-                .param("fa", front == null ? null : front.assetId())
-                .param("bn", back == null ? null : emptyToNull(back.name()))
-                .param("bs", back == null ? null : back.size())
-                .param("bt", back == null ? null : emptyToNull(back.type()))
-                .param("ba", back == null ? null : back.assetId())
-                .param("qr", emptyToNull(draft.cardQrPayloadInternal()))
-                .param("loc", draft.supplier() == null ? null : emptyToNull(draft.supplier().locationFromCard()))
-                .param("id", draft.id())
+                .param("fn", JdbcUuids.mysql(front == null ? null : emptyToNull(front.name())))
+                .param("fs", JdbcUuids.mysql(front == null ? null : front.size()))
+                .param("ft", JdbcUuids.mysql(front == null ? null : emptyToNull(front.type())))
+                .param("fa", JdbcUuids.mysql(front == null ? null : front.assetId()))
+                .param("bn", JdbcUuids.mysql(back == null ? null : emptyToNull(back.name())))
+                .param("bs", JdbcUuids.mysql(back == null ? null : back.size()))
+                .param("bt", JdbcUuids.mysql(back == null ? null : emptyToNull(back.type())))
+                .param("ba", JdbcUuids.mysql(back == null ? null : back.assetId()))
+                .param("qr", JdbcUuids.mysql(emptyToNull(draft.cardQrPayloadInternal())))
+                .param("loc", JdbcUuids.mysql(draft.supplier() == null ? null : emptyToNull(draft.supplier().locationFromCard())))
+                .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
     }
 

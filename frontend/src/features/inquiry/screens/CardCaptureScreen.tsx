@@ -120,6 +120,11 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
           <p className="screen-subtitle">
             {copy.cardCapture.subtitle}
           </p>
+          {typeof window !== 'undefined' && !window.isSecureContext ? (
+            <Notice>
+              <p>{copy.cardCapture.insecureContextNote}</p>
+            </Notice>
+          ) : null}
         </section>
 
         <label className="notice" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>

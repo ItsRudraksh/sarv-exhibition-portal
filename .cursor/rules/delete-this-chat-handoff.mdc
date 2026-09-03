@@ -17,6 +17,7 @@ When the user message **includes** `delete this chat` (case-insensitive), finish
    - `frontend/README.md` and visitor `copy.ts` when the prototype behaviour or limits changed
    - `specs/FRONTEND_BUILD_PROMPT.md` only if the implementation contract changed
    - `specs/TESTING.md` when verification commands changed
+   - `specs/DEPLOY-WINDOWS.md` when public-host runbooks changed
 3. **Tests** — Add or extend regression tests for behaviour introduced or fixed. From `frontend/`: **`npm run lint`** and **`npm run build`**. If a test suite exists, run it and fix failures. UI changes: browser smoke or **Manual smoke required** with exact screens.
 4. **Reply** — Short handoff: docs touched (paths), tests/lint/build (pass/fail), audit impact (logged / N/A), **Verification** (browser / manual steps).
 

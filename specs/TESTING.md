@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Updated:** 1 September 2026
+**Updated:** 3 September 2026
 
 After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
 
@@ -35,19 +35,23 @@ If the browser was not run, write **Manual smoke required** with those screens.
 ## Backend (`backend/`)
 
 ```bash
-mvn test              # rules + API tests including files/consent/audit/staff (embedded Postgres; Docker not required)
-mvn spring-boot:run   # needs Postgres — see below
+mvn test              # rules + API tests including files/consent/audit/staff (embedded MariaDB; Docker not required)
+mvn spring-boot:run   # needs MySQL 8 — see below
 ```
 
-Local Postgres (not used by `mvn test`):
+Local MySQL (not used by `mvn test`): native MySQL 8 on `localhost:3306` (see `deploy/windows/init-mysql.sql`). Docker is not required.
 
-```bash
-docker compose up -d db   # from repo root; host port 5433, user/db/password exhibition
-```
-
-API tests cover: draft before route; buyer submit without company; supplier website-or-catalogue; taxonomy; card upload + consent; staff Add to production; outbox idempotency; vendor row only after Add to production; failed stub keeps the inquiry.
+API tests cover: draft before route; buyer submit without company; supplier website-or-catalogue; taxonomy; card upload + consent; staff Add to production; outbox idempotency; vendor row only after Add to production; failed stub keeps the inquiry; SPA `/` and `/staff` are public; staff bootstrap password replaces `{noop}poc-staff`.
 
 Flyway V1–V5 is the applied schema. Do not treat `exhibition_portal_schema.sql` as an applied production migration.
+
+## Jenkins + public Windows host (`http://43.225.195.200/`)
+
+Commands: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md). **Java 17** only. Do not use `npm run dev` on the public IP.
+
+Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Java17`** and **`Maven3`**, same as pharma-erp). Branch `main` deploys `C:\exhibition-portal\exhibition-portal.jar` and `net start exhibition-portal`.
+
+**Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the bootstrap password. MySQL must not be reachable on the public IP.
 
 ## Reply footer (agents)
 
