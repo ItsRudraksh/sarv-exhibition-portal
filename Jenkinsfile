@@ -1,6 +1,7 @@
-# Jenkins: same agent pattern as pharma-erp (Java17 + Maven3 tools).
-# Windows Server at http://43.225.195.200/ — native PostgreSQL, no Docker, no ZK credentials.
-# Node 22+ must be on the agent PATH (npm ci / npm run build). JDK must be 17 (server has 17.0.18).
+// Jenkins: same agent pattern as pharma-erp (Java17 + Maven3 tools).
+// Groovy Pipeline script — comments must be // or /* */, not # (that is parsed as a shebang).
+// Windows Server at http://43.225.195.200/ — native MySQL 8 on 3306, no Docker, no ZK credentials.
+// Node 22+ must be on the agent PATH (npm ci / npm run build). JDK must be 17 (server has 17.0.18).
 
 pipeline {
 

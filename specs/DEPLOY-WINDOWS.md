@@ -72,7 +72,7 @@ Parameters (same idea as pharma-erp):
 
 Create the Jenkins job as a **Pipeline from SCM** pointing at this repo, same as pharma-erp. Staging service (optional): copy `start-portal.ps1` + `portal.env.ps1` to `C:\exhibition-portal-staging` and run `.\deploy\windows\install-service.ps1 -Staging` with `SERVER_PORT=8081` in that env file.
 
-PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it as a Jenkins binding (same pharma-erp rule).
+PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it as a Jenkins binding (same pharma-erp rule). The file is a Groovy script: comments must be `//` or `/* */`. A leading `#` is parsed as a shebang and Jenkins fails with `expecting '!', found ' '`.
 
 ## Files
 

@@ -195,3 +195,5 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 **Chat-independent reference — Java 17 + Jenkins (2026-09-03):** Target JDK is **17** (Windows Server `17.0.18`), same Jenkins tool ids as pharma-erp (`Java17`, `Maven3`). Pipeline: npm in `frontend/` then `mvn` in `backend/`; `dev` → `exhibition-portal-staging`, `main` → `exhibition-portal` Windows services. Docker is not part of deploy.
 
 **Chat-independent reference — MySQL 8 (2026-09-03):** Applied store is **MySQL 8** on **3306** (same engine as pharma-erp). Flyway V1–V5 is MySQL/MariaDB DDL (`CHAR(36)` UUIDs, `DATETIME(6)`, `JSON`). `mvn test` uses embedded MariaDB (mariaDB4j). `exhibition_portal_schema.sql` remains a historical PostgreSQL singleton and must not be loaded. Create the host database with `deploy/windows/init-mysql.sql`.
+
+**Chat-independent reference — Jenkinsfile Groovy comments (2026-09-03):** Root `Jenkinsfile` is Declarative Pipeline Groovy. Header comments must be `//`, not `#`. Jenkins CPS failed at parse with `expecting '!', found ' '` when line 1 was `# Jenkins: ...`. Pharma-erp uses the same `//` style.
