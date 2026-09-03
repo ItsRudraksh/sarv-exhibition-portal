@@ -3,15 +3,16 @@
 // Windows Server at http://43.225.195.200/ — native MySQL 8 on 3306, no Docker, no ZK credentials.
 // Node 22: Jenkins Windows service PATH does not include an interactive user's Node.
 // Frontend prepends C:\Program Files\nodejs and NODE_HOME. Restart Jenkins after installing Node.
-// Staging deploy runs for branches dev and poc (job exibit-portal-pipeline_poc). Production is main only.
+// Staging listen port is 8082. 8081 is pharma-erp-staging on this host. Production is port 80.
 
-def windowsInstallExhibition(String installDir, String serviceName, String kind, String workspace, String jarSource, String appDir) {
+def windowsInstallExhibition(String installDir, String serviceName, String kind, String workspace, String jarSource, String appDir, String stagingPort) {
     powershell """
                 \$installDir = '${installDir}'
                 \$service = '${serviceName}'
                 \$kind = '${kind}'
                 \$workspace = '${workspace}'
                 \$jarSource = '${jarSource}'.Trim()
+                \$stagingPort = '${stagingPort}'
                 \$appTarget = '${appDir}\\target'
                 \$destJar = Join-Path \$installDir 'exhibition-portal.jar'
 
@@ -55,28 +56,61 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     Copy-Item -LiteralPath \$envExample -Destination \$envTarget
                     if (\$kind -eq 'staging') {
                         \$txt = Get-Content -LiteralPath \$envTarget -Raw
-                        \$txt = \$txt.Replace('\$env:SERVER_PORT = ''80''', '\$env:SERVER_PORT = ''8081''')
                         \$txt = \$txt.Replace('C:\\exhibition-portal\\files', 'C:\\exhibition-portal-staging\\files')
                         Set-Content -LiteralPath \$envTarget -Value \$txt -NoNewline
                     }
                     Write-Host "Created \$envTarget - edit DATASOURCE_PASSWORD and EXHIBITION_STAFF_BOOTSTRAP_PASSWORD before start."
+                }
+                if (\$kind -eq 'staging' -and (Test-Path -LiteralPath \$envTarget)) {
+                    \$txt = Get-Content -LiteralPath \$envTarget -Raw
+                    \$txt = \$txt.Replace('\$env:SERVER_PORT = ''80''', '\$env:SERVER_PORT = ''${stagingPort}''')
+                    \$txt = \$txt.Replace('\$env:SERVER_PORT = ''8081''', '\$env:SERVER_PORT = ''${stagingPort}''')
+                    Set-Content -LiteralPath \$envTarget -Value \$txt -NoNewline
+                    Write-Host "Pinned SERVER_PORT=\$stagingPort in \$envTarget (8081 is pharma-erp-staging; 80 is production)."
                 }
 
                 Write-Host "Installed exhibition-portal.jar under \$installDir"
 
                 \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
                 if (-not \$svc) {
-                    \$flag = ''
-                    if (\$kind -eq 'staging') { \$flag = ' -Staging' }
-                    Write-Error ("Folder is ready at " + \$installDir + ". Windows service " + \$service + " is not installed. Elevated, from the repo: .\\deploy\\windows\\install-service.ps1" + \$flag + " then rebuild. Edit " + \$envTarget + " first (MySQL password + staff bootstrap).")
+                    \$installScript = Join-Path \$workspace 'deploy\\windows\\install-service.ps1'
+                    if (-not (Test-Path -LiteralPath \$installScript)) {
+                        Write-Error ("Missing " + \$installScript)
+                        exit 1
+                    }
+                    Write-Host "Windows service \$service is not installed. Creating it (Jenkins LocalSystem)..."
+                    if (\$kind -eq 'staging') {
+                        & \$installScript -Staging
+                    } else {
+                        & \$installScript
+                    }
+                    if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }
+                    \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
+                    if (-not \$svc) {
+                        Write-Error ("Failed to install Windows service " + \$service + ". Elevated, from the repo: .\\deploy\\windows\\install-service.ps1" + \$(if (\$kind -eq 'staging') { ' -Staging' } else { '' }))
+                        exit 1
+                    }
+                }
+
+                \$envText = ''
+                if (Test-Path -LiteralPath \$envTarget) {
+                    \$envText = Get-Content -LiteralPath \$envTarget -Raw
+                }
+                if (\$envText -match 'change-me-db' -or \$envText -match 'change-me-staff') {
+                    Write-Error ("Service " + \$service + " is installed and " + \$installDir + " has the JAR. Edit " + \$envTarget + " (DATASOURCE_PASSWORD and EXHIBITION_STAFF_BOOTSTRAP_PASSWORD), create MySQL DB/user with deploy\\windows\\init-mysql.sql, then rebuild. start-portal.ps1 will not start with the example passwords.")
                     exit 1
                 }
+
                 if (\$svc.Status -eq 'Running') {
                     Write-Host "Stopping service \$service..."
                     net stop \$service
                 }
                 Write-Host "Starting service \$service..."
                 net start \$service
+                if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) {
+                    Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + " (MySQL password, staff bootstrap) and the Windows Event Log.")
+                    exit 1
+                }
                 Write-Host "Waiting for startup..."
                 Start-Sleep -Seconds 20
             """
@@ -105,6 +139,7 @@ pipeline {
         SERVICE_NAME = 'exhibition-portal'
         STAGING_SERVICE = 'exhibition-portal-staging'
         APP_PORT = '80'
+        STAGING_PORT = '8082'
         SMOKE_PORT = '18080'
         STAGING_DIR = 'C:\\exhibition-portal-staging'
         PROD_DIR = 'C:\\exhibition-portal'
@@ -244,7 +279,8 @@ pipeline {
                                 'staging',
                                 env.WORKSPACE,
                                 params.JAR_SOURCE ?: '',
-                                env.APP_DIR)
+                                env.APP_DIR,
+                                env.STAGING_PORT)
                     }
                 }
             }
@@ -263,7 +299,8 @@ pipeline {
                                 'prod',
                                 env.WORKSPACE,
                                 params.JAR_SOURCE ?: '',
-                                env.APP_DIR)
+                                env.APP_DIR,
+                                env.STAGING_PORT)
                     }
                 }
             }
@@ -289,8 +326,8 @@ pipeline {
                     } else {
                         def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
                         def isMain = (branch == 'main' || branch.endsWith('/main'))
-                        def healthUrl = isMain ? 'http://127.0.0.1/actuator/health' : 'http://127.0.0.1:8081/actuator/health'
-                        def hint = isMain ? "service ${SERVICE_NAME} and C:\\\\exhibition-portal\\\\portal.env.ps1" : "service ${STAGING_SERVICE} and C:\\\\exhibition-portal-staging\\\\portal.env.ps1 (port 8081)"
+                        def healthUrl = isMain ? 'http://127.0.0.1/actuator/health' : "http://127.0.0.1:${env.STAGING_PORT}/actuator/health"
+                        def hint = isMain ? "service ${SERVICE_NAME} and C:\\\\exhibition-portal\\\\portal.env.ps1" : "service ${STAGING_SERVICE} and C:\\\\exhibition-portal-staging\\\\portal.env.ps1 (port ${env.STAGING_PORT}; 8081 is pharma-erp-staging)"
                         powershell """
                 \$ok = \$false
                 \$healthUrl = '${healthUrl}'
