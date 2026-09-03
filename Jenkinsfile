@@ -49,6 +49,14 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                 if (Test-Path -LiteralPath \$startSrc) {
                     Copy-Item -LiteralPath \$startSrc -Destination (Join-Path \$installDir 'start-portal.ps1') -Force
                 }
+                \$sqlSrc = Join-Path \$workspace 'deploy\\windows\\init-mysql.sql'
+                if (Test-Path -LiteralPath \$sqlSrc) {
+                    Copy-Item -LiteralPath \$sqlSrc -Destination (Join-Path \$installDir 'init-mysql.sql') -Force
+                }
+                \$verifySrc = Join-Path \$workspace 'deploy\\windows\\verify-staging.ps1'
+                if (Test-Path -LiteralPath \$verifySrc) {
+                    Copy-Item -LiteralPath \$verifySrc -Destination (Join-Path \$installDir 'verify-staging.ps1') -Force
+                }
 
                 \$envTarget = Join-Path \$installDir 'portal.env.ps1'
                 \$envExample = Join-Path \$workspace 'deploy\\windows\\portal.env.example.ps1'

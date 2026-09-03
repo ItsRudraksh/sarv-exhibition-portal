@@ -1,6 +1,10 @@
 -- Native MySQL 8 on the Windows Server (no Docker). Same engine as pharma-erp.
--- Run as a MySQL admin:
---   Get-Content deploy\windows\init-mysql.sql | mysql -u root -p
+-- `mysql` is often not on PATH. Use the full client path from an elevated PowerShell.
+-- Do not run this from C:\exhibition-portal-staging unless init-mysql.sql was copied there.
+-- Repo checkout:
+--   Get-Content deploy\windows\init-mysql.sql | & 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' -u root -p
+-- Install dir (after Jenkins copies this file):
+--   Get-Content C:\exhibition-portal-staging\init-mysql.sql | & 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' -u root -p
 -- Initial password matches local application.yml (`exhibition`). Change it on the public host:
 --   ALTER USER 'exhibition'@'localhost' IDENTIFIED BY 'your-db-password';
 --   ALTER USER 'exhibition'@'127.0.0.1' IDENTIFIED BY 'your-db-password';

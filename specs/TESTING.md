@@ -51,10 +51,12 @@ Commands: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md). **Java 17** only. Do not use `
 
 Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Java17`** and **`Maven3`**, same as pharma-erp). Node 22 must be visible to the **Jenkins Windows service** (`C:\Program Files\nodejs` or `NODE_HOME`); restart Jenkins after installing Node.
 
-- **`poc` / `dev`:** Deploy staging → `C:\exhibition-portal-staging\exhibition-portal.jar`, Jenkins installs `exhibition-portal-staging` if missing, health on port **8082** (not 8081 — that is pharma-erp-staging). First run fails until `portal.env.ps1` has real `DATASOURCE_PASSWORD` and `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `change-me-*`) and MySQL `exhibition_portal` exists. Rebuild after editing.
+- **`poc` / `dev`:** Deploy staging → `C:\exhibition-portal-staging\exhibition-portal.jar`, Jenkins installs `exhibition-portal-staging` if missing, health on port **8082** (not 8081 — that is pharma-erp-staging). First run fails until `portal.env.ps1` has real `DATASOURCE_PASSWORD` and `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `change-me-*`) and MySQL `exhibition_portal` exists. Rebuild after editing. **`C:\exhibition-portal-staging` is not the git repo** (`mysql` and `deploy.ps1` are not there). Create the DB with `mysql.exe` full path + `init-mysql.sql` from the repo (see [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)).
 - **`main`:** Deploy production → `C:\exhibition-portal\`, health on port **80**.
 
 **Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the bootstrap password. MySQL must not be reachable on the public IP.
+
+**Staging host diagnose:** `deploy/windows/verify-staging.ps1` (or `C:\exhibition-portal-staging\verify-staging.ps1` after Jenkins copies it). Paste the console; it never prints password values. The 15:33 pipeline FAIL was placeholder `change-me-*` in `portal.env.ps1`.
 
 ## Reply footer (agents)
 

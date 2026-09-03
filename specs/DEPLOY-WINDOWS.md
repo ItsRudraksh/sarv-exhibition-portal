@@ -30,18 +30,79 @@ The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibiti
 
 Do not open 5173 or 3306 on the public IP. Do not install Docker for this app.
 
-## One-time host setup
+## Two folders (do not mix them)
 
-Elevated PowerShell, repo checkout on the server:
+| Path | What it is |
+|---|---|
+| **`C:\exhibition-portal-staging`** | Jenkins **install dir**: JAR, `start-portal.ps1`, `portal.env.ps1`. **Not** a git clone. There is no `deploy\windows\deploy.ps1` here. |
+| **Git repo** (clone, or Jenkins workspace `...\workspace\exibit-portal-pipeline_poc`) | Source of `deploy\windows\*.ps1` and `init-mysql.sql`. |
+
+Do **not** `cd C:\exhibition-portal-staging` and run `.\deploy\windows\deploy.ps1`. That script only exists in the **repo**, and it copies the JAR to **`C:\exhibition-portal`** (production). Staging is already filled by Jenkins.
+
+### Verify staging (paste the output)
+
+Does **not** print passwords. The 15:33 Jenkins failure is this script’s FAIL on `change-me-db` / `change-me-staff`.
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
+# After the next Jenkins copy:
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\exhibition-portal-staging\verify-staging.ps1
+# Or from a git clone:
+.\deploy\windows\verify-staging.ps1
+```
+
+Paste the full console (RESULT line included) into chat.
+
+## One-time host setup
+
+### 1. Create MySQL database (CLI is often not on PATH)
+
+`mysql` as a bare command usually fails on this host. Use the 8.0 client (same engine as pharma-erp):
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+$mysql = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
+if (-not (Test-Path $mysql)) {
+    Get-ChildItem 'C:\Program Files\MySQL' -Recurse -Filter mysql.exe -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty FullName
+}
+
+# SQL file: repo clone, or after the next Jenkins copy: C:\exhibition-portal-staging\init-mysql.sql
+$sql = 'C:\path\to\sarv-exhibition-portal\deploy\windows\init-mysql.sql'
+Get-Content $sql | & $mysql -u root -p
+```
+
+Then set a real password (must match `portal.env.ps1`):
+
+```sql
+ALTER USER 'exhibition'@'localhost' IDENTIFIED BY 'your-db-password';
+ALTER USER 'exhibition'@'127.0.0.1' IDENTIFIED BY 'your-db-password';
+FLUSH PRIVILEGES;
+```
+
+MySQL Workbench connected as root can paste the same `init-mysql.sql` if you prefer a GUI.
+
+### 2. Staging (Jenkins already built the JAR)
+
+```powershell
+notepad C:\exhibition-portal-staging\portal.env.ps1
+# DATASOURCE_PASSWORD = the exhibition user password from step 1
+# EXHIBITION_STAFF_BOOTSTRAP_PASSWORD = a real staff password
+# SERVER_PORT = '8082'   (8081 is pharma-erp-staging; 80 is production)
+
+# Service install is in the repo, not the install dir:
 cd C:\path\to\sarv-exhibition-portal
+.\deploy\windows\install-service.ps1 -Staging
+```
 
-# Native MySQL 8 (PowerShell example)
-Get-Content deploy\windows\init-mysql.sql | mysql -u root -p
-# then: ALTER USER 'exhibition'@'localhost' IDENTIFIED BY 'your-db-password';
+Or skip the manual `install-service.ps1` and rebuild `exibit-portal-pipeline_poc` after passwords are set (Jenkins installs the service if missing).
 
+### 3. Production only (`main` / `C:\exhibition-portal`)
+
+Elevated, **from the repo**, not from the staging folder:
+
+```powershell
+cd C:\path\to\sarv-exhibition-portal
 .\deploy\windows\deploy.ps1
 # Edit C:\exhibition-portal\portal.env.ps1
 .\deploy\windows\open-http-80.ps1
@@ -76,8 +137,8 @@ Create the Jenkins job as a **Pipeline from SCM** (or Multibranch) pointing at t
 
 ```powershell
 notepad C:\exhibition-portal-staging\portal.env.ps1
-# DATASOURCE_PASSWORD + EXHIBITION_STAFF_BOOTSTRAP_PASSWORD; leave SERVER_PORT=8082 (8081 is pharma-erp)
-# MySQL: Get-Content deploy\windows\init-mysql.sql | mysql -u root -p
+# DATASOURCE_PASSWORD + EXHIBITION_STAFF_BOOTSTRAP_PASSWORD; SERVER_PORT=8082 (8081 is pharma-erp)
+# MySQL: full path to mysql.exe — see “One-time host setup”. Do not run deploy.ps1 from this folder.
 ```
 
 Staging must **not** bind port 80 (production) or **8081** (**pharma-erp-staging** on this host). Exhibition staging is **8082**. The first Jenkins copy seeded `portal.env.ps1` with 8081; the next staging deploy rewrites `SERVER_PORT` to 8082. You can also edit it now.
