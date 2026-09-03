@@ -1,7 +1,86 @@
 // Jenkins: same agent pattern as pharma-erp (Java17 + Maven3 tools).
 // Groovy Pipeline script — comments must be // or /* */, not # (that is parsed as a shebang).
 // Windows Server at http://43.225.195.200/ — native MySQL 8 on 3306, no Docker, no ZK credentials.
-// Node 22+ must be on the agent PATH (npm ci / npm run build). JDK must be 17 (server has 17.0.18).
+// Node 22: Jenkins Windows service PATH does not include an interactive user's Node.
+// Frontend prepends C:\Program Files\nodejs and NODE_HOME. Restart Jenkins after installing Node.
+// Staging deploy runs for branches dev and poc (job exibit-portal-pipeline_poc). Production is main only.
+
+def windowsInstallExhibition(String installDir, String serviceName, String kind, String workspace, String jarSource, String appDir) {
+    powershell """
+                \$installDir = '${installDir}'
+                \$service = '${serviceName}'
+                \$kind = '${kind}'
+                \$workspace = '${workspace}'
+                \$jarSource = '${jarSource}'.Trim()
+                \$appTarget = '${appDir}\\target'
+                \$destJar = Join-Path \$installDir 'exhibition-portal.jar'
+
+                New-Item -ItemType Directory -Force -Path \$installDir | Out-Null
+                New-Item -ItemType Directory -Force -Path (Join-Path \$installDir 'files') | Out-Null
+
+                \$src = \$null
+                if ([string]::IsNullOrEmpty(\$jarSource)) {
+                    \$matches = @(Get-ChildItem -Path "\$appTarget" -File -ErrorAction SilentlyContinue |
+                        Where-Object { \$_.Name -like 'exhibition-portal*.jar' -and \$_.Name -notlike '*.original' })
+                    if (\$matches.Count -eq 0) {
+                        Write-Error ("No JAR under " + \$appTarget + ". Options: (1) SKIP_MAVEN_BUILD=false, (2) Copy exhibition-portal.jar into " + \$appTarget + "\\, (3) Set JAR_SOURCE.")
+                        exit 1
+                    }
+                    if (\$matches.Count -gt 1) {
+                        Write-Error ("Multiple JAR files under " + \$appTarget + "; keep one or set JAR_SOURCE.")
+                        exit 1
+                    }
+                    \$src = \$matches[0].FullName
+                    Write-Host "Using workspace target JAR: \$src"
+                } else {
+                    if (-not (Test-Path -LiteralPath \$jarSource -PathType Leaf)) {
+                        Write-Error "JAR_SOURCE path not found or not a file: \$jarSource"
+                        exit 1
+                    }
+                    \$src = \$jarSource
+                    Write-Host "Using JAR_SOURCE: \$src"
+                }
+                \$info = Get-Item -LiteralPath \$src
+                Write-Host ("Copying JAR - LastWriteTime: {0}, Length: {1} bytes" -f \$info.LastWriteTime, \$info.Length)
+                Copy-Item -LiteralPath \$src -Destination \$destJar -Force
+
+                \$startSrc = Join-Path \$workspace 'deploy\\windows\\start-portal.ps1'
+                if (Test-Path -LiteralPath \$startSrc) {
+                    Copy-Item -LiteralPath \$startSrc -Destination (Join-Path \$installDir 'start-portal.ps1') -Force
+                }
+
+                \$envTarget = Join-Path \$installDir 'portal.env.ps1'
+                \$envExample = Join-Path \$workspace 'deploy\\windows\\portal.env.example.ps1'
+                if (-not (Test-Path -LiteralPath \$envTarget) -and (Test-Path -LiteralPath \$envExample)) {
+                    Copy-Item -LiteralPath \$envExample -Destination \$envTarget
+                    if (\$kind -eq 'staging') {
+                        \$txt = Get-Content -LiteralPath \$envTarget -Raw
+                        \$txt = \$txt.Replace('\$env:SERVER_PORT = ''80''', '\$env:SERVER_PORT = ''8081''')
+                        \$txt = \$txt.Replace('C:\\exhibition-portal\\files', 'C:\\exhibition-portal-staging\\files')
+                        Set-Content -LiteralPath \$envTarget -Value \$txt -NoNewline
+                    }
+                    Write-Host "Created \$envTarget - edit DATASOURCE_PASSWORD and EXHIBITION_STAFF_BOOTSTRAP_PASSWORD before start."
+                }
+
+                Write-Host "Installed exhibition-portal.jar under \$installDir"
+
+                \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
+                if (-not \$svc) {
+                    \$flag = ''
+                    if (\$kind -eq 'staging') { \$flag = ' -Staging' }
+                    Write-Error ("Folder is ready at " + \$installDir + ". Windows service " + \$service + " is not installed. Elevated, from the repo: .\\deploy\\windows\\install-service.ps1" + \$flag + " then rebuild. Edit " + \$envTarget + " first (MySQL password + staff bootstrap).")
+                    exit 1
+                }
+                if (\$svc.Status -eq 'Running') {
+                    Write-Host "Stopping service \$service..."
+                    net stop \$service
+                }
+                Write-Host "Starting service \$service..."
+                net start \$service
+                Write-Host "Waiting for startup..."
+                Start-Sleep -Seconds 20
+            """
+}
 
 pipeline {
 
@@ -48,8 +127,26 @@ pipeline {
                             sh 'npm ci'
                             sh 'npm run build'
                         } else {
-                            bat 'npm ci'
-                            bat 'npm run build'
+                            // Jenkins Windows service (SYSTEM) does not inherit an interactive user's PATH.
+                            // Java17/Maven3 are Jenkins tools; Node is not. Prefer C:\\Program Files\\nodejs.
+                            powershell '''
+                                $dirs = @($env:NODE_HOME, 'C:\\Program Files\\nodejs', 'C:\\Program Files (x86)\\nodejs', 'C:\\nodejs')
+                                foreach ($dir in $dirs) {
+                                    if ($dir -and (Test-Path -LiteralPath (Join-Path $dir 'npm.cmd'))) {
+                                        $env:Path = "$dir;$env:Path"
+                                        Write-Host "Using npm from $dir"
+                                        break
+                                    }
+                                }
+                                if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+                                    Write-Error 'npm not found for the Jenkins service account. Install Node 22 to C:\\Program Files\\nodejs (all users), set NODE_HOME to that folder if it lives elsewhere, then restart the Jenkins Windows service. An interactive user PATH is ignored.'
+                                    exit 1
+                                }
+                                npm ci
+                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                npm run build
+                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                            '''
                         }
                     }
                 }
@@ -126,61 +223,28 @@ pipeline {
         }
 
         stage('Deploy to Staging') {
-            when { branch 'dev' }
+            when {
+                anyOf {
+                    branch 'dev'
+                    branch 'poc'
+                    expression {
+                        return (env.BRANCH_NAME == 'poc') || (env.GIT_BRANCH == 'origin/poc') || (env.GIT_BRANCH == 'poc') ||
+                               (env.BRANCH_NAME == 'dev') || (env.GIT_BRANCH == 'origin/dev') || (env.GIT_BRANCH == 'dev')
+                    }
+                }
+            }
             steps {
                 script {
                     if (isUnix()) {
                         echo 'Skipping staging deployment on Linux'
                     } else {
-                        powershell """
-                \$jarSource = "${params.JAR_SOURCE}".Trim()
-                \$appTarget = "${APP_DIR}\\target"
-                \$destJar = "${STAGING_DIR}\\exhibition-portal.jar"
-                \$service = "${STAGING_SERVICE}"
-
-                Write-Host "Stopping service if running..."
-                \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
-                if (\$svc -and \$svc.Status -eq 'Running') {
-                    net stop \$service
-                } elseif (-not \$svc) {
-                    Write-Error "Windows service \$service is not installed. Run deploy\\windows\\install-service.ps1 once."
-                    exit 1
-                }
-
-                Write-Host "Resolving JAR to deploy (SKIP_MAVEN_BUILD=${params.SKIP_MAVEN_BUILD})..."
-                \$src = \$null
-                if ([string]::IsNullOrEmpty(\$jarSource)) {
-                    \$matches = @(Get-ChildItem -Path "\$appTarget" -File -ErrorAction SilentlyContinue |
-                        Where-Object { \$_.Name -like 'exhibition-portal*.jar' -and \$_.Name -notlike '*.original' })
-                    if (\$matches.Count -eq 0) {
-                        Write-Error ("No JAR under " + \$appTarget + ". Options: (1) SKIP_MAVEN_BUILD=false, (2) Copy exhibition-portal.jar into " + \$appTarget + "\\, (3) Set JAR_SOURCE.")
-                        exit 1
-                    }
-                    if (\$matches.Count -gt 1) {
-                        Write-Error ("Multiple JAR files under " + \$appTarget + "; keep one or set JAR_SOURCE.")
-                        exit 1
-                    }
-                    \$src = \$matches[0].FullName
-                    Write-Host "Using workspace target JAR: \$src"
-                } else {
-                    if (-not (Test-Path -LiteralPath \$jarSource -PathType Leaf)) {
-                        Write-Error "JAR_SOURCE path not found or not a file: \$jarSource"
-                        exit 1
-                    }
-                    \$src = \$jarSource
-                    Write-Host "Using JAR_SOURCE: \$src"
-                }
-                \$info = Get-Item -LiteralPath \$src
-                Write-Host ("Copying JAR - LastWriteTime: {0}, Length: {1} bytes" -f \$info.LastWriteTime, \$info.Length)
-                New-Item -ItemType Directory -Force -Path "${STAGING_DIR}" | Out-Null
-                Copy-Item -LiteralPath \$src -Destination \$destJar -Force
-
-                Write-Host "Starting service..."
-                net start \$service
-
-                Write-Host "Waiting for startup..."
-                Start-Sleep -Seconds 20
-            """
+                        windowsInstallExhibition(
+                                env.STAGING_DIR,
+                                env.STAGING_SERVICE,
+                                'staging',
+                                env.WORKSPACE,
+                                params.JAR_SOURCE ?: '',
+                                env.APP_DIR)
                     }
                 }
             }
@@ -193,74 +257,48 @@ pipeline {
                     if (isUnix()) {
                         echo 'Production for this app is Windows Server. Skipping Unix deploy.'
                     } else {
-                        powershell """
-                \$jarSource = "${params.JAR_SOURCE}".Trim()
-                \$appTarget = "${APP_DIR}\\target"
-                \$destJar = "${PROD_DIR}\\exhibition-portal.jar"
-                \$service = "${SERVICE_NAME}"
-
-                Write-Host "Stopping service if running..."
-                \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
-                if (\$svc -and \$svc.Status -eq 'Running') {
-                    net stop \$service
-                } elseif (-not \$svc) {
-                    Write-Error "Windows service \$service is not installed. Run deploy\\windows\\install-service.ps1 once."
-                    exit 1
-                }
-
-                Write-Host "Resolving JAR to deploy (SKIP_MAVEN_BUILD=${params.SKIP_MAVEN_BUILD})..."
-                \$src = \$null
-                if ([string]::IsNullOrEmpty(\$jarSource)) {
-                    \$matches = @(Get-ChildItem -Path "\$appTarget" -File -ErrorAction SilentlyContinue |
-                        Where-Object { \$_.Name -like 'exhibition-portal*.jar' -and \$_.Name -notlike '*.original' })
-                    if (\$matches.Count -eq 0) {
-                        Write-Error ("No JAR under " + \$appTarget + ". Options: (1) SKIP_MAVEN_BUILD=false, (2) Copy exhibition-portal.jar into " + \$appTarget + "\\, (3) Set JAR_SOURCE.")
-                        exit 1
-                    }
-                    if (\$matches.Count -gt 1) {
-                        Write-Error ("Multiple JAR files under " + \$appTarget + "; keep one or set JAR_SOURCE.")
-                        exit 1
-                    }
-                    \$src = \$matches[0].FullName
-                    Write-Host "Using workspace target JAR: \$src"
-                } else {
-                    if (-not (Test-Path -LiteralPath \$jarSource -PathType Leaf)) {
-                        Write-Error "JAR_SOURCE path not found or not a file: \$jarSource"
-                        exit 1
-                    }
-                    \$src = \$jarSource
-                    Write-Host "Using JAR_SOURCE: \$src"
-                }
-                \$info = Get-Item -LiteralPath \$src
-                Write-Host ("Copying JAR - LastWriteTime: {0}, Length: {1} bytes" -f \$info.LastWriteTime, \$info.Length)
-                New-Item -ItemType Directory -Force -Path "${PROD_DIR}" | Out-Null
-                Copy-Item -LiteralPath \$src -Destination \$destJar -Force
-
-                Write-Host "Starting service..."
-                net start \$service
-
-                Write-Host "Waiting for startup..."
-                Start-Sleep -Seconds 20
-            """
+                        windowsInstallExhibition(
+                                env.PROD_DIR,
+                                env.SERVICE_NAME,
+                                'prod',
+                                env.WORKSPACE,
+                                params.JAR_SOURCE ?: '',
+                                env.APP_DIR)
                     }
                 }
             }
         }
 
         stage('Health Check') {
-            when { branch 'main' }
+            when {
+                anyOf {
+                    branch 'main'
+                    branch 'dev'
+                    branch 'poc'
+                    expression {
+                        return (env.BRANCH_NAME == 'main') || (env.GIT_BRANCH == 'origin/main') || (env.GIT_BRANCH == 'main') ||
+                               (env.BRANCH_NAME == 'poc') || (env.GIT_BRANCH == 'origin/poc') || (env.GIT_BRANCH == 'poc') ||
+                               (env.BRANCH_NAME == 'dev') || (env.GIT_BRANCH == 'origin/dev') || (env.GIT_BRANCH == 'dev')
+                    }
+                }
+            }
             steps {
                 script {
                     if (isUnix()) {
                         echo 'Health check is Windows (public host). Skipping Unix.'
                     } else {
+                        def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                        def isMain = (branch == 'main' || branch.endsWith('/main'))
+                        def healthUrl = isMain ? 'http://127.0.0.1/actuator/health' : 'http://127.0.0.1:8081/actuator/health'
+                        def hint = isMain ? "service ${SERVICE_NAME} and C:\\\\exhibition-portal\\\\portal.env.ps1" : "service ${STAGING_SERVICE} and C:\\\\exhibition-portal-staging\\\\portal.env.ps1 (port 8081)"
                         powershell """
                 \$ok = \$false
+                \$healthUrl = '${healthUrl}'
                 for (\$i = 1; \$i -le 48; \$i++) {
                     try {
-                        \$r = Invoke-WebRequest -Uri "http://127.0.0.1/actuator/health" -UseBasicParsing -TimeoutSec 5
+                        \$r = Invoke-WebRequest -Uri \$healthUrl -UseBasicParsing -TimeoutSec 5
                         if (\$r.StatusCode -eq 200) {
-                            Write-Host "Production actuator HTTP 200 after attempt \$i"
+                            Write-Host "Actuator HTTP 200 at \$healthUrl after attempt \$i"
                             Write-Host \$r.Content
                             \$ok = \$true
                             break
@@ -272,7 +310,7 @@ pipeline {
                     Start-Sleep -Seconds 5
                 }
                 if (-not \$ok) {
-                    Write-Error "Production health check failed. Confirm service ${SERVICE_NAME} and C:\\exhibition-portal\\portal.env.ps1."
+                    Write-Error "Health check failed for \$healthUrl. Confirm ${hint}."
                     exit 1
                 }
             """

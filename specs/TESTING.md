@@ -49,7 +49,10 @@ Flyway V1–V5 is the applied schema. Do not treat `exhibition_portal_schema.sql
 
 Commands: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md). **Java 17** only. Do not use `npm run dev` on the public IP.
 
-Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Java17`** and **`Maven3`**, same as pharma-erp). Branch `main` deploys `C:\exhibition-portal\exhibition-portal.jar` and `net start exhibition-portal`.
+Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Java17`** and **`Maven3`**, same as pharma-erp). Node 22 must be visible to the **Jenkins Windows service** (`C:\Program Files\nodejs` or `NODE_HOME`); restart Jenkins after installing Node.
+
+- **`poc` / `dev`:** Deploy staging → `C:\exhibition-portal-staging\exhibition-portal.jar`, health on port **8081**. First run creates the folder; it then fails until `.\deploy\windows\install-service.ps1 -Staging` (elevated) and `portal.env.ps1` passwords are set. Rebuild after that.
+- **`main`:** Deploy production → `C:\exhibition-portal\`, health on port **80**.
 
 **Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the bootstrap password. MySQL must not be reachable on the public IP.
 
