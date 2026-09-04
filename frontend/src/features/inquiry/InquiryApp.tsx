@@ -14,6 +14,8 @@ import { BuyerConfirmationScreen } from './screens/BuyerConfirmationScreen'
 
 export function InquiryApp() {
   const journey = useInquiryJourney()
+  const shared = journey.entry.sharedDevice
+  const restartLabel = shared ? copy.common.nextVisitor : copy.common.restart
 
   const handleRestart = () => {
     if (window.confirm(copy.common.restartConfirm)) {
@@ -63,16 +65,31 @@ export function InquiryApp() {
   return (
     <>
       <div className="restart-bar">
-        <button type="button" onClick={handleRestart} aria-label={copy.common.restart}>
-          {copy.common.restart}
+        <button type="button" onClick={handleRestart} aria-label={restartLabel}>
+          {restartLabel}
         </button>
       </div>
       <p className="sr-only" role="status">
         {copy.prototypeBanner}
       </p>
-      {!journey.apiAvailable ? (
-        <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }}>
-          {copy.prototypeBanner}
+      {journey.entry.staffAssisted ? (
+        <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }} role="status">
+          {copy.staffAssistBanner}
+        </p>
+      ) : null}
+      {journey.campaignLabel ? (
+        <p className="field-hint" style={{ textAlign: 'center', margin: '4px 18px 0' }}>
+          {journey.campaignLabel}
+        </p>
+      ) : null}
+      {journey.connectionLost || !journey.apiAvailable ? (
+        <p className="field-error" style={{ textAlign: 'center', margin: '8px 18px 0' }} role="alert">
+          {journey.connectionLost ? copy.connectionLost : copy.prototypeBanner}
+        </p>
+      ) : null}
+      {shared && journey.apiAvailable && !journey.entry.staffAssisted ? (
+        <p className="field-hint" style={{ textAlign: 'center', margin: '4px 18px 0' }}>
+          {copy.sharedDeviceHint}
         </p>
       ) : null}
       <div className="portal-viewport">{screen}</div>

@@ -23,7 +23,7 @@ export interface ContactConfirmScreenProps {
 }
 
 export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
-  const { draft, updateDraft, goBack, advanceAfterContact, goToStep } = journey
+  const { draft, updateDraft, goBack, advanceAfterContact, goToStep, cardSuggestions } = journey
   const [errors, setErrors] = useState<Record<string, string>>({})
   const fromCard = draft.cardFront !== null || draft.cardBack !== null
 
@@ -53,7 +53,11 @@ export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
         <section className="section-gap">
           <h1 className="screen-title">{copy.contact.title}</h1>
           <p className="screen-subtitle">{copy.contact.subtitle}</p>
-          {fromCard ? (
+          {cardSuggestions ? (
+            <div className="badge" style={{ marginTop: 12 }}>
+              {copy.contact.fromSuggestions}
+            </div>
+          ) : fromCard ? (
             <div className="badge" style={{ marginTop: 12 }}>
               {copy.contact.fromCard}
             </div>

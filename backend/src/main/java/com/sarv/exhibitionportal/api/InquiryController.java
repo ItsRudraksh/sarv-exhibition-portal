@@ -1,5 +1,6 @@
 package com.sarv.exhibitionportal.api;
 
+import com.sarv.exhibitionportal.api.dto.CreateInquiryRequest;
 import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.inquiry.InquiryService;
 import java.util.UUID;
@@ -22,7 +23,7 @@ public class InquiryController {
     }
 
     @PostMapping
-    public InquiryDraftDto create(@RequestBody(required = false) InquiryDraftDto body) {
+    public InquiryDraftDto create(@RequestBody(required = false) CreateInquiryRequest body) {
         return inquiries.create(body);
     }
 

@@ -15,4 +15,9 @@ public class SpaForwardController {
     public String staffPath() {
         return "forward:/index.html";
     }
+
+    @GetMapping({"/web", "/web/"})
+    public String websiteEntry() {
+        return "forward:/index.html";
+    }
 }

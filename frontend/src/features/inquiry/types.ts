@@ -61,7 +61,7 @@ export interface InquiryDraft {
   lifecycleState: LifecycleState
   currentStep: InquiryStep
   route: InquiryRoute | null
-  entryChannel: 'EXHIBITION_QR' | 'WEBSITE'
+  entryChannel: 'EXHIBITION_QR' | 'WEBSITE' | 'DIRECT'
   cardFront: CardFileMeta | null
   cardBack: CardFileMeta | null
   cardQrPayloadInternal: string | null

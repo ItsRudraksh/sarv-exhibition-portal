@@ -33,12 +33,15 @@ public class SecurityConfig {
                                 "/favicon.svg",
                                 "/icons.svg",
                                 "/assets/**",
+                                "/web",
+                                "/web/**",
                                 "/staff",
                                 "/staff/**",
                                 "/error")
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/api/v1/inquiries/**", "/api/v1/taxonomy/**").permitAll()
+                        .requestMatchers("/api/v1/inquiries/**", "/api/v1/taxonomy/**", "/api/v1/campaigns/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/staff/me").authenticated()
                         .requestMatchers("/api/v1/staff/suppliers/**")
                         .hasAnyRole("ADMIN", "SUPPLIER_REVIEWER")

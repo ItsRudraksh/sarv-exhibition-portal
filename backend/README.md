@@ -35,6 +35,9 @@ Then in `frontend/`: `npm run dev` (Vite proxies `/api` to port 8080).
 | GET | `/api/v1/inquiries/{id}/files/{assetId}` |
 | POST | `/api/v1/inquiries/{id}/consents` |
 | GET | `/api/v1/inquiries/{id}/consents` |
+| POST | `/api/v1/inquiries/{id}/extractions` |
+| GET | `/api/v1/inquiries/{id}/extractions/latest` |
+| GET | `/api/v1/campaigns/{code}` |
 | GET | `/api/v1/taxonomy/departments` |
 | GET | `/api/v1/taxonomy/product-types` |
 
@@ -55,7 +58,7 @@ Seeded local users (password `poc-staff`): `reviewer@sarv.local`, `marketing@sar
 
 Files are stored under `exhibition.storage-root` (default `./var/exhibition-files`). MySQL holds metadata only. Content allowlist is not an antivirus product. Location is not collected.
 
-POC limits: no OCR, live CRM, or live vendor API. Outbox stubs: `poc-mailbox` / `poc-vendor-stub`. See `specs/BUILD-PLAN.md`.
+POC limits: local card-QR assist only (not cloud OCR), no live CRM or live vendor API. Outbox stubs: `poc-mailbox` / `poc-vendor-stub`. Create body may include `entryChannel`, `campaignCode`, `staffAssisted`. See `specs/BUILD-PLAN.md`.
 
 ## Public Windows Server + Jenkins
 

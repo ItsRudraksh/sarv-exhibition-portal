@@ -383,7 +383,6 @@ public class InquiryRepository {
                      card_front_asset_id = coalesce(:fa, card_front_asset_id),
                      card_back_name = :bn, card_back_size = :bs, card_back_type = :bt,
                      card_back_asset_id = coalesce(:ba, card_back_asset_id),
-                     card_qr_payload_internal = :qr,
                      location_from_card = :loc,
                      updated_at = CURRENT_TIMESTAMP
                  where inquiry_id = :id
@@ -396,9 +395,20 @@ public class InquiryRepository {
                 .param("bs", JdbcUuids.mysql(back == null ? null : back.size()))
                 .param("bt", JdbcUuids.mysql(back == null ? null : emptyToNull(back.type())))
                 .param("ba", JdbcUuids.mysql(back == null ? null : back.assetId()))
-                .param("qr", JdbcUuids.mysql(emptyToNull(draft.cardQrPayloadInternal())))
                 .param("loc", JdbcUuids.mysql(draft.supplier() == null ? null : emptyToNull(draft.supplier().locationFromCard())))
                 .param("id", JdbcUuids.mysql(draft.id()))
+                .update();
+    }
+
+    /** Server-only: card QR payloads are never accepted from visitor PATCH bodies. */
+    public void updateCardQrPayload(UUID inquiryId, String payload) {
+        jdbc.sql("""
+                 update inquiry_ui_state
+                 set card_qr_payload_internal = :qr, updated_at = CURRENT_TIMESTAMP
+                 where inquiry_id = :id
+                 """)
+                .param("qr", JdbcUuids.mysql(emptyToNull(payload)))
+                .param("id", JdbcUuids.mysql(inquiryId))
                 .update();
     }
 

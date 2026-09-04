@@ -8,7 +8,8 @@ export interface BuyerConfirmationScreenProps {
 }
 
 export function BuyerConfirmationScreen({ journey }: BuyerConfirmationScreenProps) {
-  const { draft, restart } = journey
+  const { draft, restart, entry } = journey
+  const restartLabel = entry.sharedDevice ? copy.common.nextVisitor : copy.common.restart
 
   return (
     <div className="inquiry-app">
@@ -64,7 +65,7 @@ export function BuyerConfirmationScreen({ journey }: BuyerConfirmationScreenProp
           </div>
         </div>
 
-        <PrimaryButton onClick={restart}>{copy.common.restart}</PrimaryButton>
+        <PrimaryButton onClick={restart}>{restartLabel}</PrimaryButton>
       </main>
     </div>
   )

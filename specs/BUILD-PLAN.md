@@ -1,10 +1,10 @@
 # Exhibition Portal — project build plan
 
-**Status:** Phases 1–5 **implemented** (POC through outbox). OCR and live CRM/vendor APIs are not started.  
-**Updated:** 3 September 2026  
+**Status:** Phases 1–7 **implemented** (POC through exhibition pilot entry). Cloud OCR, voice, and live CRM/vendor APIs are not started.  
+**Updated:** 4 September 2026  
 **Product SSOT:** [PLATFORM_CONTEXT.md](PLATFORM_CONTEXT.md)  
 **Data SSOT:** [DATABASE-DESIGN.md](DATABASE-DESIGN.md), [exhibition_portal_schema.sql](exhibition_portal_schema.sql)  
-**Applied schema:** `backend/src/main/resources/db/migration/` (Flyway V1–V5)  
+**Applied schema:** `backend/src/main/resources/db/migration/` (Flyway V1–V6)  
 **Verification:** [TESTING.md](TESTING.md)
 
 This is the build sequence for a **Java Spring Boot** backend plus the existing **React + Vite** visitor prototype. It does not change product rules. Open business decisions in PLATFORM_CONTEXT §12 must be surfaced, not invented.
@@ -16,14 +16,14 @@ This is the build sequence for a **Java Spring Boot** backend plus the existing 
 | Product / HLD | Approved scan-first visitor flow |
 | Design | Alpine Blue; 11 mobile screens |
 | PostgreSQL singleton DDL | Historical full DDL in this folder; **not applied**. POC applies a MySQL subset via Flyway (see §3) |
-| Visitor UI | React 19 + TypeScript + Vite in `frontend/`; HTTP adapter to Java with `localStorage` fallback |
-| Backend | **Running:** `backend/` Spring Boot 3.5, **Java 17**, JDBC, Flyway V1–V5, visitor API + staff + outbox worker |
+| Visitor UI | React 19 + TypeScript + Vite in `frontend/`; HTTP adapter to Java; **sessionStorage** draft-id pointer (no PII in `localStorage`) |
+| Backend | **Running:** `backend/` Spring Boot 3.5, **Java 17**, JDBC, Flyway V1–V6, visitor API + staff + outbox + local card-QR assist |
 | Admin UI | **POC:** `/staff` (Alpine Blue After Dark), local Vite or same-origin from the packaged JAR. Not bolted into the visitor inquiry shell. |
-| CRM / vendor / OCR | Deferred until providers are chosen |
+| CRM / vendor / cloud OCR | Deferred until providers are chosen |
 
 How to run the POC: [backend/README.md](../backend/README.md). API `http://localhost:8080`, UI `https://localhost:5173` (Vite proxies `/api`). Public Windows Server: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) (`http://43.225.195.200/` — Java 17 JAR + Jenkins, native MySQL 8 on 3306, no Docker, no Vite).
 
-POC **does not** include: OCR, a real CRM product, or a real vendor ERP API. Outbox destinations are local stubs (`poc-mailbox`, `poc-vendor-stub`).
+POC **does not** include: cloud OCR, voice assist, a real CRM product, or a real vendor ERP API. Outbox destinations are local stubs (`poc-mailbox`, `poc-vendor-stub`). Local card-QR assist (ZXing) is live.
 
 ## 2. Target stack
 
@@ -38,7 +38,7 @@ POC **does not** include: OCR, a real CRM product, or a real vendor ERP API. Out
 | Auth (visitors) | No visitor login for the pilot; draft identity is the confirmed contact + server-issued draft id |
 | Auth (staff) | Internal users via `app_users` / roles (`ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`, `TAXONOMY_MANAGER`) |
 | Async | Outbox table `integration_deliveries` + scheduled worker |
-| Frontend ↔ API | `inquiryApi` in `frontend/src/features/inquiry/api.ts` maps `InquiryDraft`; `localStorage` is resume + offline fallback only |
+| Frontend ↔ API | `inquiryApi` maps `InquiryDraft`; session pointer is resume only; offline is on-screen until reconnect |
 
 Repo tree:
 
@@ -68,7 +68,7 @@ Do **not** load `exhibition_portal_schema.sql` as production V1. The singleton D
 | `inquiry_parties.company_name_submitted` is `NOT NULL` | **Nullable**. Buyer company must not block submit. Supplier company still required in `InquiryRules`. |
 | `EXHIBITION_QR` requires `qr_campaign_id` | Seeded campaign `22222222-2222-4222-8222-222222222222` (`POC-STALL-1`). |
 | Supplier product types | Persisted as `(inquiry_id, department_id, product_type_id)`. |
-| Consent uniqueness vs revocation | **Deferred** — no consent tables in the POC. |
+| Consent uniqueness vs revocation | **Done in V3** — append-only `consent_records`; latest row wins |
 
 POC seed also: one exhibition, IP/USP/BP/EP standards, and a **temporary** taxonomy whose UUIDs match `frontend/src/features/inquiry/taxonomy.ts`. Replace with a business-owned list before a real stall.
 
@@ -107,7 +107,7 @@ Visitor API:
 | `GET` | `/api/v1/taxonomy/departments` | Active departments |
 | `GET` | `/api/v1/taxonomy/product-types` | Optional `departmentIds` filter |
 
-**DoD met for POC:** HTTP adapter + local fallback; buyer submit without company; supplier website-or-catalogue **on the server**; reload of a submitted draft stays on confirmation (`POC-` reference); CORS locked to localhost Vite origins. Shared-device isolation and production privacy are **not** done (Phase 7).
+**DoD met for POC:** HTTP adapter + local fallback; buyer submit without company; supplier website-or-catalogue **on the server**; reload of a submitted draft stays on confirmation (`POC-` reference); CORS locked to localhost Vite origins. Shared-device isolation completed in Phase 7.
 
 ### Phase 3 — Files, consent, audit (**done**)
 
@@ -154,13 +154,29 @@ Stub payloads are JSON under `exhibition.storage-root/outbox/…` (reference cod
 
 **DoD met:** Duplicate submit does not double-deliver. Vendor upsert is enqueued only after Add to production. Failed delivery leaves `lifecycle_state=SUBMITTED`.
 
-### Phase 6 — Assistive OCR / QR / voice
+### Phase 6 — Assistive OCR / QR / voice (**POC done for QR**)
 
 Optional, consented, reviewable field proposals (`ai_extracted_fields`). Manual fallback remains. AI must not approve vendors or overwrite confirmed contact fields.
 
-### Phase 7 — Exhibition pilot
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/v1/inquiries/{id}/extractions` | Start assist (`feature=BUSINESS_CARD_SCAN`, `assetId`). Voice returns validation error in this POC. |
+| `GET` | `/api/v1/inquiries/{id}/extractions/latest` | Latest extraction + field proposals (`cardQrDetected` flag; **no raw QR payload**) |
 
-QR campaign codes, poor-network behaviour, staff-assisted capture, shared-device draft isolation (do not leave PII in `localStorage` on stall tablets). Then reuse the same portal for website entry (`WEBSITE` / `DIRECT`).
+**DoD met for POC:** Flyway V6 AI tables. After a clean card upload with granted extraction consent, ZXing decodes a card QR locally (`poc-zxing-qr-v1`). Raw payload is stored only in `inquiry_ui_state.card_qr_payload_internal` and is **redacted** from visitor inquiry JSON. vCard/MECARD/mailto/tel payloads become PENDING contact/company proposals; the visitor UI prefills **empty** fields only. Contact confirm marks proposals ACCEPTED/CORRECTED/REJECTED (visitor review; `reviewed_by_user_id` stays null). Cloud OCR and voice are **not** live (open decision on AI provider).
+
+### Phase 7 — Exhibition pilot (**POC done**)
+
+QR campaign codes, poor-network behaviour, staff-assisted capture, shared-device draft isolation (do not leave PII in `localStorage` on stall tablets). Same portal for website entry (`WEBSITE` / `DIRECT`).
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/v1/campaigns/{code}` | Resolve an active stall QR campaign (`POC-STALL-1`) |
+| `POST` | `/api/v1/inquiries` | Create draft with `entryChannel`, optional `campaignCode`, optional `staffAssisted` |
+
+**Visitor entry URLs:** `?c=POC-STALL-1` (exhibition), `/web` or `?channel=website`, `?channel=direct`, `?assist=1` (staff-assisted). Shared-device mode is default for exhibition QR / assist.
+
+**DoD met for POC:** Campaign attribution on create; WEBSITE/DIRECT without `qr_campaign_id`; visitor UI stores only a **sessionStorage draft id** (legacy full-draft `localStorage` cleared); offline banner + submit blocked without inventing a receipt; **Next visitor** clears the session; fonts self-hosted (`@fontsource/*`, no Google Fonts CDN). Real stall network/device certification remains an operational open decision.
 
 ## 5. Frontend work in the same programme
 
@@ -168,9 +184,9 @@ Keep Alpine Blue and the 11-screen journey. Phase 2 POC wiring is in place:
 
 - `inquiryApi` maps `InquiryDraft` (including department-scoped product types). Taxonomy loads from GET `/api/v1/taxonomy` when the API is up; mock IDs in `taxonomy.ts` must match Flyway V2.
 - Submit persists on the server; confirmation shows `reference_code` (`POC-` prefix in this POC). Offline fallback still does not invent a tracking number.
-- Remaining: isolate drafts on shared devices; self-host fonts before a public stall. Camera permission copy runs **before** `getUserMedia`.
+- Card upload loads `/extractions/latest` and prefills empty contact fields from PENDING proposals. Shared-device mode uses a session pointer only; fonts are self-hosted. Camera permission copy runs **before** `getUserMedia`.
 
-Admin UI is a separate `/staff` route (not inside `InquiryApp`). Remaining visitor work: isolate drafts on shared devices; self-host fonts before a public stall.
+Admin UI is a separate `/staff` route (not inside `InquiryApp`).
 
 ## 6. Testing and quality gates
 
@@ -182,11 +198,15 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 
 ## 8. Next implementation ticket
 
-**Done:** Phases 1–5 — including `integration_deliveries` outbox and stub worker.
+**Done:** Phases 1–7 — exhibition pilot entry, shared-device isolation, website/direct channels.
 
-**Next:** Phase 6 assistive OCR / QR / voice (consented, reviewable proposals). AI must not approve vendors.
+**Next:** Nothing further in the numbered phases until open decisions land. Blocked on: business-owned taxonomy, public HTTPS for in-page camera, live CRM/vendor APIs, cloud OCR/voice provider (PLATFORM_CONTEXT §12). Do not invent those.
 
 ---
+
+**Chat-independent reference — Phase 7 (2026-09-04):** Campaign GET + create with `entryChannel`/`campaignCode`/`staffAssisted`. Frontend `entryContext` + session pointer (no PII localStorage). Self-hosted fonts. Tests: `CampaignEntryApiTest`, Spa `/web`.
+
+**Chat-independent reference — Phase 6 (2026-09-04):** Flyway V6 `ai_assistance_sessions` / `ai_extractions` / `ai_extracted_fields`. Card upload runs local ZXing; visitor never receives raw QR text. Tests: `LocalCardScanEngineTest`, `CardExtractionApiTest`.
 
 **Chat-independent reference — Phase 5 (2026-09-01):** Flyway V5 `integration_deliveries`. Buyer submit enqueues `MARKETING_LEAD`; Add to production enqueues `VENDOR_UPSERT`. Worker writes stub JSON; retries; never drops the inquiry. Tests: `OutboxApiTest`, `OutboxRetryApiTest`.
 

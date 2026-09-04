@@ -12,7 +12,8 @@ export interface SupplierConfirmationScreenProps {
 }
 
 export function SupplierConfirmationScreen({ journey }: SupplierConfirmationScreenProps) {
-  const { draft, restart } = journey
+  const { draft, restart, entry } = journey
+  const restartLabel = entry.sharedDevice ? copy.common.nextVisitor : copy.common.restart
   const departments = getDepartmentsByIds(draft.departmentIds)
   const productTypes = getProductTypesByIds(draft.productTypeIds)
 
@@ -101,7 +102,7 @@ export function SupplierConfirmationScreen({ journey }: SupplierConfirmationScre
           ) : null}
         </div>
 
-        <PrimaryButton onClick={restart}>{copy.common.restart}</PrimaryButton>
+        <PrimaryButton onClick={restart}>{restartLabel}</PrimaryButton>
       </main>
     </div>
   )

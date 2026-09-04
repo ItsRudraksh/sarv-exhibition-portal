@@ -4,6 +4,7 @@ import com.sarv.exhibitionportal.api.dto.FileAssetDto;
 import com.sarv.exhibitionportal.audit.AuditService;
 import com.sarv.exhibitionportal.config.ExhibitionProperties;
 import com.sarv.exhibitionportal.consent.ConsentService;
+import com.sarv.exhibitionportal.extraction.ExtractionService;
 import com.sarv.exhibitionportal.inquiry.InquiryRepository;
 import com.sarv.exhibitionportal.inquiry.InquiryValidationException;
 import java.io.IOException;
@@ -26,6 +27,7 @@ public class FileAssetService {
     private final LocalObjectStorage storage;
     private final AuditService audits;
     private final ConsentService consents;
+    private final ExtractionService extractions;
     private final ExhibitionProperties properties;
 
     public FileAssetService(
@@ -34,6 +36,7 @@ public class FileAssetService {
             LocalObjectStorage storage,
             AuditService audits,
             ConsentService consents,
+            ExtractionService extractions,
             ExhibitionProperties properties
     ) {
         this.files = files;
@@ -41,6 +44,7 @@ public class FileAssetService {
         this.storage = storage;
         this.audits = audits;
         this.consents = consents;
+        this.extractions = extractions;
         this.properties = properties;
     }
 
@@ -119,6 +123,9 @@ public class FileAssetService {
             files.attachCardAsset(
                     inquiryId, side == null ? "front" : side, assetId, filename, bytes.length, declared);
             consents.record(inquiryId, "BUSINESS_CARD_EXTRACTION", "GRANTED");
+            // Same transaction so consent is visible; scan soft-fails to COMPLETED/empty rather than
+            // rolling back the upload.
+            extractions.runCardScan(inquiryId, assetId);
         } else {
             files.markBundle(bundleId, "READY", null);
             files.attachCatalogue(inquiryId, bundleId, assetId, filename, declared, bytes.length);

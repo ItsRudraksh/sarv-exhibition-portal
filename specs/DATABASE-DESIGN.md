@@ -1,7 +1,7 @@
 # Exhibition Portal Database Design
 
 **Status:** Approved logical and physical design baseline  
-**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V5 in `backend/src/main/resources/db/migration/`.  
+**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V6 in `backend/src/main/resources/db/migration/`.  
 **Logical types in this document:** Originally written for PostgreSQL (`uuid`, `timestamptz`, `jsonb`, `text`). Keep them as the entity/invariant SSOT. The applied store maps them to `CHAR(36)`, `DATETIME(6)`, `JSON`, and `VARCHAR`/`TEXT`. Do **not** load `exhibition_portal_schema.sql`.  
 **Application target:** Java 17 Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
 **Scope:** Data design. The singleton DDL in this folder is the **historical full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
@@ -20,9 +20,9 @@ These are required for the scan-first visitor flow. They are applied in Flyway V
 | `review_cases.open_supplier_key` | Partial unique index in PostgreSQL | **POC V4** nullable unique column, set to `supplier_inquiry_id` while the case is open and `NULL` when closed. MariaDB rejects generated `CASE`/`IF` over `CHAR(36)`. |
 | `export_jobs` file pointer | `file_asset_id` (requires `inquiries`) | **POC V4** `storage_key` on disk; exports are not one inquiry. |
 
-`EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems.
+`EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems. **V6:** AI assist tables; visitor field review does not require `reviewed_by_user_id` (staff FK remains optional).
 
-POC **audit:** `workflow_events` on create/submit/review/outbox. **V3–V5:** `audit_events` also on file, consent, Add to production, reject, export, and outbox enqueue/retry/success/fail. Metadata must not include email, phone, or filenames.
+POC **audit:** `workflow_events` on create/submit/review/outbox. **V3–V6:** `audit_events` also on file, consent, Add to production, reject, export, outbox enqueue/retry/success/fail, and card extraction completed/failed. Metadata must not include email, phone, filenames, or raw QR payloads.
 
 ## 1. Design outcome
 
@@ -410,7 +410,7 @@ AI may suggest data but cannot silently write user-confirmed fields or approve a
 |---|---|---|
 | `ai_assistance_sessions` | `id`, `inquiry_id`, `consent_id`, `feature`, `language_code`, `state`, `provider_request_reference`, `started_at`, `completed_at` | One optional multilingual voice or business-card-assisted interaction. |
 | `ai_extractions` | `id`, `session_id`, `input_asset_id`, `state`, `provider_model_reference`, `completed_at` | One extraction attempt, optionally tied to a card image or audio asset. |
-| `ai_extracted_fields` | `id`, `extraction_id`, `field_key`, `proposed_value_text`, `confidence_score`, `review_state`, `reviewed_by_user_id`, `reviewed_at` | Field-level proposal with `PENDING`, `ACCEPTED`, `CORRECTED`, or `REJECTED` review state. |
+| `ai_extracted_fields` | `id`, `extraction_id`, `field_key`, `proposed_value_text`, `confidence_score`, `review_state`, `reviewed_by_user_id`, `reviewed_at` | Field-level proposal with `PENDING`, `ACCEPTED`, `CORRECTED`, or `REJECTED` review state. **POC V6:** visitor self-review sets `reviewed_at` without `reviewed_by_user_id`. |
 
 ## 9. Workflow, administration, integrations, and audit
 

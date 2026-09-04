@@ -1,6 +1,6 @@
 # Fresh-chat prompt: build the frontend
 
-> **Current implementation (1 Sep 2026):** The visitor app in `frontend/` talks to the Spring Boot API. Card and catalogue **uploads are live** (private disk + `file_assets`). OCR, QR decode, CRM, and vendor upsert are still not live. Use [PLATFORM_CONTEXT.md](PLATFORM_CONTEXT.md) and [BUILD-PLAN.md](BUILD-PLAN.md) as current product/delivery SSOT. The prompt below is the original client-only contract.
+> **Current implementation (4 Sep 2026):** The visitor app in `frontend/` talks to the Spring Boot API. Card and catalogue **uploads are live**. Local **card-QR assist** and **Phase 7 pilot entry** (campaign codes, shared-device session pointer, `/web`) are live. Cloud OCR, voice, CRM, and vendor upsert are still not live. Use [PLATFORM_CONTEXT.md](PLATFORM_CONTEXT.md) and [BUILD-PLAN.md](BUILD-PLAN.md) as current product/delivery SSOT. The prompt below is the original client-only contract.
 
 Copy everything below into a fresh Codex chat opened at `C:\Coding\Sarv\Exhibition-Portal`.
 

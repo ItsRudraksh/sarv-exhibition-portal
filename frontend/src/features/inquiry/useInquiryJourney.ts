@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ApiError, inquiryApi, localStorageDraftPort } from './api'
+import { ApiError, applyExtractionProposals, inquiryApi } from './api'
+import {
+  clearLegacyLocalDraft,
+  createSeedDraft,
+  parseEntryContext,
+  sessionPointerPort,
+  type EntryContext,
+} from './entryContext'
 import {
   BUYER_STEPS,
-  createEmptyDraft,
   SHARED_STEPS,
   SUPPLIER_STEPS,
   type CardFileMeta,
@@ -35,47 +41,117 @@ function getNextStepForRoute(
 }
 
 export function useInquiryJourney() {
-  const [draft, setDraft] = useState<InquiryDraft>(() => createEmptyDraft())
+  const [entry] = useState<EntryContext>(() => parseEntryContext())
+  const [draft, setDraft] = useState<InquiryDraft>(() => createSeedDraft(entry))
   const [ready, setReady] = useState(false)
   const [apiAvailable, setApiAvailable] = useState(false)
+  const [connectionLost, setConnectionLost] = useState(() => !navigator.onLine)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [cardSuggestions, setCardSuggestions] = useState(false)
+  const [campaignLabel, setCampaignLabel] = useState<string | null>(null)
   const draftRef = useRef(draft)
   const skipNextSave = useRef(true)
+  const entryRef = useRef(entry)
 
   useEffect(() => {
     draftRef.current = draft
   }, [draft])
 
   useEffect(() => {
+    entryRef.current = entry
+  }, [entry])
+
+  useEffect(() => {
+    clearLegacyLocalDraft()
+  }, [])
+
+  useEffect(() => {
+    const onOffline = () => {
+      setConnectionLost(true)
+      setApiAvailable(false)
+    }
+    const onOnline = () => {
+      setConnectionLost(false)
+      void (async () => {
+        try {
+          await inquiryApi.loadTaxonomy()
+          setApiAvailable(true)
+          if (draftRef.current.lifecycleState === 'DRAFT') {
+            await inquiryApi.save(draftRef.current)
+          }
+        } catch {
+          setApiAvailable(false)
+          setConnectionLost(true)
+        }
+      })()
+    }
+    window.addEventListener('offline', onOffline)
+    window.addEventListener('online', onOnline)
+    return () => {
+      window.removeEventListener('offline', onOffline)
+      window.removeEventListener('online', onOnline)
+    }
+  }, [])
+
+  useEffect(() => {
     let cancelled = false
+    const entry = entryRef.current
 
     const hydrate = async () => {
-      const local = localStorageDraftPort.load()
       try {
         await inquiryApi.loadTaxonomy()
-        if (local?.id) {
-          const remote = await inquiryApi.get(local.id)
+        if (entry.campaignCode) {
+          try {
+            const campaign = await inquiryApi.getCampaign(entry.campaignCode)
+            if (!cancelled) setCampaignLabel(campaign.label)
+          } catch {
+            if (!cancelled) {
+              setSubmitError('That exhibition QR is not recognised. Ask stall staff for help.')
+            }
+          }
+        }
+
+        const pointerId = sessionPointerPort.loadId()
+        if (pointerId) {
+          const remote = await inquiryApi.get(pointerId)
           if (cancelled) return
           if (remote) {
             setApiAvailable(true)
-            setDraft({
-              ...remote,
-              cardFront: local.cardFront?.previewUrl ? local.cardFront : remote.cardFront,
-              cardBack: local.cardBack?.previewUrl ? local.cardBack : remote.cardBack,
-            })
+            setConnectionLost(false)
+            let merged = remote
+            try {
+              const extraction = await inquiryApi.latestExtraction(merged.id)
+              merged = applyExtractionProposals(merged, extraction)
+              setCardSuggestions(
+                Boolean(extraction?.fields?.some((f) => f.reviewState === 'PENDING')),
+              )
+            } catch {
+              setCardSuggestions(false)
+            }
+            sessionPointerPort.saveId(merged.id)
+            setDraft(merged)
             setReady(true)
             return
           }
+          sessionPointerPort.clear()
         }
-        const created = await inquiryApi.create(local ?? createEmptyDraft())
+
+        const created = await inquiryApi.create({
+          entryChannel: entry.entryChannel,
+          campaignCode: entry.campaignCode,
+          staffAssisted: entry.staffAssisted,
+        })
         if (cancelled) return
         setApiAvailable(true)
+        setConnectionLost(false)
+        sessionPointerPort.saveId(created.id)
         setDraft(created)
       } catch {
         if (cancelled) return
         setApiAvailable(false)
-        setDraft(local ?? createEmptyDraft())
+        setConnectionLost(!navigator.onLine)
+        setDraft(createSeedDraft(entry))
       } finally {
         if (!cancelled) setReady(true)
       }
@@ -89,7 +165,9 @@ export function useInquiryJourney() {
 
   useEffect(() => {
     if (!ready) return
-    localStorageDraftPort.save(draft)
+    if (draft.id) {
+      sessionPointerPort.saveId(draft.id)
+    }
     if (skipNextSave.current) {
       skipNextSave.current = false
       return
@@ -98,6 +176,7 @@ export function useInquiryJourney() {
     const handle = window.setTimeout(() => {
       void inquiryApi.save(draftRef.current).catch(() => {
         setApiAvailable(false)
+        setConnectionLost(true)
       })
     }, 400)
     return () => window.clearTimeout(handle)
@@ -140,9 +219,11 @@ export function useInquiryJourney() {
         const saved = await inquiryApi.confirmContact(current)
         skipNextSave.current = true
         setDraft(saved)
+        sessionPointerPort.saveId(saved.id)
         return
       } catch (error) {
         setSubmitError(error instanceof ApiError ? error.message : 'Could not save contact details.')
+        setConnectionLost(true)
         return
       }
     }
@@ -162,30 +243,24 @@ export function useInquiryJourney() {
     setSubmitting(true)
     setSubmitError(null)
     try {
-      if (apiAvailable) {
-        const saved = await inquiryApi.submit(draftRef.current)
-        skipNextSave.current = true
-        setDraft(saved)
-        localStorageDraftPort.save(saved)
+      if (!apiAvailable) {
+        setSubmitError(
+          'No connection to the portal API. Reconnect to submit — a receipt is only issued online.',
+        )
         return
       }
-      setDraft((prev) => {
-        const next: InquiryDraft = {
-          ...prev,
-          lifecycleState: 'SUBMITTED',
-          submittedAt: new Date().toISOString(),
-          currentStep:
-            prev.route === 'SUPPLIER' ? 'supplier-confirmation' : 'buyer-confirmation',
-        }
-        localStorageDraftPort.save(next)
-        return next
-      })
+      const saved = await inquiryApi.submit(draftRef.current)
+      skipNextSave.current = true
+      setDraft(saved)
+      sessionPointerPort.saveId(saved.id)
     } catch (error) {
       setSubmitError(
         error instanceof ApiError
           ? error.message
           : 'Could not submit. Check that the Java API is running.',
       )
+      setConnectionLost(true)
+      setApiAvailable(false)
     } finally {
       setSubmitting(false)
     }
@@ -197,6 +272,7 @@ export function useInquiryJourney() {
       const field = side === 'front' ? 'cardFront' : 'cardBack'
       if (!apiAvailable) {
         setDraft((prev) => ({ ...prev, [field]: localMeta }))
+        setSubmitError('Photo kept on this device only until the connection returns.')
         return
       }
       const asset = await inquiryApi.uploadFile(
@@ -213,8 +289,16 @@ export function useInquiryJourney() {
         assetId: asset.id,
         previewUrl: localMeta.previewUrl ?? inquiryApi.fileUrl(draftRef.current.id, asset.id),
       }
+      let next: InquiryDraft = { ...draftRef.current, [field]: meta }
+      try {
+        const extraction = await inquiryApi.latestExtraction(draftRef.current.id)
+        next = applyExtractionProposals(next, extraction)
+        setCardSuggestions(Boolean(extraction?.fields?.some((f) => f.reviewState === 'PENDING')))
+      } catch {
+        setCardSuggestions(false)
+      }
       skipNextSave.current = true
-      setDraft((prev) => ({ ...prev, [field]: meta }))
+      setDraft(next)
     },
     [apiAvailable],
   )
@@ -228,6 +312,7 @@ export function useInquiryJourney() {
           ...prev,
           supplier: { ...prev.supplier, catalogueFile: local },
         }))
+        setSubmitError('Catalogue kept on this device only until the connection returns.')
         return
       }
       const asset = await inquiryApi.uploadFile(
@@ -263,21 +348,37 @@ export function useInquiryJourney() {
         'DECLINED',
       )
     } catch {
-      // Offline or already recorded — visitor can still continue without a card.
+      // Offline or already recorded
     }
   }, [apiAvailable])
 
   const restart = useCallback(() => {
-    localStorageDraftPort.clear()
+    sessionPointerPort.clear()
+    clearLegacyLocalDraft()
     skipNextSave.current = true
     setSubmitError(null)
-    if (apiAvailable) {
-      void inquiryApi.create(createEmptyDraft()).then((created) => {
-        setDraft(created)
-      })
+    setCardSuggestions(false)
+    const entry = entryRef.current
+    if (apiAvailable || navigator.onLine) {
+      void inquiryApi
+        .create({
+          entryChannel: entry.entryChannel,
+          campaignCode: entry.campaignCode,
+          staffAssisted: entry.staffAssisted,
+        })
+        .then((created) => {
+          sessionPointerPort.saveId(created.id)
+          setApiAvailable(true)
+          setConnectionLost(false)
+          setDraft(created)
+        })
+        .catch(() => {
+          setApiAvailable(false)
+          setDraft(createSeedDraft(entry))
+        })
       return
     }
-    setDraft(createEmptyDraft())
+    setDraft(createSeedDraft(entry))
   }, [apiAvailable])
 
   const canGoBack =
@@ -289,8 +390,12 @@ export function useInquiryJourney() {
     draft,
     ready,
     apiAvailable,
+    connectionLost,
     submitting,
     submitError,
+    cardSuggestions,
+    campaignLabel,
+    entry,
     updateDraft,
     goToStep,
     goBack,

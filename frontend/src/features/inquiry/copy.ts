@@ -1,11 +1,16 @@
 export const copy = {
   appName: 'Sarv Biolabs Exhibition Portal',
   prototypeBanner:
-    'POC: drafts are saved to the Java API when it is running. Otherwise they stay in this browser only.',
+    'POC: drafts save to the Java API when connected. Shared stall tablets keep only a session pointer — not contact details — in the browser.',
+  connectionLost:
+    'Connection lost. Typed answers stay on this screen until you reconnect. Submit needs the API for a receipt reference.',
+  staffAssistBanner:
+    'Staff-assisted capture. When this visitor is finished, tap Next visitor to clear the session.',
+  sharedDeviceHint: 'Shared device — tap Next visitor after each person.',
   cardCapture: {
     title: 'Start with your business card',
     subtitle:
-      'Capture both sides if you have a card, or continue without one. Automatic text extraction is not on yet — you will confirm your contact details next.',
+      'Capture both sides if you have a card, or continue without one. If a QR on the card encodes contact details, we suggest them for you to check next — nothing is submitted until you confirm.',
     frontLabel: 'Front side',
     backLabel: 'Back side',
     useCamera: 'Use camera',
@@ -25,7 +30,7 @@ export const copy = {
       'Could not load that photo — it may be too large for this browser. Try again or use a smaller image.',
     consentTitle: 'Store card images with this inquiry',
     consentBody:
-      'Images are kept privately with this draft so the stall team can follow up. They are not published. Extraction is not on yet. You can continue without a card.',
+      'Images are kept privately with this draft so the stall team can follow up. They are not published. With your agreement we may suggest contact fields from a card QR for you to review. You can continue without a card.',
     consentGrant: 'I agree to store card images with this inquiry',
     consentRequired: 'Agree to store the card, or continue without a card.',
     cameraPermissionTitle: 'Camera access',
@@ -39,6 +44,7 @@ export const copy = {
     subtitle:
       'Confirm your name, work email, and mobile number. We’ll save your progress as you continue.',
     fromCard: 'From card upload',
+    fromSuggestions: 'Suggested from your card — please check and edit if needed',
     savedNote:
       'Your draft is saved as you continue. You can return later and we’ll keep what you’ve entered.',
     retake: 'Retake card photos',
@@ -121,7 +127,8 @@ export const copy = {
     back: 'Go back',
     edit: 'Edit',
     restart: 'Restart demo',
-    restartConfirm: 'Clear saved draft and start over?',
+    nextVisitor: 'Next visitor',
+    restartConfirm: 'Clear this session and start over for the next visitor?',
     receiptReference: 'Receipt reference',
     stepOf: (current: number, total: number) => `Step ${current} of ${total}`,
     savedAutomatically: 'Saved automatically',

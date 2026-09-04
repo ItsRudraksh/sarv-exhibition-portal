@@ -1,14 +1,24 @@
 import { setLiveTaxonomy } from './taxonomy'
 import type { CardFileMeta, InquiryDraft } from './types'
 import { createEmptyDraft } from './types'
+import type { EntryChannel } from './entryContext'
 
-const STORAGE_KEY = 'sarv-inquiry-draft-v2'
 const API_BASE = '/api/v1'
 
-export interface InquiryDraftPort {
-  load(): InquiryDraft | null
-  save(draft: InquiryDraft): void
-  clear(): void
+export interface CreateInquiryOptions {
+  id?: string
+  entryChannel?: EntryChannel
+  campaignCode?: string | null
+  staffAssisted?: boolean
+}
+
+export interface CampaignInfo {
+  id: string
+  code: string
+  label: string
+  landingRoute: string
+  exhibitionId: string | null
+  active: boolean
 }
 
 export interface StoredFileAsset {
@@ -20,6 +30,61 @@ export interface StoredFileAsset {
   byteSize: number
   securityScanState: string
   processingState: string
+}
+
+export interface ExtractedFieldProposal {
+  id: string
+  fieldKey: string
+  proposedValueText: string | null
+  confidenceScore: number | null
+  reviewState: string
+}
+
+export interface ExtractionResult {
+  id: string
+  sessionId: string
+  inquiryId: string
+  feature: string
+  state: string
+  inputAssetId: string | null
+  providerModelReference: string | null
+  cardQrDetected: boolean
+  completedAt: string | null
+  fields: ExtractedFieldProposal[]
+}
+
+/** Prefill empty contact/supplier fields from PENDING proposals. Never overwrites typed values. */
+export function applyExtractionProposals(
+  draft: InquiryDraft,
+  extraction: ExtractionResult | null,
+): InquiryDraft {
+  if (!extraction?.fields?.length || draft.contactConfirmed) {
+    return draft
+  }
+  const pending = extraction.fields.filter((f) => f.reviewState === 'PENDING' && f.proposedValueText)
+  if (pending.length === 0) {
+    return draft
+  }
+  const byKey = new Map(pending.map((f) => [f.fieldKey, f.proposedValueText!.trim()]))
+  const fill = (current: string, key: string) => {
+    if (current.trim()) return current
+    return byKey.get(key) ?? current
+  }
+  return {
+    ...draft,
+    contact: {
+      fullName: fill(draft.contact.fullName, 'full_name'),
+      workEmail: fill(draft.contact.workEmail, 'work_email'),
+      countryCode: fill(draft.contact.countryCode, 'country_code'),
+      mobileNumber: fill(draft.contact.mobileNumber, 'mobile_number'),
+    },
+    supplier: {
+      ...draft.supplier,
+      companyName: fill(draft.supplier.companyName, 'company_name'),
+      jobTitle: fill(draft.supplier.jobTitle, 'job_title'),
+      locationFromCard: fill(draft.supplier.locationFromCard, 'location_from_card'),
+    },
+  }
 }
 
 function fileSnapshot(file: CardFileMeta | null): CardFileMeta | null {
@@ -59,26 +124,6 @@ function withFileUrls(draft: InquiryDraft): InquiryDraft {
     cardFront: attach(draft.cardFront, true),
     cardBack: attach(draft.cardBack, true),
   }
-}
-
-export const localStorageDraftPort: InquiryDraftPort = {
-  load(): InquiryDraft | null {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return null
-      return JSON.parse(raw) as InquiryDraft
-    } catch {
-      return null
-    }
-  },
-
-  save(draft: InquiryDraft): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stripPreviewUrls(draft)))
-  },
-
-  clear(): void {
-    localStorage.removeItem(STORAGE_KEY)
-  },
 }
 
 class ApiError extends Error {
@@ -134,12 +179,21 @@ function asDraft(payload: InquiryDraft): InquiryDraft {
 }
 
 export const inquiryApi = {
-  async create(draft?: InquiryDraft): Promise<InquiryDraft> {
+  async create(options?: CreateInquiryOptions): Promise<InquiryDraft> {
     const created = await request<InquiryDraft>('/inquiries', {
       method: 'POST',
-      body: JSON.stringify(draft ? stripPreviewUrls(draft) : {}),
+      body: JSON.stringify({
+        id: options?.id,
+        entryChannel: options?.entryChannel ?? 'EXHIBITION_QR',
+        campaignCode: options?.campaignCode ?? null,
+        staffAssisted: options?.staffAssisted ?? false,
+      }),
     })
     return asDraft(created)
+  },
+
+  async getCampaign(code: string): Promise<CampaignInfo> {
+    return request<CampaignInfo>(`/campaigns/${encodeURIComponent(code)}`)
   },
 
   async get(id: string): Promise<InquiryDraft | null> {
@@ -219,6 +273,16 @@ export const inquiryApi = {
       method: 'POST',
       body: JSON.stringify({ purpose, decision }),
     })
+  },
+
+  async latestExtraction(inquiryId: string): Promise<ExtractionResult | null> {
+    const response = await fetch(`${API_BASE}/inquiries/${inquiryId}/extractions/latest`)
+    if (response.status === 404) return null
+    const body = await parseJson(response)
+    if (!response.ok) {
+      throw new ApiError('Could not load card suggestions')
+    }
+    return body as ExtractionResult
   },
 }
 

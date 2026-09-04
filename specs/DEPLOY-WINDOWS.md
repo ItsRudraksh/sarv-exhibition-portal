@@ -15,7 +15,7 @@ The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibiti
 | Camera | In-page `getUserMedia` needs HTTPS. On HTTP, visitors **upload** a photo or use the phone file picker. |
 | Auth | Set `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` on first start. Do not expose `{noop}poc-staff`. |
 | MySQL | Native MySQL 8 on **127.0.0.1:3306**. Do not publish 3306 on `0.0.0.0`. Docker is not used. |
-| OCR / CRM / vendor API | Still not live. Outbox writes local stub files. |
+| Cloud OCR / CRM / vendor API | Still not live. Local card-QR assist may propose fields. Outbox writes local stub files. |
 
 ## What must be on the server
 

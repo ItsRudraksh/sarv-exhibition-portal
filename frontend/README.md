@@ -1,6 +1,6 @@
 # Sarv Biolabs Exhibition Portal — Frontend
 
-Visitor inquiry UI for the scan-first exhibition portal, plus a **separate** staff app at `/staff`. Talks to the Java POC at `/api/v1` (Vite proxies to `http://localhost:8080`). If the API is down, visitor drafts fall back to `localStorage`.
+Visitor inquiry UI for the scan-first exhibition portal, plus a **separate** staff app at `/staff`. Talks to the Java POC at `/api/v1` (Vite proxies to `http://localhost:8080`). Shared stall tablets keep only a **sessionStorage draft id** — not contact PII in `localStorage`.
 
 ## Commands
 
@@ -48,19 +48,22 @@ A **mobile-first React + Vite + TypeScript** app of the 11-screen visitor journe
 4–8. Supplier path (departments → product types → smart details → review → confirmation)
 9–11. Buyer path (need capture → review → confirmation)
 
-OCR, QR decoding, AI, geolocation, admin, and CRM/vendor integrations are **not implemented**. Card/catalogue uploads are live when the API is up. Confirmation shows a server `POC-` reference when the API accepts submit.
+Local **card-QR assist** is live when the API is up: ZXing may propose contact fields from a vCard/MECARD QR for the visitor to review. Cloud OCR, voice, geolocation, and CRM/vendor integrations are **not** implemented. Card/catalogue uploads are live when the API is up. Confirmation shows a server `POC-` reference when the API accepts submit.
+
+**Pilot entry:** `/?c=POC-STALL-1` (exhibition campaign), `/web` or `?channel=website`, `?channel=direct`, `?assist=1` (staff-assisted). Shared devices show **Next visitor**. Fonts are self-hosted (no Google Fonts CDN).
 
 ## Persistence
 
-- Server draft: `inquiryApi` in `features/inquiry/api.ts` (`POST/PATCH/GET /inquiries`, contact confirm, submit, **multipart file upload**, consents).
-- Local resume key: `sarv-inquiry-draft-v2`. This is demo/resume only — not a production privacy solution for shared stall tablets.
-- Card and catalogue files are stored privately when the API is up. Rejected content checks keep the original on disk and do not serve it. Offline fallback is metadata-only.
+- Server draft: `inquiryApi` in `features/inquiry/api.ts` (`POST` create with channel/campaign, `PATCH/GET`, contact confirm, submit, files, consents, extractions).
+- Session pointer: `sarv-inquiry-pointer-v1` in **sessionStorage** (draft id only). Legacy full-draft `localStorage` key is cleared on load.
+- Entry parsing: `features/inquiry/entryContext.ts`.
+- Card and catalogue files are stored privately when the API is up. Offline: on-screen only; submit requires the API for a receipt.
 - Taxonomy loads from `GET /api/v1/taxonomy` when the API is up. Fallback IDs in `features/inquiry/taxonomy.ts` must match Flyway `V2__poc_seed.sql`.
-- QR payloads would be stored internally only in production; this app does not open card QR destinations.
+- Card QR payloads are stored server-side only; visitor GET never returns the raw payload.
 - Buyer company name is optional; the server allows buyer submit without a company.
 - Card capture requires an affirmative store-images consent, or continue without a card (decline). Camera permission copy is shown before `getUserMedia`.
 
-Use **Restart demo** (top-right) to clear the saved draft and create a new server draft.
+Use **Next visitor** / **Restart demo** (top-right) to clear the session and create a new server draft.
 
 ## Design and product sources
 
@@ -77,7 +80,8 @@ Use **Restart demo** (top-right) to clear the saved draft and create a new serve
 src/
   features/inquiry/
     types.ts          # InquiryDraft model and step types
-    api.ts            # HTTP client + localStorage fallback
+    api.ts            # HTTP client + create/campaign APIs
+    entryContext.ts   # URL entry + session pointer (no PII localStorage)
     taxonomy.ts       # Fallback departments / product types (POC seed IDs)
     validation.ts     # Form validation
     copy.ts           # Visitor-facing strings

@@ -4,7 +4,7 @@
 >
 > **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** Phases 1–5 are running: visitor API, files/consent/audit, `/staff` review, and an **outbox** that stubs mailbox/vendor delivery. OCR and live CRM/vendor APIs are **not** live. Public Windows Server: **Java 17** JAR + Jenkins (no Docker) — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`; in-page camera still needs HTTPS). Delivery sequence: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
+> **Current stage:** Phases 1–7 are running: visitor API, files/consent/audit, `/staff` review, outbox stubs, local card-QR assist, and **exhibition pilot entry** (campaign QR codes, shared-device session isolation, website/direct channels, poor-network banners). Cloud OCR, voice, and live CRM/vendor APIs are **not** live. Public Windows Server: **Java 17** JAR + Jenkins (no Docker) — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`; in-page camera still needs HTTPS). Delivery sequence: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -300,7 +300,7 @@ The original local design cleanup removed obsolete local exports and preserved t
 - **Backend target:** Java Spring Boot.
 - **Migrations:** Flyway (`backend/src/main/resources/db/migration/`).
 - **ORM:** POC uses JDBC (`JdbcClient`); still replaceable later. The logical design does not depend on a particular ORM.
-- **Frontend:** React 19 + TypeScript + Vite in `frontend/`; POC talks to `/api/v1` with `localStorage` fallback.
+- **Frontend:** React 19 + TypeScript + Vite in `frontend/`; POC talks to `/api/v1` with a **sessionStorage draft-id pointer** (no full-draft PII in `localStorage`).
 - **POC API:** `backend/` Spring Boot 3.5, Flyway V1–V5. Run notes: `backend/README.md`.
 - **Delivery plan:** [BUILD-PLAN.md](BUILD-PLAN.md).
 
@@ -353,7 +353,7 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 
 ### Not implemented or not finalised
 
-- No cloud object-storage provider, OCR/AI provider, live CRM product, or live enterprise-vendor API. Outbox stubs write local JSON only.
+- No cloud object-storage provider, cloud OCR/AI provider, live CRM product, or live enterprise-vendor API. Card QR is decoded locally (ZXing); outbox stubs write local JSON only.
 - Internal/admin screens exist as a POC at `/staff` (Alpine Blue After Dark). Not a designed Stitch admin suite. Required later: richer supplier record, Excel workbook export, SSO.
 - Final design approval of the revised buyer confirmation should be confirmed/documented.
 - Desktop counterparts need scan-first alignment only where the old screens actually conflict.
@@ -366,12 +366,12 @@ The canonical sequenced plan is **[BUILD-PLAN.md](BUILD-PLAN.md)**. Summary:
 
 1. Resolve the open business/operational decisions in section 12 and finish approval of buyer confirmation.
 2. **POC done:** Flyway V1–V2 with BUILD-PLAN §3 scan-first fixes on the inquiry subset. Do not load `exhibition_portal_schema.sql` as V1; expand Flyway toward the full target as later phases need tables.
-3. **POC done for draft persistence:** visitor app + server draft/submit. Remaining visitor work: files, shared-device isolation, camera-permission copy, self-hosted fonts.
+3. **POC done for draft persistence + pilot entry:** visitor app + server draft/submit; shared-device session pointer; campaign/website/direct entry. Remaining: business-owned taxonomy, public HTTPS for camera.
 4. Replace the POC taxonomy seed with a business-owned list; never hard-code stall-specific sample labels as if they were production configuration.
 5. Implement secure file-upload/storage/scan/derivative processing and consent/audit primitives early.
 6. Build authenticated internal queues and human supplier approval before enabling enterprise vendor delivery.
 7. Add a durable outbox/retry worker for CRM/lead and vendor integrations. Add controlled Excel export as a job, not a raw download.
-8. Add OCR/QR/voice integrations only behind consent, field review, manual fallback, observability, and failure states.
+8. Add cloud OCR/voice integrations only behind consent, field review, manual fallback, observability, and failure states. Phase 6 POC: local QR decode + reviewable proposals (done).
 9. Run a real exhibition pilot with offline/poor-network and staff-assistance scenarios, then use conversion/abandonment data to refine the normal web inquiry version.
 
 ## 12. Open decisions future agents should surface, not invent
@@ -468,7 +468,7 @@ Non-negotiables:
 - AI/voice/card scan are optional, consented, reviewable assists; manual fallback is mandatory; AI cannot make business decisions.
 - Follow HLD/database consent and audit rules. Do not copy stale legacy labels from old desktop/prototype screens into requirements.
 - Keep the approved Alpine Blue system. Staff uses Alpine Blue After Dark at `/staff`. Do not restyle or add generic dashboard/marketing patterns unless explicitly asked.
-- Visitor UI is a React app in frontend/ wired to the Java API. Staff is a separate `/staff` route. Do not claim OCR or a live CRM/vendor API. Outbox stubs are local JSON files. Card/catalogue files are stored privately when the API is up. Add to production enqueues vendor delivery only.
+- Visitor UI is a React app in frontend/ wired to the Java API. Staff is a separate `/staff` route. Local card-QR assist proposes reviewable fields; do not claim cloud OCR or a live CRM/vendor API. Outbox stubs are local JSON files. Card/catalogue files are stored privately when the API is up. Add to production enqueues vendor delivery only. Stall tablets use **Next visitor** + session pointer (not localStorage PII). Entry: `?c=CAMPAIGN`, `/web`, `?channel=direct`, `?assist=1`.
 
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
