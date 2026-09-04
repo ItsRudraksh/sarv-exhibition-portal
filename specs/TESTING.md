@@ -53,7 +53,7 @@ Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Jav
 
 **Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the bootstrap password. MySQL must not be reachable on the public IP.
 
-**Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. The 15:33 and later pipeline FAIL is placeholder `change-me-*` in `portal.env.ps1` while the service exists and is Stopped.
+**Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. Placeholder `change-me-*` still fails Deploy. **`net start` NET 2186** means the old powershell-only service registration — fixed by WinSW in `install-service.ps1` (push that change, then rebuild). Manual Option A (`start-portal.ps1` in a console) still works; close that window (or kill orphan java) before Jenkins `net start` so port 8082 is free.
 
 ## Reply footer (agents)
 

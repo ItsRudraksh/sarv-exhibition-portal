@@ -162,6 +162,20 @@ if (Test-Path -LiteralPath $envFile) {
 $svc = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
 if ($svc) {
     Write-Check OK ("Windows service {0} Status={1} StartType={2}" -f $svc.Name, $svc.Status, $svc.StartType)
+    $pathName = (Get-CimInstance Win32_Service -Filter ("Name='" + $ServiceName + "'") -ErrorAction SilentlyContinue).PathName
+    if ($pathName -and ($pathName -like ('*' + $ServiceName + '.exe*'))) {
+        Write-Check OK 'Service PathName uses WinSW (net start should work)'
+    } elseif ($pathName -and ($pathName -like '*powershell*start-portal.ps1*')) {
+        Write-Check FAIL 'Service PathName is powershell-only (causes NET 2186). Rebuild after WinSW install-service.ps1, or run: .\\deploy\\windows\\install-service.ps1 -Staging'
+    } elseif ($pathName) {
+        Write-Check WARN ("Service PathName unexpected: $pathName")
+    }
+    $winswExe = Join-Path $InstallDir ($ServiceName + '.exe')
+    if (Test-Path -LiteralPath $winswExe) {
+        Write-Check OK "WinSW exe present: $winswExe"
+    } else {
+        Write-Check WARN "WinSW exe missing under install dir (next Jenkins Deploy should download it)"
+    }
 } else {
     Write-Check FAIL "Windows service $ServiceName is not installed. From the git repo: .\\deploy\\windows\\install-service.ps1 -Staging"
 }

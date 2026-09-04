@@ -83,44 +83,46 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
 
                 Write-Host "Installed exhibition-portal.jar under \$installDir"
 
-                \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
-                if (-not \$svc) {
-                    \$installScript = Join-Path \$workspace 'deploy\\windows\\install-service.ps1'
-                    if (-not (Test-Path -LiteralPath \$installScript)) {
-                        Write-Error ("Missing " + \$installScript)
-                        exit 1
-                    }
-                    Write-Host "Windows service \$service is not installed. Creating it (Jenkins LocalSystem)..."
-                    if (\$kind -eq 'staging') {
-                        & \$installScript -Staging
-                    } else {
-                        & \$installScript
-                    }
-                    if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }
-                    \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
-                    if (-not \$svc) {
-                        Write-Error ("Failed to install Windows service " + \$service + ". Elevated, from the repo: .\\deploy\\windows\\install-service.ps1" + \$(if (\$kind -eq 'staging') { ' -Staging' } else { '' }))
-                        exit 1
-                    }
-                }
-
                 \$envText = ''
                 if (Test-Path -LiteralPath \$envTarget) {
                     \$envText = Get-Content -LiteralPath \$envTarget -Raw
                 }
                 if (\$envText -match 'change-me-db' -or \$envText -match 'change-me-staff') {
-                    Write-Error ("Service " + \$service + " is installed and " + \$installDir + " has the JAR. Edit " + \$envTarget + " (DATASOURCE_PASSWORD and EXHIBITION_STAFF_BOOTSTRAP_PASSWORD), create MySQL DB/user with deploy\\windows\\init-mysql.sql, then rebuild. start-portal.ps1 will not start with the example passwords.")
+                    Write-Error ("JAR is under " + \$installDir + ". Edit " + \$envTarget + " (DATASOURCE_PASSWORD and EXHIBITION_STAFF_BOOTSTRAP_PASSWORD), create MySQL DB/user with deploy\\windows\\init-mysql.sql, then rebuild. start-portal.ps1 will not start with the example passwords.")
+                    exit 1
+                }
+
+                # Always run install-service: replaces broken powershell-only SCM (NET 2186) with WinSW.
+                \$installScript = Join-Path \$workspace 'deploy\\windows\\install-service.ps1'
+                if (-not (Test-Path -LiteralPath \$installScript)) {
+                    Write-Error ("Missing " + \$installScript)
+                    exit 1
+                }
+                Write-Host "Ensuring WinSW Windows service \$service (install-service.ps1)..."
+                if (\$kind -eq 'staging') {
+                    & \$installScript -Staging
+                } else {
+                    & \$installScript
+                }
+                if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }
+                \$svc = Get-Service -Name \$service -ErrorAction SilentlyContinue
+                if (-not \$svc) {
+                    Write-Error ("Failed to install Windows service " + \$service + ". Elevated, from the repo: .\\deploy\\windows\\install-service.ps1" + \$(if (\$kind -eq 'staging') { ' -Staging' } else { '' }))
                     exit 1
                 }
 
                 if (\$svc.Status -eq 'Running') {
                     Write-Host "Stopping service \$service..."
                     net stop \$service
+                    if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) {
+                        Write-Host "net stop returned \$LASTEXITCODE; continuing"
+                    }
+                    Start-Sleep -Seconds 3
                 }
                 Write-Host "Starting service \$service..."
                 net start \$service
                 if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) {
-                    Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + " (MySQL password, staff bootstrap) and the Windows Event Log.")
+                    Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + ", WinSW logs under " + \$installDir + " (*.out.log / *.err.log), and that no orphan java still holds the port.")
                     exit 1
                 }
                 Write-Host "Waiting for startup..."

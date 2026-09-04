@@ -1,6 +1,6 @@
 # Deploy on Windows Server (public IP)
 
-**Updated:** 3 September 2026  
+**Updated:** 4 September 2026  
 **Target:** `http://43.225.195.200/`  
 **Runtime:** **Java 17** only (server is `17.0.18`). Same delivery shape as pharma-erp: Jenkins on the Windows agent, native database, **no Docker**.
 
@@ -16,6 +16,7 @@ The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibiti
 | Auth | Set `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` on first start. Do not expose `{noop}poc-staff`. |
 | MySQL | Native MySQL 8 on **127.0.0.1:3306**. Do not publish 3306 on `0.0.0.0`. Docker is not used. |
 | Cloud OCR / CRM / vendor API | Still not live. Local card-QR assist may propose fields. Outbox writes local stub files. |
+| Windows service | **WinSW** wraps `start-portal.ps1`. Bare `powershell -File` as the service binary causes **NET 2186**. |
 
 ## What must be on the server
 
@@ -121,8 +122,8 @@ Root **`Jenkinsfile`**. One agent: **Checkout → Frontend (npm) → Maven → D
 | **Frontend** | `frontend/`: `npm ci` and `npm run build` (skipped if `SKIP_MAVEN_BUILD=true`). On Windows, PATH is prefixed with `C:\Program Files\nodejs` / `NODE_HOME` because the Jenkins service does not see an interactive user PATH. |
 | **Maven** | `backend/`: `mvn clean compile`, `mvn test`, `mvn package -DskipTests` — JDK **Java17** |
 | **Run (Smoke) / Validate** | Unix only (same skip as pharma-erp on Windows) |
-| **Deploy to Staging** | Branches **`dev`** and **`poc`**: create `C:\exhibition-portal-staging\`, copy JAR + `start-portal.ps1`, seed `portal.env.ps1`, pin **`SERVER_PORT=8082`** (8081 is **pharma-erp-staging**), install service `exhibition-portal-staging` if missing, then `net start` |
-| **Deploy to Production** | Branch **`main`** only: same copy into `C:\exhibition-portal\`, then `net start exhibition-portal` (port **80**). **`poc` never deploys production.** |
+| **Deploy to Staging** | Branches **`dev`** and **`poc`**: create `C:\exhibition-portal-staging\`, copy JAR + `start-portal.ps1`, seed `portal.env.ps1`, pin **`SERVER_PORT=8082`** (8081 is **pharma-erp-staging**), run **`install-service.ps1 -Staging`** (WinSW wrapper; replaces broken powershell-only SCM that caused **NET 2186**), then `net start` |
+| **Deploy to Production** | Branch **`main`** only: same copy into `C:\exhibition-portal\`, WinSW install, then `net start exhibition-portal` (port **80**). **`poc` never deploys production.** |
 | **Health Check** | **`main`**: `http://127.0.0.1/actuator/health`. **`dev`/`poc`**: `http://127.0.0.1:8082/actuator/health` |
 
 Parameters (same idea as pharma-erp):
@@ -156,7 +157,7 @@ PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it
 | `backend/pom.xml` | Java **17**, `finalName` `exhibition-portal` |
 | `backend/src/main/resources/application-prod.yml` | Port 80, MySQL 3306, public CORS |
 | `deploy/windows/deploy.ps1` | Manual `npm` + `mvn` + copy JAR |
-| `deploy/windows/install-service.ps1` | Windows service for `net stop` / `net start` |
+| `deploy/windows/install-service.ps1` | **WinSW** Windows service (`*.exe` + `*.xml` under the install dir) so `net stop` / `net start` work. Downloads WinSW-x64 once if missing. Do **not** register bare `powershell -File start-portal.ps1` as the service binary (that yields NET 2186). |
 | `deploy/windows/init-mysql.sql` | Create database + user |
 | `backend/run.ps1` | Local `spring-boot:run` |
 
