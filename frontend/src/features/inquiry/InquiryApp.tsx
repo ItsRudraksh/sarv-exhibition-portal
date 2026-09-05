@@ -70,7 +70,7 @@ export function InquiryApp() {
         </button>
       </div>
       <p className="sr-only" role="status">
-        {copy.prototypeBanner}
+        {journey.pocMode ? copy.prototypeBanner : copy.appName}
       </p>
       {journey.entry.staffAssisted ? (
         <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }} role="status">
@@ -82,9 +82,13 @@ export function InquiryApp() {
           {journey.campaignLabel}
         </p>
       ) : null}
-      {journey.connectionLost || !journey.apiAvailable ? (
+      {journey.connectionLost ? (
         <p className="field-error" style={{ textAlign: 'center', margin: '8px 18px 0' }} role="alert">
-          {journey.connectionLost ? copy.connectionLost : copy.prototypeBanner}
+          {copy.connectionLost}
+        </p>
+      ) : journey.pocMode && !journey.apiAvailable ? (
+        <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }}>
+          {copy.prototypeBanner}
         </p>
       ) : null}
       {shared && journey.apiAvailable && !journey.entry.staffAssisted ? (

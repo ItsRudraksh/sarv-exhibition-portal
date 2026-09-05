@@ -16,11 +16,15 @@ public record ExhibitionProperties(
         String consentPolicyVersion,
         int exportRetentionHours,
         Outbox outbox,
-        String staffBootstrapPassword
+        String staffBootstrapPassword,
+        String referencePrefix
 ) {
     public ExhibitionProperties {
         if (staffBootstrapPassword == null) {
             staffBootstrapPassword = "";
+        }
+        if (referencePrefix == null || referencePrefix.isBlank()) {
+            referencePrefix = poc ? "POC-" : "EP-";
         }
     }
 
@@ -40,10 +44,10 @@ public record ExhibitionProperties(
                 backoffSeconds = 30;
             }
             if (marketingDestination == null || marketingDestination.isBlank()) {
-                marketingDestination = "poc-mailbox";
+                marketingDestination = "local-mailbox";
             }
             if (vendorDestination == null || vendorDestination.isBlank()) {
-                vendorDestination = "poc-vendor-stub";
+                vendorDestination = "local-vendor-stub";
             }
             if (forceFailureCode == null) {
                 forceFailureCode = "";

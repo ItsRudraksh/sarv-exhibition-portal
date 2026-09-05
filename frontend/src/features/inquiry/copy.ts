@@ -1,7 +1,7 @@
 export const copy = {
   appName: 'Sarv Biolabs Exhibition Portal',
   prototypeBanner:
-    'POC: drafts save to the Java API when connected. Shared stall tablets keep only a session pointer — not contact details — in the browser.',
+    'Development: drafts save to the Java API when connected. Shared stall tablets keep only a session pointer — not contact details — in the browser.',
   connectionLost:
     'Connection lost. Typed answers stay on this screen until you reconnect. Submit needs the API for a receipt reference.',
   staffAssistBanner:
@@ -60,13 +60,13 @@ export const copy = {
     buyTitle: 'I want to buy',
     buyDesc: 'Start a quick product inquiry. Add only the details you know.',
     footer: '© 2026 Sarv Biolabs. Mineral Research Precision.',
-    policyUnavailable: 'Not available in this prototype',
+    policyUnavailable: 'Not available in this release',
   },
   supplier: {
     intake: 'Supplier intake',
     departmentsTitle: 'Which departments do you want to work with?',
     departmentsSubtitle: 'Select one or more areas. We’ll show relevant product types next.',
-    departmentsNote: 'The available departments are set for this exhibition (prototype data).',
+    departmentsNote: 'The available departments are configured for this exhibition.',
     productTypesTitle: 'Which product types can you supply?',
     productTypesSubtitle: 'Filtered by your selected departments.',
     smartDetailsTitle: 'Check your supplier details',

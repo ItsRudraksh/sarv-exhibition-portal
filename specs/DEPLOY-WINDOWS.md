@@ -13,9 +13,11 @@ The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibiti
 | URL | `http://43.225.195.200/` (visitor) and `http://43.225.195.200/staff` (internal) |
 | Java | **17** (`javac`/`java` 17.0.x). Do not build with Java 21 bytecode. |
 | Camera | In-page `getUserMedia` needs HTTPS. On HTTP, visitors **upload** a photo or use the phone file picker. |
-| Auth | Set `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` on first start. Do not expose `{noop}poc-staff`. |
+| Auth | **Required:** `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `poc-staff` / `change-me-staff`). Prod refuses to start otherwise. |
 | MySQL | Native MySQL 8 on **127.0.0.1:3306**. Do not publish 3306 on `0.0.0.0`. Docker is not used. |
-| Cloud OCR / CRM / vendor API | Still not live. Local card-QR assist may propose fields. Outbox writes local stub files. |
+| Cloud OCR / CRM / vendor API | Still not live. Local card-QR assist may propose fields. Outbox writes local stub files (`local-mailbox` / `local-vendor-stub`). |
+| Receipts | Prod uses `EP-` prefix (`exhibition.reference-prefix`). |
+| Lead export | Staff download is **Excel .xlsx** (expiring job). |
 | Windows service | **WinSW** wraps `start-portal.ps1`. Bare `powershell -File` as the service binary causes **NET 2186**. |
 
 ## What must be on the server

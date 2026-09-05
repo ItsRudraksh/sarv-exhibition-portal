@@ -151,7 +151,7 @@ public class ExtractionService {
         }
         if ("VOICE_INPUT".equals(feature)) {
             throw new InquiryValidationException(
-                    "Voice assist is not enabled in this POC. Use the typed fields.");
+                    "Voice assist is not enabled yet. Use the typed fields.");
         }
         if (!"BUSINESS_CARD_SCAN".equals(feature)) {
             throw new InquiryValidationException("Unknown assistive feature.");

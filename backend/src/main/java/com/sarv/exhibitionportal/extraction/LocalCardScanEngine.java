@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class LocalCardScanEngine {
 
-    static final String PROVIDER = "poc-zxing-qr-v1";
+    static final String PROVIDER = "zxing-qr-v1";
     private static final BigDecimal QR_CONFIDENCE = new BigDecimal("0.900");
     private static final Pattern EMAIL = Pattern.compile(
             "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}", Pattern.CASE_INSENSITIVE);

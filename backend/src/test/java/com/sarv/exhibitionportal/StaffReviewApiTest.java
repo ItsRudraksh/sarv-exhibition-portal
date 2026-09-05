@@ -84,7 +84,7 @@ class StaffReviewApiTest extends MysqlSpringBootTest {
     }
 
     @Test
-    void marketingCannotReviewSuppliersButCanExportBuyers() {
+    void marketingCannotReviewSuppliersButCanExportBuyers() throws Exception {
         UUID buyerId = submitBuyer();
         ResponseEntity<String> forbidden = marketing().getForEntity("/api/v1/staff/suppliers", String.class);
         assertThat(forbidden.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -100,14 +100,29 @@ class StaffReviewApiTest extends MysqlSpringBootTest {
         assertThat(job.getBody()).isNotNull();
         assertThat(job.getBody().state()).isEqualTo("READY");
         assertThat(job.getBody().scope()).isEqualTo("PURCHASE_LEADS");
+        assertThat(job.getBody().originalFilename()).endsWith(".xlsx");
 
         ResponseEntity<byte[]> file = marketing().getForEntity(
                 "/api/v1/staff/exports/" + job.getBody().id() + "/file", byte[].class);
         assertThat(file.getStatusCode()).isEqualTo(HttpStatus.OK);
-        String csv = new String(file.getBody());
-        assertThat(csv).contains("reference_code");
-        assertThat(csv).contains("Thiocolchicoside");
-        assertThat(csv).doesNotContain("password_hash");
+        assertThat(file.getBody()).isNotNull();
+        assertThat(file.getBody()[0]).isEqualTo((byte) 'P');
+        assertThat(file.getBody()[1]).isEqualTo((byte) 'K');
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook =
+                     new org.apache.poi.xssf.usermodel.XSSFWorkbook(
+                             new java.io.ByteArrayInputStream(file.getBody()))) {
+            var sheet = workbook.getSheetAt(0);
+            assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("reference_code");
+            boolean found = false;
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                var cell = sheet.getRow(i).getCell(5);
+                if (cell != null && cell.getStringCellValue().contains("Thiocolchicoside")) {
+                    found = true;
+                    break;
+                }
+            }
+            assertThat(found).isTrue();
+        }
     }
 
     @Test
@@ -172,8 +187,8 @@ class StaffReviewApiTest extends MysqlSpringBootTest {
                 null, null, null,
                 new ContactDto("Asha Rao", "asha@example.com", "+91", "9876543210"),
                 new SupplierDto("Himalaya Intermediates", "https://supplier.example", "", "", null),
-                List.of(UUID.fromString("10000000-0000-4000-8000-000000000001")),
-                List.of(UUID.fromString("20000000-0000-4000-8000-000000000003")),
+                List.of(UUID.fromString("a1000000-0000-4000-8000-000000000001")),
+                List.of(UUID.fromString("a2000000-0000-4000-8000-000000000003")),
                 new BuyerDto("", "", new BuyerSpecificationsDto("", "", "", "", "")),
                 true, null, reference);
     }

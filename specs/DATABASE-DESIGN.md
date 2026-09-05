@@ -1,7 +1,7 @@
 # Exhibition Portal Database Design
 
 **Status:** Approved logical and physical design baseline  
-**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V6 in `backend/src/main/resources/db/migration/`.  
+**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V7 in `backend/src/main/resources/db/migration/`.  
 **Logical types in this document:** Originally written for PostgreSQL (`uuid`, `timestamptz`, `jsonb`, `text`). Keep them as the entity/invariant SSOT. The applied store maps them to `CHAR(36)`, `DATETIME(6)`, `JSON`, and `VARCHAR`/`TEXT`. Do **not** load `exhibition_portal_schema.sql`.  
 **Application target:** Java 17 Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
 **Scope:** Data design. The singleton DDL in this folder is the **historical full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
@@ -20,7 +20,7 @@ These are required for the scan-first visitor flow. They are applied in Flyway V
 | `review_cases.open_supplier_key` | Partial unique index in PostgreSQL | **POC V4** nullable unique column, set to `supplier_inquiry_id` while the case is open and `NULL` when closed. MariaDB rejects generated `CASE`/`IF` over `CHAR(36)`. |
 | `export_jobs` file pointer | `file_asset_id` (requires `inquiries`) | **POC V4** `storage_key` on disk; exports are not one inquiry. |
 
-`EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems. **V6:** AI assist tables; visitor field review does not require `reviewed_by_user_id` (staff FK remains optional).
+`EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems. **V6:** AI assist tables; visitor field review does not require `reviewed_by_user_id` (staff FK remains optional). **V7:** business taxonomy active rows (`a100…`/`a200…`); POC taxonomy archived (`poc_` codes).
 
 POC **audit:** `workflow_events` on create/submit/review/outbox. **V3–V6:** `audit_events` also on file, consent, Add to production, reject, export, outbox enqueue/retry/success/fail, and card extraction completed/failed. Metadata must not include email, phone, filenames, or raw QR payloads.
 
@@ -527,7 +527,7 @@ The initial migration set should create at least the following, in addition to p
 The sequenced Java + React plan is **[BUILD-PLAN.md](BUILD-PLAN.md)**. In short:
 
 1. Confirm the legal/privacy wording and retention periods, especially for location, business-card images, and voice data.
-2. Define the initial admin taxonomy: departments, their valid product types, Sarv product catalogue entries, and supported pharmacopoeial standards.
+2. **Done for departments / types / mappings / IP–EP standards:** content pack in [taxonomy/](taxonomy/) + Flyway V7. **Still open:** Sarv product catalogue entries and admin CRUD.
 3. Apply BUILD-PLAN §3 schema fixes, then produce Flyway migrations from this document (do not apply the singleton DDL as production V1).
 4. Implement the supplier and purchase flows, then add asynchronous catalogue processing and integration outbox workers.
 5. Add CRM/vendor platform mappings only after their API, identity-match, and ownership rules are confirmed.

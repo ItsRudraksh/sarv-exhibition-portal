@@ -152,8 +152,8 @@ class OutboxApiTest extends MysqlSpringBootTest {
                 null, null, null,
                 new ContactDto("Asha Rao", "asha@example.com", "+91", "9876543210"),
                 new SupplierDto("Himalaya Intermediates", "https://supplier.example", "", "", null),
-                List.of(UUID.fromString("10000000-0000-4000-8000-000000000001")),
-                List.of(UUID.fromString("20000000-0000-4000-8000-000000000003")),
+                List.of(UUID.fromString("a1000000-0000-4000-8000-000000000001")),
+                List.of(UUID.fromString("a2000000-0000-4000-8000-000000000003")),
                 new BuyerDto("", "", new BuyerSpecificationsDto("", "", "", "", "")),
                 true, null, reference);
     }

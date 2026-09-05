@@ -1,6 +1,9 @@
 server:
   port: ${SERVER_PORT:80}
   address: 0.0.0.0
+  error:
+    include-message: always
+    include-stacktrace: never
 
 spring:
   datasource:
@@ -9,14 +12,25 @@ spring:
     password: ${DATASOURCE_PASSWORD}
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health
   endpoint:
     health:
       show-details: never
 
 exhibition:
+  poc: false
+  reference-prefix: EP-
   cors-origins:
     - http://43.225.195.200
     - http://127.0.0.1
     - http://localhost
   storage-root: ${EXHIBITION_STORAGE_ROOT:C:/exhibition-portal/files}
   staff-bootstrap-password: ${EXHIBITION_STAFF_BOOTSTRAP_PASSWORD:}
+  outbox:
+    schedule-enabled: true
+    marketing-destination: ${EXHIBITION_OUTBOX_MARKETING:local-mailbox}
+    vendor-destination: ${EXHIBITION_OUTBOX_VENDOR:local-vendor-stub}
+    force-failure-code: ""

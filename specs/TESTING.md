@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Updated:** 4 September 2026 (Phase 7 pilot entry)
+**Updated:** 5 September 2026 (business taxonomy v1 — Flyway V7)
 
 After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
 
@@ -13,33 +13,22 @@ npm run build
 npm run dev    # https://localhost:5173 — HTTPS required for in-page camera on phones
 ```
 
-Vite proxies `/api` to `http://localhost:8080`. Start the Java API for a live draft/submit/upload. Without it the UI stays on-screen only (no PII written to `localStorage`).
+Vite proxies `/api` to `http://localhost:8080`. Loads `GET /api/v1/meta` — prototype banners only when `poc: true`.
 
 **Entry URLs:** `https://localhost:5173/?c=POC-STALL-1` (stall), `https://localhost:5173/web` (website), `?channel=direct`, `?assist=1` (staff-assisted). Shared tablets show **Next visitor**.
 
-**Phone on the same Wi‑Fi:** Vite’s Network URL (e.g. `https://192.168.1.12:5173/`) is often blocked by Windows Firewall when the Wi‑Fi profile is **Public**. Run `scripts/allow-vite-lan.ps1` as Administrator (see `frontend/README.md`). Then accept the self-signed HTTPS warning on the phone. Guest/AP isolation still blocks device-to-device traffic.
-
-**Visitor UI smoke** (when screens, journey, validation, or persistence change):
-
-1. Open with `?c=POC-STALL-1` → campaign label visible → agree to store images → upload or camera → contact. Or continue without a card. Confirm **Next visitor** clears the session (no contact left in localStorage).
-2. Toggle airplane mode mid-form: connection banner; submit blocked until reconnect.
-3. Supplier and buyer paths as before; confirmation shows `POC-` reference only when online submit succeeds.
-4. `/web` creates `WEBSITE` channel draft (no campaign required).
-
-**Staff UI smoke** (`https://localhost:5173/staff`, API must be up): unchanged from Phase 5.
-
-If the browser was not run, write **Manual smoke required** with those screens.
+**Visitor UI smoke:** campaign entry → card/contact → buy or sell → submit → receipt (`POC-` locally / `EP-` on prod) → Next visitor. Staff: export downloads `.xlsx`.
 
 ## Backend (`backend/`)
 
 ```bash
-mvn test              # includes CampaignEntryApiTest + Spa `/web`
-mvn spring-boot:run   # needs MySQL 8
+mvn test
+mvn spring-boot:run                          # default profile (poc=true)
+# prod checks (expect fail without real password):
+# mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
-API tests also cover campaign resolve, website/direct create without campaign, staffAssisted audit metadata (no PII), invalid campaign on website.
-
-Flyway V1–V6 is the applied schema (Phase 7 needed no new migration).
+Flyway V1–V7. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest` (active business rows only; supplier submit with mapped V7 IDs).
 
 
 ## Jenkins + public Windows host (`http://43.225.195.200/`)

@@ -135,7 +135,7 @@ export const staffApi = {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'purchase-leads.csv'
+    link.download = 'purchase-leads.xlsx'
     link.click()
     URL.revokeObjectURL(url)
   },

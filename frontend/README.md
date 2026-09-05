@@ -58,7 +58,7 @@ Local **card-QR assist** is live when the API is up: ZXing may propose contact f
 - Session pointer: `sarv-inquiry-pointer-v1` in **sessionStorage** (draft id only). Legacy full-draft `localStorage` key is cleared on load.
 - Entry parsing: `features/inquiry/entryContext.ts`.
 - Card and catalogue files are stored privately when the API is up. Offline: on-screen only; submit requires the API for a receipt.
-- Taxonomy loads from `GET /api/v1/taxonomy` when the API is up. Fallback IDs in `features/inquiry/taxonomy.ts` must match Flyway `V2__poc_seed.sql`.
+- Taxonomy loads from `GET /api/v1/taxonomy` when the API is up. Fallback IDs in `features/inquiry/taxonomy.ts` must match Flyway `V7__business_taxonomy.sql` ([specs/taxonomy/](../specs/taxonomy/)).
 - Card QR payloads are stored server-side only; visitor GET never returns the raw payload.
 - Buyer company name is optional; the server allows buyer submit without a company.
 - Card capture requires an affirmative store-images consent, or continue without a card (decline). Camera permission copy is shown before `getUserMedia`.
@@ -82,7 +82,7 @@ src/
     types.ts          # InquiryDraft model and step types
     api.ts            # HTTP client + create/campaign APIs
     entryContext.ts   # URL entry + session pointer (no PII localStorage)
-    taxonomy.ts       # Fallback departments / product types (POC seed IDs)
+    taxonomy.ts       # Offline fallback departments / product types (V7 / specs/taxonomy)
     validation.ts     # Form validation
     copy.ts           # Visitor-facing strings
     useInquiryJourney.ts

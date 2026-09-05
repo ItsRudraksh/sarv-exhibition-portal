@@ -4,7 +4,7 @@
 >
 > **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** Phases 1–7 are running: visitor API, files/consent/audit, `/staff` review, outbox stubs, local card-QR assist, and **exhibition pilot entry** (campaign QR codes, shared-device session isolation, website/direct channels, poor-network banners). Cloud OCR, voice, and live CRM/vendor APIs are **not** live. Public Windows Server: **Java 17** JAR + Jenkins (no Docker) — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`; in-page camera still needs HTTPS). Delivery sequence: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
+> **Current stage:** **Business taxonomy v1 loaded** (Flyway V7 + [taxonomy/](taxonomy/)). Phase 8 production hardening done. Live CRM/vendor, cloud OCR/voice, product catalogue, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`). Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -357,7 +357,7 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 - Internal/admin screens exist as a POC at `/staff` (Alpine Blue After Dark). Not a designed Stitch admin suite. Required later: richer supplier record, Excel workbook export, SSO.
 - Final design approval of the revised buyer confirmation should be confirmed/documented.
 - Desktop counterparts need scan-first alignment only where the old screens actually conflict.
-- Business-owned configuration has not been supplied: definitive department list, department-to-product-type map, product catalogue source, mandatory fields, and final standards/labels.
+- Product catalogue (`products` / `product_standards`) is not in Flyway yet. Department / product-type taxonomy is business-owned under **[taxonomy/](taxonomy/)** (V7).
 - Provider/operational policies remain decisions: enterprise/vendor interface, CRM destination, duplicate strategy, location consent/retention wording, AI provider/data processing, exhibition network/device support, and pilot support ownership.
 
 ## 11. Recommended implementation sequence
@@ -366,8 +366,8 @@ The canonical sequenced plan is **[BUILD-PLAN.md](BUILD-PLAN.md)**. Summary:
 
 1. Resolve the open business/operational decisions in section 12 and finish approval of buyer confirmation.
 2. **POC done:** Flyway V1–V2 with BUILD-PLAN §3 scan-first fixes on the inquiry subset. Do not load `exhibition_portal_schema.sql` as V1; expand Flyway toward the full target as later phases need tables.
-3. **POC done for draft persistence + pilot entry:** visitor app + server draft/submit; shared-device session pointer; campaign/website/direct entry. Remaining: business-owned taxonomy, public HTTPS for camera.
-4. Replace the POC taxonomy seed with a business-owned list; never hard-code stall-specific sample labels as if they were production configuration.
+3. **POC done for draft persistence + pilot entry:** visitor app + server draft/submit; shared-device session pointer; campaign/website/direct entry. Remaining open ops: public HTTPS for camera.
+4. **Done (2026-09-05):** Business taxonomy v1 in [taxonomy/](taxonomy/) + Flyway V7 (POC rows archived). Product catalogue still deferred.
 5. Implement secure file-upload/storage/scan/derivative processing and consent/audit primitives early.
 6. Build authenticated internal queues and human supplier approval before enabling enterprise vendor delivery.
 7. Add a durable outbox/retry worker for CRM/lead and vendor integrations. Add controlled Excel export as a job, not a raw download.
@@ -380,7 +380,7 @@ The HLD explicitly requires cross-functional decisions on:
 
 1. Enterprise vendor API/interface, identity-match rules, approval owner, create vs update behavior.
 2. Marketing destination (CRM or mailbox), required lead fields, routing owner, dispatch frequency, and follow-up SLA.
-3. Definitive business taxonomy: departments, department-to-product-type mapping, Sarv products, product standards, and who maintains them.
+3. **Departments / product types / mappings / standards (IP, USP, BP, EP):** resolved for v1 in [taxonomy/](taxonomy/); owner and change process documented there. **Still open:** Sarv product catalogue (`products` / `product_standards`) and a named stall-day maintainer assignment.
 4. Exact supplier and buyer validation policy. The current UX direction is clear, but policy needs formal confirmation.
 5. Lawful purpose, consent copy, allowed evidence sources, precision, fallback, retention/deletion process for location evidence.
 6. AI provider, supported languages, card/image retention, acceptable accuracy, review expectations, and data-processing terms.

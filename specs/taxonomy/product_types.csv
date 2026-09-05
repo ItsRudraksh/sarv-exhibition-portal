@@ -1,0 +1,9 @@
+code,name,display_order
+api_bulk,Bulk APIs,10
+intermediates,Key Intermediates,20
+phyto_extracts,Phyto Extracts,30
+oncology_finished,Oncology Products,40
+herbal_ingredients,Herbal Ingredients,50
+custom_synthesis,Custom Synthesis,60
+antibiotics,Antibiotics,70
+paclitaxel_docetaxel,Paclitaxel / Docetaxel Intermediates,80

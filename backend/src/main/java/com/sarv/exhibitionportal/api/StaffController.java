@@ -89,9 +89,12 @@ public class StaffController {
         byte[] bytes = exports.download(id);
         ExportJobDto job = exports.get(id);
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(job.mediaType() == null ? "text/csv" : job.mediaType()));
+        headers.setContentType(MediaType.parseMediaType(
+                job.mediaType() == null
+                        ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        : job.mediaType()));
         headers.setContentDisposition(ContentDisposition.attachment()
-                .filename(job.originalFilename() == null ? "purchase-leads.csv" : job.originalFilename())
+                .filename(job.originalFilename() == null ? "purchase-leads.xlsx" : job.originalFilename())
                 .build());
         return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }

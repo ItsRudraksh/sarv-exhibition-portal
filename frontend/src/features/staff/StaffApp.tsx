@@ -300,7 +300,7 @@ function ExportPanel() {
     try {
       const job = await staffApi.createExport()
       await staffApi.downloadExport(job.id)
-      setMessage(`Ready until ${job.expiresAt ?? 'expiry'}. CSV is a controlled job, not a live table dump.`)
+      setMessage(`Ready until ${job.expiresAt ?? 'expiry'}. Download is a controlled job, not a live table dump.`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed.')
     } finally {
@@ -311,7 +311,7 @@ function ExportPanel() {
   return (
     <section className="staff-section">
       <p className="staff-lede">
-        Creates an expiring purchase-lead spreadsheet (CSV in this POC). Excel workbook format comes later.
+        Creates an expiring purchase-lead Excel workbook (.xlsx).
       </p>
       {error ? <p className="staff-error">{error}</p> : null}
       {message ? <p className="staff-ok">{message}</p> : null}

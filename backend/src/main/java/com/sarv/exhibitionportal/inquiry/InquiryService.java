@@ -301,8 +301,12 @@ public class InquiryService {
         );
     }
 
-    private static String referenceCode(UUID id) {
-        return "POC-" + id.toString().replace("-", "").substring(0, 8).toUpperCase();
+    private String referenceCode(UUID id) {
+        String prefix = properties.referencePrefix();
+        if (prefix == null || prefix.isBlank()) {
+            prefix = properties.poc() ? "POC-" : "EP-";
+        }
+        return prefix + id.toString().replace("-", "").substring(0, 8).toUpperCase();
     }
 
     private static String blankToNull(String value) {

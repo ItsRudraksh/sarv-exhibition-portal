@@ -27,6 +27,7 @@ management:
 
 exhibition:
   poc: true
+  reference-prefix: POC-
   default-campaign-id: 22222222-2222-4222-8222-222222222222
   cors-origins:
     - http://localhost:5173
@@ -44,7 +45,7 @@ exhibition:
     schedule-enabled: true
     max-attempts: 5
     backoff-seconds: 30
-    marketing-destination: poc-mailbox
-    vendor-destination: poc-vendor-stub
+    marketing-destination: local-mailbox
+    vendor-destination: local-vendor-stub
     force-failure-code: ""
   staff-bootstrap-password: ${EXHIBITION_STAFF_BOOTSTRAP_PASSWORD:}

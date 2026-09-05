@@ -50,6 +50,7 @@ export function useInquiryJourney() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [cardSuggestions, setCardSuggestions] = useState(false)
   const [campaignLabel, setCampaignLabel] = useState<string | null>(null)
+  const [pocMode, setPocMode] = useState(true)
   const draftRef = useRef(draft)
   const skipNextSave = useRef(true)
   const entryRef = useRef(entry)
@@ -100,6 +101,12 @@ export function useInquiryJourney() {
 
     const hydrate = async () => {
       try {
+        try {
+          const meta = await inquiryApi.getMeta()
+          if (!cancelled) setPocMode(meta.poc)
+        } catch {
+          if (!cancelled) setPocMode(true)
+        }
         await inquiryApi.loadTaxonomy()
         if (entry.campaignCode) {
           try {
@@ -395,6 +402,7 @@ export function useInquiryJourney() {
     submitError,
     cardSuggestions,
     campaignLabel,
+    pocMode,
     entry,
     updateDraft,
     goToStep,

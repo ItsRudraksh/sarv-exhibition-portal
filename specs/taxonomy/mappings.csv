@@ -1,0 +1,15 @@
+department_code,product_type_code,display_order
+specialty_apis,api_bulk,10
+oncology_apis,api_bulk,10
+advanced_intermediates,intermediates,10
+oncology_apis,intermediates,20
+phytochemicals,phyto_extracts,10
+herbal_extracts,phyto_extracts,10
+oncology_apis,oncology_finished,30
+herbal_extracts,herbal_ingredients,20
+phytochemicals,herbal_ingredients,20
+research_development,custom_synthesis,10
+advanced_intermediates,custom_synthesis,20
+specialty_apis,antibiotics,20
+oncology_apis,paclitaxel_docetaxel,40
+advanced_intermediates,paclitaxel_docetaxel,30

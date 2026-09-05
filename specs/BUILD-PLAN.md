@@ -1,7 +1,7 @@
 # Exhibition Portal — project build plan
 
-**Status:** Phases 1–7 **implemented** (POC through exhibition pilot entry). Cloud OCR, voice, and live CRM/vendor APIs are not started.  
-**Updated:** 4 September 2026  
+**Status:** Phases 1–8 complete; **business taxonomy v1** (Flyway V7) loaded. Live CRM/vendor/OCR and product catalogue remain open.  
+**Updated:** 5 September 2026  
 **Product SSOT:** [PLATFORM_CONTEXT.md](PLATFORM_CONTEXT.md)  
 **Data SSOT:** [DATABASE-DESIGN.md](DATABASE-DESIGN.md), [exhibition_portal_schema.sql](exhibition_portal_schema.sql)  
 **Applied schema:** `backend/src/main/resources/db/migration/` (Flyway V1–V6)  
@@ -70,7 +70,7 @@ Do **not** load `exhibition_portal_schema.sql` as production V1. The singleton D
 | Supplier product types | Persisted as `(inquiry_id, department_id, product_type_id)`. |
 | Consent uniqueness vs revocation | **Done in V3** — append-only `consent_records`; latest row wins |
 
-POC seed also: one exhibition, IP/USP/BP/EP standards, and a **temporary** taxonomy whose UUIDs match `frontend/src/features/inquiry/taxonomy.ts`. Replace with a business-owned list before a real stall.
+POC seed also: one exhibition, IP/USP/BP/EP standards, and a temporary taxonomy. **V7** archives that POC taxonomy and inserts business-owned rows from [taxonomy/](taxonomy/).
 
 ## 4. Phased delivery
 
@@ -178,12 +178,37 @@ QR campaign codes, poor-network behaviour, staff-assisted capture, shared-device
 
 **DoD met for POC:** Campaign attribution on create; WEBSITE/DIRECT without `qr_campaign_id`; visitor UI stores only a **sessionStorage draft id** (legacy full-draft `localStorage` cleared); offline banner + submit blocked without inventing a receipt; **Next visitor** clears the session; fonts self-hosted (`@fontsource/*`, no Google Fonts CDN). Real stall network/device certification remains an operational open decision.
 
+### Phase 8 — Production hardening (**done 5 Sep 2026**)
+
+Turn the POC into a production-deployable application **without inventing** CRM, vendor ERP, cloud OCR, or business taxonomy.
+
+| Change | Behaviour |
+|---|---|
+| Prod fail-closed | `prod` profile refuses empty/`poc-staff`/`change-me-staff` bootstrap password, `exhibition.poc=true`, or outbox force-failure |
+| Receipt codes | `exhibition.reference-prefix` — `POC-` in default profile, `EP-` in `prod` |
+| Public meta | `GET /api/v1/meta` → `{ poc, referencePrefix, stage }` for visitor UI |
+| Excel export | Purchase-lead export is **`.xlsx`** (Apache POI), not CSV |
+| Visitor copy | Prototype banners only when `meta.poc` is true |
+| Outbox | Local file destinations renamed `local-mailbox` / `local-vendor-stub` until live APIs are chosen |
+
+**Still blocked (do not invent):** live CRM/vendor APIs, cloud OCR/voice provider, product catalogue, public HTTPS for in-page camera, SSO.
+
+### Business taxonomy v1 (**done 5 Sep 2026**)
+
+| Change | Behaviour |
+|---|---|
+| Content pack | [specs/taxonomy/](taxonomy/) CSVs + README (owner + change process) |
+| Flyway V7 | Archives POC `1000…`/`2000…` rows (`poc_` codes, `is_active=0`); inserts active `a100…`/`a200…` rows |
+| Frontend fallback | `taxonomy.ts` IDs match V7 |
+| Standards | IP, USP, BP, EP unchanged (V2) |
+| Deferred | `products` catalogue; admin CRUD UI |
+
 ## 5. Frontend work in the same programme
 
 Keep Alpine Blue and the 11-screen journey. Phase 2 POC wiring is in place:
 
-- `inquiryApi` maps `InquiryDraft` (including department-scoped product types). Taxonomy loads from GET `/api/v1/taxonomy` when the API is up; mock IDs in `taxonomy.ts` must match Flyway V2.
-- Submit persists on the server; confirmation shows `reference_code` (`POC-` prefix in this POC). Offline fallback still does not invent a tracking number.
+- `inquiryApi` maps `InquiryDraft` (including department-scoped product types). Taxonomy loads from GET `/api/v1/taxonomy` when the API is up; offline IDs in `taxonomy.ts` must match Flyway **V7** ([taxonomy/](taxonomy/)).
+- Submit persists on the server; confirmation shows `reference_code` (`POC-` locally / `EP-` on prod). Offline fallback still does not invent a tracking number.
 - Card upload loads `/extractions/latest` and prefills empty contact fields from PENDING proposals. Shared-device mode uses a session pointer only; fonts are self-hosted. Camera permission copy runs **before** `getUserMedia`.
 
 Admin UI is a separate `/staff` route (not inside `InquiryApp`).
@@ -194,15 +219,19 @@ See [TESTING.md](TESTING.md). Every phase: automated tests for new server rules;
 
 ## 7. Explicitly out of scope until decided
 
-Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, location legal copy, definitive department list, Stitch public/private, or response SLAs.
+Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, location legal copy, Stitch public/private, response SLAs, or a new department list outside [taxonomy/](taxonomy/).
 
 ## 8. Next implementation ticket
 
-**Done:** Phases 1–7 — exhibition pilot entry, shared-device isolation, website/direct channels.
+**Done:** Phases 1–8 + business taxonomy v1 (content pack, V7 archive/insert, `TaxonomyApiTest`).
 
-**Next:** Nothing further in the numbered phases until open decisions land. Blocked on: business-owned taxonomy, public HTTPS for in-page camera, live CRM/vendor APIs, cloud OCR/voice provider (PLATFORM_CONTEXT §12). Do not invent those.
+**Next (needs decisions):** HTTPS for public camera; live CRM/vendor destinations; cloud OCR/voice; product catalogue (PLATFORM_CONTEXT §12).
 
 ---
+
+**Chat-independent reference — Business taxonomy v1 (2026-09-05):** `specs/taxonomy/` CSVs; Flyway `V7__business_taxonomy.sql`; frontend `taxonomy.ts` synced; tests `TaxonomyApiTest` + supplier UUID updates.
+
+**Chat-independent reference — Phase 8 (2026-09-05):** ProductionStartupGuard; `GET /api/v1/meta`; reference prefix `EP-` in prod; purchase-lead **xlsx** export; visitor UI hides prototype banners when `poc=false`. Tests: `ProductionStartupGuardTest`, `MetaApiTest`; export assertions updated in `StaffReviewApiTest`.
 
 **Chat-independent reference — Phase 7 (2026-09-04):** Campaign GET + create with `entryChannel`/`campaignCode`/`staffAssisted`. Frontend `entryContext` + session pointer (no PII localStorage). Self-hosted fonts. Tests: `CampaignEntryApiTest`, Spa `/web`.
 

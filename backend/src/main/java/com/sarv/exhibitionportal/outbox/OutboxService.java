@@ -103,6 +103,11 @@ public class OutboxService {
         try {
             String forced = cfg.forceFailureCode();
             if (forced != null && !forced.isBlank()) {
+                if (!properties.poc()) {
+                    throw new DeliveryFailedException(
+                            "FORCE_DISABLED",
+                            "Forced outbox failure is not allowed outside development.");
+                }
                 throw new DeliveryFailedException(forced, "Forced stub failure");
             }
             String reference = outbox.referenceCode(row.inquiryId()).orElse("unknown");

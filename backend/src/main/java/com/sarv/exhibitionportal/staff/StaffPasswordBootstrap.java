@@ -1,18 +1,20 @@
 package com.sarv.exhibitionportal.staff;
 
-import com.sarv.exhibitionportal.config.JdbcUuids;
 import com.sarv.exhibitionportal.config.ExhibitionProperties;
+import com.sarv.exhibitionportal.config.JdbcUuids;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(100)
 public class StaffPasswordBootstrap implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(StaffPasswordBootstrap.class);
@@ -40,13 +42,11 @@ public class StaffPasswordBootstrap implements ApplicationRunner {
         String password = properties.staffBootstrapPassword();
         if (password == null || password.isBlank()) {
             if (prod) {
-                log.warn("prod is active but EXHIBITION_STAFF_BOOTSTRAP_PASSWORD is empty. "
-                        + "Seeded POC staff password still works. Set a unique password before exposing this host.");
+                // ProductionStartupGuard should have failed already; keep as belt-and-braces.
+                throw new IllegalStateException(
+                        "EXHIBITION_STAFF_BOOTSTRAP_PASSWORD is required in prod.");
             }
             return;
-        }
-        if ("poc-staff".equals(password)) {
-            log.warn("staff bootstrap password is still the POC default. Use a unique value on a public host.");
         }
         String hash = encoder.encode(password);
         int updated = jdbc.sql("""

@@ -21,6 +21,12 @@ export interface CampaignInfo {
   active: boolean
 }
 
+export interface AppMeta {
+  poc: boolean
+  referencePrefix: string
+  stage: string
+}
+
 export interface StoredFileAsset {
   id: string
   inquiryId: string
@@ -194,6 +200,10 @@ export const inquiryApi = {
 
   async getCampaign(code: string): Promise<CampaignInfo> {
     return request<CampaignInfo>(`/campaigns/${encodeURIComponent(code)}`)
+  },
+
+  async getMeta(): Promise<AppMeta> {
+    return request<AppMeta>('/meta')
   },
 
   async get(id: string): Promise<InquiryDraft | null> {
