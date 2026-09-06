@@ -1,11 +1,21 @@
 /**
- * Local visiting-card OCR (Tesseract.js) + contact-field heuristics.
- * Complements server ZXing QR decode — no cloud AI vendor.
+ * Local visiting-card assist: client QR (jsQR) + printed OCR (Tesseract.js).
+ * Worker/core/lang are loaded from local Vite assets — not a cloud AI vendor.
  */
 
-export interface CardOcrProposal {
-  fieldKey: string
-  proposedValueText: string
+import jsQR from 'jsqr'
+import { createWorker, PSM, type Worker } from 'tesseract.js'
+import workerPath from 'tesseract.js/dist/worker.min.js?url'
+import corePath from 'tesseract.js-core/tesseract-core-simd-lstm.wasm.js?url'
+import { parseContactPayload, type CardOcrProposal } from './cardContactPayload'
+
+export type { CardOcrProposal }
+
+export interface CardExtractResult {
+  proposals: CardOcrProposal[]
+  source: 'qr' | 'ocr' | 'none'
+  /** Short status for UI when nothing usable was found. */
+  detail?: string
 }
 
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i
@@ -14,6 +24,9 @@ const TITLE_RE =
   /\b(manager|director|officer|engineer|executive|head|lead|ceo|cto|cfo|md|vp|president|scientist|analyst)\b/i
 
 export const CLIENT_OCR_PROVIDER = 'tesseract-js-v1'
+
+let sharedWorker: Worker | null = null
+let workerPromise: Promise<Worker> | null = null
 
 export function parseCardOcrText(rawText: string): CardOcrProposal[] {
   const fields: CardOcrProposal[] = []
@@ -90,6 +103,119 @@ export function proposalsFromExtractionFields(
     }))
 }
 
+export function extractionHasContactHints(proposals: CardOcrProposal[]): boolean {
+  return proposals.some((f) =>
+    ['full_name', 'work_email', 'mobile_number'].includes(f.fieldKey),
+  )
+}
+
+/**
+ * Extract contact proposals from a card image: try QR first, then local OCR.
+ */
+export async function extractCardContact(image: Blob): Promise<CardExtractResult> {
+  const frame = await blobToImageData(image)
+  const qr = jsQR(frame.data, frame.width, frame.height, { inversionAttempts: 'attemptBoth' })
+  if (qr?.data?.trim()) {
+    const fromQr = parseContactPayload(qr.data)
+    if (extractionHasContactHints(fromQr) || fromQr.length > 0) {
+      return { proposals: fromQr, source: 'qr' }
+    }
+  }
+
+  try {
+    const ocrBlob = await preprocessForOcr(image)
+    const worker = await getWorker()
+    await worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK })
+    const {
+      data: { text },
+    } = await worker.recognize(ocrBlob)
+    const proposals = parseCardOcrText(text ?? '')
+    if (extractionHasContactHints(proposals) || proposals.length > 0) {
+      return { proposals, source: 'ocr' }
+    }
+    return {
+      proposals: [],
+      source: 'none',
+      detail: text?.trim()
+        ? 'Text was found but contact fields could not be parsed. Enter them manually.'
+        : 'No readable text found on this photo. Try a clearer, well-lit shot.',
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'OCR failed'
+    return {
+      proposals: [],
+      source: 'none',
+      detail: `Could not read the card (${message}). Enter details manually.`,
+    }
+  }
+}
+
+/** @deprecated Prefer extractCardContact */
+export async function recognizeCardImage(image: Blob): Promise<CardOcrProposal[]> {
+  const result = await extractCardContact(image)
+  return result.proposals
+}
+
+async function getWorker(): Promise<Worker> {
+  if (sharedWorker) return sharedWorker
+  if (!workerPromise) {
+    workerPromise = createWorker('eng', 1, {
+      workerPath,
+      corePath,
+      // Served from frontend/public/tessdata/eng.traineddata
+      langPath: `${import.meta.env.BASE_URL}tessdata`,
+      gzip: false,
+    }).then((w) => {
+      sharedWorker = w
+      return w
+    })
+  }
+  return workerPromise
+}
+
+async function blobToImageData(blob: Blob): Promise<ImageData> {
+  const bitmap = await createImageBitmap(blob)
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = bitmap.width
+    canvas.height = bitmap.height
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    if (!ctx) throw new Error('Canvas unavailable')
+    ctx.drawImage(bitmap, 0, 0)
+    return ctx.getImageData(0, 0, canvas.width, canvas.height)
+  } finally {
+    bitmap.close()
+  }
+}
+
+/** Upscale small shots and boost contrast for OCR. */
+async function preprocessForOcr(source: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(source)
+  try {
+    const minEdge = 900
+    const scale = Math.max(1, minEdge / Math.min(bitmap.width, bitmap.height))
+    const width = Math.round(bitmap.width * scale)
+    const height = Math.round(bitmap.height * scale)
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d', { alpha: false })
+    if (!ctx) throw new Error('Canvas unavailable')
+    ctx.filter = 'grayscale(1) contrast(1.25) brightness(1.05)'
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    ctx.filter = 'none'
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error('OCR preprocess failed'))),
+        'image/jpeg',
+        0.92,
+      )
+    })
+  } finally {
+    bitmap.close()
+  }
+}
+
 function looksLikePersonName(line: string): boolean {
   if (!/^[A-Za-z][A-Za-z .'-]{1,60}$/.test(line)) return false
   const parts = line.split(/\s+/)
@@ -151,32 +277,4 @@ function add(fields: CardOcrProposal[], key: string, value: string | null | unde
   if (!value?.trim()) return
   if (fields.some((f) => f.fieldKey === key)) return
   fields.push({ fieldKey: key, proposedValueText: value.trim().slice(0, 500) })
-}
-
-export function extractionHasContactHints(proposals: CardOcrProposal[]): boolean {
-  return proposals.some((f) =>
-    ['full_name', 'work_email', 'mobile_number'].includes(f.fieldKey),
-  )
-}
-
-/** Runs local OCR on a card image blob. Soft-fails to [] if the worker cannot start. */
-export async function recognizeCardImage(image: Blob): Promise<CardOcrProposal[]> {
-  try {
-    const { createWorker, PSM } = await import('tesseract.js')
-    const worker = await createWorker('eng')
-    try {
-      // PSM.SINGLE_BLOCK = assume a single uniform block of text (typical for a card face).
-      await worker.setParameters({
-        tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
-      })
-      const {
-        data: { text },
-      } = await worker.recognize(image)
-      return parseCardOcrText(text ?? '')
-    } finally {
-      await worker.terminate()
-    }
-  } catch {
-    return []
-  }
 }

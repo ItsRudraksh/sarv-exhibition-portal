@@ -20,7 +20,8 @@ export interface CardCaptureScreenProps {
 }
 
 export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
-  const { draft, updateDraft, goToStep, uploadCard, declineCardConsent, cardScanStatus } = journey
+  const { draft, updateDraft, goToStep, uploadCard, declineCardConsent, cardScanStatus, cardScanDetail } =
+    journey
   const fileRef = useRef<HTMLInputElement>(null)
   const pendingSideRef = useRef<CardSide>('front')
   const processingRef = useRef(false)
@@ -161,7 +162,7 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
         ) : null}
         {cardScanStatus === 'empty' ? (
           <Notice>
-            <p>{copy.cardCapture.scanEmpty}</p>
+            <p>{cardScanDetail ?? copy.cardCapture.scanEmpty}</p>
           </Notice>
         ) : null}
 

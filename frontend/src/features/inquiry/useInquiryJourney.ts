@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, applyContactProposals, applyExtractionProposals, inquiryApi } from './api'
 import {
   CLIENT_OCR_PROVIDER,
+  extractCardContact,
   extractionHasContactHints,
   mergeCardProposals,
   proposalsFromExtractionFields,
-  recognizeCardImage,
 } from './cardOcr'
 import {
   clearLegacyLocalDraft,
@@ -59,6 +59,7 @@ export function useInquiryJourney() {
   const [cardScanStatus, setCardScanStatus] = useState<'idle' | 'scanning' | 'done' | 'empty'>(
     'idle',
   )
+  const [cardScanDetail, setCardScanDetail] = useState<string | null>(null)
   const [campaignLabel, setCampaignLabel] = useState<string | null>(null)
   const [pocMode, setPocMode] = useState(true)
   const draftRef = useRef(draft)
@@ -287,20 +288,22 @@ export function useInquiryJourney() {
     async (side: CardSide, blob: Blob, filename: string, localMeta: CardFileMeta) => {
       setSubmitError(null)
       setCardScanStatus('scanning')
+      setCardScanDetail(null)
       const field = side === 'front' ? 'cardFront' : 'cardBack'
 
-      // OCR the same JPEG we show/upload — do this first so the form can fill even offline.
-      const ocrFields = await recognizeCardImage(blob)
+      // Client QR + OCR on the same JPEG we upload (works even if Tesseract CDN would fail).
+      const extract = await extractCardContact(blob)
+      const ocrFields = extract.proposals
 
       if (!apiAvailable) {
-        const proposals = ocrFields
         const filled = applyContactProposals(
           { ...draftRef.current, [field]: localMeta },
-          proposals,
+          ocrFields,
         )
-        const suggested = extractionHasContactHints(proposals)
+        const suggested = extractionHasContactHints(ocrFields)
         setCardSuggestions(suggested)
         setCardScanStatus(suggested ? 'done' : 'empty')
+        setCardScanDetail(suggested ? null : (extract.detail ?? null))
         setSubmitError('Photo kept on this device only until the connection returns.')
         setDraft(
           suggested && side === 'front'
@@ -327,18 +330,16 @@ export function useInquiryJourney() {
 
       const serverExtraction = await inquiryApi.latestExtraction(draftRef.current.id).catch(() => null)
       const qrProposals = proposalsFromExtractionFields(serverExtraction?.fields)
-      const merged = mergeCardProposals(qrProposals, ocrFields)
+      // Prefer client extract (immediate QR/OCR) then fill gaps from server ZXing.
+      const merged = mergeCardProposals(ocrFields, qrProposals)
 
-      // Persist OCR-only gaps for audit when QR did not already cover contact fields.
-      const qrKeys = new Set(qrProposals.map((p) => p.fieldKey))
-      const ocrOnly = ocrFields.filter((p) => !qrKeys.has(p.fieldKey))
-      if (ocrOnly.length > 0 && asset.id) {
+      if (ocrFields.length > 0 && asset.id) {
         await inquiryApi
           .submitClientCardOcr(
             draftRef.current.id,
             asset.id,
-            ocrOnly,
-            CLIENT_OCR_PROVIDER,
+            ocrFields,
+            extract.source === 'qr' ? 'jsqr-v1' : CLIENT_OCR_PROVIDER,
           )
           .catch(() => null)
       }
@@ -348,10 +349,10 @@ export function useInquiryJourney() {
       const suggested = extractionHasContactHints(merged)
       setCardSuggestions(suggested)
       setCardScanStatus(suggested ? 'done' : 'empty')
+      setCardScanDetail(suggested ? null : (extract.detail ?? null))
       if (suggested && side === 'front') {
         next = { ...next, currentStep: 'contact-confirm' }
       }
-      // Allow autosave so filled contact reaches the server draft.
       skipNextSave.current = false
       setDraft(next)
     },
@@ -414,6 +415,7 @@ export function useInquiryJourney() {
     setSubmitError(null)
     setCardSuggestions(false)
     setCardScanStatus('idle')
+    setCardScanDetail(null)
     const entry = entryRef.current
     if (apiAvailable || navigator.onLine) {
       void inquiryApi
@@ -451,6 +453,7 @@ export function useInquiryJourney() {
     submitError,
     cardSuggestions,
     cardScanStatus,
+    cardScanDetail,
     campaignLabel,
     pocMode,
     entry,

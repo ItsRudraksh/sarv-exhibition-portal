@@ -165,7 +165,7 @@ Optional, consented, reviewable field proposals (`ai_extracted_fields`). Manual 
 
 **DoD met for POC:** Flyway V6 AI tables. After a clean card upload with granted extraction consent, ZXing decodes a card QR locally (`zxing-qr-v1`). When QR yields no contact fields, the visitor app runs **local Tesseract.js OCR** (`tesseract-js-v1`) and POSTs proposals as `CLIENT_CARD_OCR`. Raw QR is stored only in `inquiry_ui_state.card_qr_payload_internal` and is **redacted** from visitor inquiry JSON. Proposals prefill **empty** fields only. Contact confirm marks ACCEPTED/CORRECTED/REJECTED. Cloud OCR and voice are **not** live (open decision on cloud AI provider).
 
-**Chat-independent reference — Card OCR autofill (2026-09-06):** Camera/upload prepares one JPEG for preview+upload+OCR. ZXing (server) + Tesseract.js (browser) merge into contact fields; autosave persists; front-side success advances to contact-confirm.
+**Chat-independent reference — Card OCR autofill (2026-09-06):** Camera/upload prepares one JPEG for preview+upload+OCR. Client **jsQR** + bundled **Tesseract.js** (`public/tessdata/eng.traineddata`, Vite `?url` worker/core) fill contact fields; server ZXing merges gaps; front-side success advances to contact-confirm. Failure shows a concrete notice instead of failing silently.
 ### Phase 7 — Exhibition pilot (**POC done**)
 
 QR campaign codes, poor-network behaviour, staff-assisted capture, shared-device draft isolation (do not leave PII in `localStorage` on stall tablets). Same portal for website entry (`WEBSITE` / `DIRECT`).
