@@ -103,11 +103,12 @@ function sourceName(source: Blob, fallback: string): string {
 
 /**
  * Downscale during decode so full-resolution phone photos never sit in memory.
+ * Returns preview meta plus the JPEG blob used for upload and OCR (same pixels).
  */
-export async function prepareImageForPreview(
+export async function prepareCardImage(
   source: Blob,
   fallbackName = 'card-photo',
-): Promise<CardFileMeta> {
+): Promise<{ meta: CardFileMeta; blob: Blob }> {
   const bitmap = await loadBitmap(source)
 
   const canvas = document.createElement('canvas')
@@ -134,16 +135,28 @@ export async function prepareImageForPreview(
     })
 
     return {
-      name: `${sourceName(source, fallbackName)}.jpg`,
-      size: blob.size,
-      type: 'image/jpeg',
-      previewUrl: URL.createObjectURL(blob),
+      blob,
+      meta: {
+        name: `${sourceName(source, fallbackName)}.jpg`,
+        size: blob.size,
+        type: 'image/jpeg',
+        previewUrl: URL.createObjectURL(blob),
+      },
     }
   } finally {
     bitmap.close()
     canvas.width = 0
     canvas.height = 0
   }
+}
+
+/** @deprecated Prefer prepareCardImage — kept for any callers that only need preview meta. */
+export async function prepareImageForPreview(
+  source: Blob,
+  fallbackName = 'card-photo',
+): Promise<CardFileMeta> {
+  const { meta } = await prepareCardImage(source, fallbackName)
+  return meta
 }
 
 export async function captureFrameFromVideo(

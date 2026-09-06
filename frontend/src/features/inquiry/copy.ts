@@ -10,7 +10,7 @@ export const copy = {
   cardCapture: {
     title: 'Start with your business card',
     subtitle:
-      'Capture both sides if you have a card, or continue without one. If a QR on the card encodes contact details, we suggest them for you to check next — nothing is submitted until you confirm.',
+      'Capture both sides if you have a card, or continue without one. We read printed text and any contact QR on the card, then suggest fields for you to check — nothing is submitted until you confirm.',
     frontLabel: 'Front side',
     backLabel: 'Back side',
     useCamera: 'Use camera',
@@ -26,11 +26,15 @@ export const copy = {
     insecureContextNote:
       'This page is not HTTPS, so the in-page camera is unavailable. Upload a photo, use the phone file picker, or continue without a card.',
     processing: 'Preparing photo…',
+    scanning: 'Reading contact details from your card…',
+    scanFound: 'Contact details filled — please check and edit if needed.',
+    scanEmpty:
+      'Could not read contact details from this photo. Enter them on the next screen.',
     processingFailed:
       'Could not load that photo — it may be too large for this browser. Try again or use a smaller image.',
     consentTitle: 'Store card images with this inquiry',
     consentBody:
-      'Images are kept privately with this draft so the stall team can follow up. They are not published. With your agreement we may suggest contact fields from a card QR for you to review. You can continue without a card.',
+      'Images are kept privately with this draft so the stall team can follow up. They are not published. With your agreement we may suggest contact fields from the card (printed text and QR) for you to review. You can continue without a card.',
     consentGrant: 'I agree to store card images with this inquiry',
     consentRequired: 'Agree to store the card, or continue without a card.',
     cameraPermissionTitle: 'Camera access',

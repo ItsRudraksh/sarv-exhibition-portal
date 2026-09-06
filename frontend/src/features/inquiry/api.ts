@@ -71,17 +71,46 @@ export function applyExtractionProposals(
   if (pending.length === 0) {
     return draft
   }
-  const byKey = new Map(pending.map((f) => [f.fieldKey, f.proposedValueText!.trim()]))
+  return applyContactProposals(
+    draft,
+    pending.map((f) => ({
+      fieldKey: f.fieldKey,
+      proposedValueText: f.proposedValueText!.trim(),
+    })),
+  )
+}
+
+/** Prefill empty contact/supplier fields from card OCR/QR proposals. */
+export function applyContactProposals(
+  draft: InquiryDraft,
+  proposals: { fieldKey: string; proposedValueText: string }[],
+): InquiryDraft {
+  if (!proposals.length || draft.contactConfirmed) {
+    return draft
+  }
+  const byKey = new Map(
+    proposals
+      .filter((f) => f.proposedValueText.trim())
+      .map((f) => [f.fieldKey, f.proposedValueText.trim()]),
+  )
+  if (byKey.size === 0) return draft
   const fill = (current: string, key: string) => {
     if (current.trim()) return current
     return byKey.get(key) ?? current
+  }
+  // Default country code is pre-seeded as +91 — still allow OCR to replace when mobile was also read.
+  const fillCountry = (current: string) => {
+    const proposed = byKey.get('country_code')
+    if (!proposed) return current
+    if (!current.trim() || (current === '+91' && byKey.has('mobile_number'))) return proposed
+    return current
   }
   return {
     ...draft,
     contact: {
       fullName: fill(draft.contact.fullName, 'full_name'),
       workEmail: fill(draft.contact.workEmail, 'work_email'),
-      countryCode: fill(draft.contact.countryCode, 'country_code'),
+      countryCode: fillCountry(draft.contact.countryCode),
       mobileNumber: fill(draft.contact.mobileNumber, 'mobile_number'),
     },
     supplier: {
@@ -293,6 +322,23 @@ export const inquiryApi = {
       throw new ApiError('Could not load card suggestions')
     }
     return body as ExtractionResult
+  },
+
+  async submitClientCardOcr(
+    inquiryId: string,
+    assetId: string,
+    fields: { fieldKey: string; proposedValueText: string }[],
+    providerModelReference: string,
+  ): Promise<ExtractionResult> {
+    return request<ExtractionResult>(`/inquiries/${inquiryId}/extractions`, {
+      method: 'POST',
+      body: JSON.stringify({
+        feature: 'CLIENT_CARD_OCR',
+        assetId,
+        providerModelReference,
+        fields,
+      }),
+    })
   },
 }
 

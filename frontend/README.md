@@ -48,7 +48,7 @@ A **mobile-first React + Vite + TypeScript** app of the 11-screen visitor journe
 4–8. Supplier path (departments → product types → smart details → review → confirmation)
 9–11. Buyer path (need capture → review → confirmation)
 
-Local **card-QR assist** is live when the API is up: ZXing may propose contact fields from a vCard/MECARD QR for the visitor to review. Cloud OCR, voice, geolocation, and CRM/vendor integrations are **not** implemented. Card/catalogue uploads are live when the API is up. Confirmation shows a server `POC-` reference when the API accepts submit.
+Local **card assist** fills the contact form after camera/upload: server ZXing for card QR, browser **Tesseract.js** OCR for printed text, merged into empty contact fields, then auto-advance to the contact screen when details are found. Suggestions never overwrite typed values. Cloud OCR, voice, geolocation, and CRM/vendor integrations are **not** implemented.
 
 **Pilot entry:** `/?c=POC-STALL-1` (exhibition campaign), `/web` or `?channel=website`, `?channel=direct`, `?assist=1` (staff-assisted). Shared devices show **Next visitor**. Fonts are self-hosted (no Google Fonts CDN).
 

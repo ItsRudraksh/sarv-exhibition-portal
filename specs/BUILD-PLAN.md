@@ -154,17 +154,18 @@ Stub payloads are JSON under `exhibition.storage-root/outbox/…` (reference cod
 
 **DoD met:** Duplicate submit does not double-deliver. Vendor upsert is enqueued only after Add to production. Failed delivery leaves `lifecycle_state=SUBMITTED`.
 
-### Phase 6 — Assistive OCR / QR / voice (**POC done for QR**)
+### Phase 6 — Assistive OCR / QR / voice (**local QR + printed OCR**)
 
 Optional, consented, reviewable field proposals (`ai_extracted_fields`). Manual fallback remains. AI must not approve vendors or overwrite confirmed contact fields.
 
 | Method | Path | Purpose |
 |---|---|---|
-| `POST` | `/api/v1/inquiries/{id}/extractions` | Start assist (`feature=BUSINESS_CARD_SCAN`, `assetId`). Voice returns validation error in this POC. |
+| `POST` | `/api/v1/inquiries/{id}/extractions` | `BUSINESS_CARD_SCAN` (server re-scan) or `CLIENT_CARD_OCR` (browser Tesseract proposals). Voice returns validation error. |
 | `GET` | `/api/v1/inquiries/{id}/extractions/latest` | Latest extraction + field proposals (`cardQrDetected` flag; **no raw QR payload**) |
 
-**DoD met for POC:** Flyway V6 AI tables. After a clean card upload with granted extraction consent, ZXing decodes a card QR locally (`poc-zxing-qr-v1`). Raw payload is stored only in `inquiry_ui_state.card_qr_payload_internal` and is **redacted** from visitor inquiry JSON. vCard/MECARD/mailto/tel payloads become PENDING contact/company proposals; the visitor UI prefills **empty** fields only. Contact confirm marks proposals ACCEPTED/CORRECTED/REJECTED (visitor review; `reviewed_by_user_id` stays null). Cloud OCR and voice are **not** live (open decision on AI provider).
+**DoD met for POC:** Flyway V6 AI tables. After a clean card upload with granted extraction consent, ZXing decodes a card QR locally (`zxing-qr-v1`). When QR yields no contact fields, the visitor app runs **local Tesseract.js OCR** (`tesseract-js-v1`) and POSTs proposals as `CLIENT_CARD_OCR`. Raw QR is stored only in `inquiry_ui_state.card_qr_payload_internal` and is **redacted** from visitor inquiry JSON. Proposals prefill **empty** fields only. Contact confirm marks ACCEPTED/CORRECTED/REJECTED. Cloud OCR and voice are **not** live (open decision on cloud AI provider).
 
+**Chat-independent reference — Card OCR autofill (2026-09-06):** Camera/upload prepares one JPEG for preview+upload+OCR. ZXing (server) + Tesseract.js (browser) merge into contact fields; autosave persists; front-side success advances to contact-confirm.
 ### Phase 7 — Exhibition pilot (**POC done**)
 
 QR campaign codes, poor-network behaviour, staff-assisted capture, shared-device draft isolation (do not leave PII in `localStorage` on stall tablets). Same portal for website entry (`WEBSITE` / `DIRECT`).
@@ -225,11 +226,11 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 
 **Done:** Phases 1–8 + business taxonomy v1 (content pack, V7 archive/insert, `TaxonomyApiTest`).
 
-**Next (needs decisions):** HTTPS for public camera; live CRM/vendor destinations; cloud OCR/voice; product catalogue (PLATFORM_CONTEXT §12).
+**Next (needs decisions / build):** buyer FG periodic sync from pharma-erp; HTTPS for public camera; live CRM/vendor destinations; cloud OCR/voice (PLATFORM_CONTEXT §12).
 
 ---
 
-**Chat-independent reference — Business taxonomy v1 (2026-09-05):** `specs/taxonomy/` CSVs; Flyway `V7__business_taxonomy.sql`; frontend `taxonomy.ts` synced; tests `TaxonomyApiTest` + supplier UUID updates.
+**Chat-independent reference — Buyer FG source (2026-09-06):** Buyer picks a **flat multi-select list** of Sarv finished goods from pharma-erp (`OUTPUT_PRODUCTS` / product catalog). Sync = **weekly DB sync** (pharma-erp MySQL → exhibition portal upsert); **manual first**, **cron** later. Not CSV/file. Seller path stays departments/product types. Sync job and target tables not implemented yet.
 
 **Chat-independent reference — Phase 8 (2026-09-05):** ProductionStartupGuard; `GET /api/v1/meta`; reference prefix `EP-` in prod; purchase-lead **xlsx** export; visitor UI hides prototype banners when `poc=false`. Tests: `ProductionStartupGuardTest`, `MetaApiTest`; export assertions updated in `StaffReviewApiTest`.
 

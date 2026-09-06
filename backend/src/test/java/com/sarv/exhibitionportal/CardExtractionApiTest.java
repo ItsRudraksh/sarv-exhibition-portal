@@ -11,6 +11,7 @@ import com.sarv.exhibitionportal.api.dto.FileAssetDto;
 import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.audit.AuditService;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.imageio.ImageIO;
@@ -142,6 +143,36 @@ class CardExtractionApiTest extends MysqlSpringBootTest {
                 .allMatch(f -> !"PENDING".equals(f.reviewState()));
         assertThat(latest.fields())
                 .anyMatch(f -> "full_name".equals(f.fieldKey()) && "CORRECTED".equals(f.reviewState()));
+    }
+
+    @Test
+    void clientOcrProposalsAreStoredAsPendingFields() throws Exception {
+        InquiryDraftDto created = rest.postForObject("/api/v1/inquiries", null, InquiryDraftDto.class);
+        assertThat(created).isNotNull();
+        // Minimal PNG without QR — server QR pass yields empty; client OCR fills gaps.
+        byte[] png = qrPng("https://example.invalid/not-a-vcard");
+        FileAssetDto asset = upload(created.id(), png);
+
+        ResponseEntity<ExtractionDto> ocr = rest.postForEntity(
+                "/api/v1/inquiries/" + created.id() + "/extractions",
+                Map.of(
+                        "feature", "CLIENT_CARD_OCR",
+                        "assetId", asset.id().toString(),
+                        "providerModelReference", "tesseract-js-v1",
+                        "fields", List.of(
+                                Map.of("fieldKey", "full_name", "proposedValueText", "Asha Rao"),
+                                Map.of("fieldKey", "work_email", "proposedValueText", "asha@example.com")
+                        )
+                ),
+                ExtractionDto.class);
+        assertThat(ocr.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(ocr.getBody()).isNotNull();
+        assertThat(ocr.getBody().fields())
+                .extracting(ExtractionDto.ExtractedFieldDto::fieldKey)
+                .contains("full_name", "work_email");
+        assertThat(ocr.getBody().fields())
+                .allMatch(f -> "PENDING".equals(f.reviewState()));
+        assertThat(ocr.getBody().providerModelReference()).isEqualTo("tesseract-js-v1");
     }
 
     private FileAssetDto upload(UUID inquiryId, byte[] png) {

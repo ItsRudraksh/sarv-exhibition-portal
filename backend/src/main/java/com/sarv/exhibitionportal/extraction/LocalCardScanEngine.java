@@ -57,8 +57,20 @@ public class LocalCardScanEngine {
         if (image == null) {
             return null;
         }
+        String text = tryDecode(image);
+        if (text != null) {
+            return text;
+        }
+        return tryDecode(invert(image));
+    }
+
+    private static String tryDecode(BufferedImage image) {
         Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
         hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        hints.put(DecodeHintType.POSSIBLE_FORMATS, List.of(
+                com.google.zxing.BarcodeFormat.QR_CODE,
+                com.google.zxing.BarcodeFormat.DATA_MATRIX,
+                com.google.zxing.BarcodeFormat.AZTEC));
         BinaryBitmap bitmap = new BinaryBitmap(
                 new HybridBinarizer(new BufferedImageLuminanceSource(image)));
         try {
@@ -67,6 +79,21 @@ public class LocalCardScanEngine {
         } catch (NotFoundException ex) {
             return null;
         }
+    }
+
+    private static BufferedImage invert(BufferedImage source) {
+        BufferedImage copy = new BufferedImage(
+                source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                int rgb = source.getRGB(x, y);
+                int r = 255 - ((rgb >> 16) & 0xff);
+                int g = 255 - ((rgb >> 8) & 0xff);
+                int b = 255 - (rgb & 0xff);
+                copy.setRGB(x, y, (r << 16) | (g << 8) | b);
+            }
+        }
+        return copy;
     }
 
     static List<CardScanResult.ProposedField> parseContactProposals(String payload) {

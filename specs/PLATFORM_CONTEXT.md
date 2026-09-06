@@ -4,7 +4,7 @@
 >
 > **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** **Business taxonomy v1 loaded** (Flyway V7 + [taxonomy/](taxonomy/)). Phase 8 production hardening done. Live CRM/vendor, cloud OCR/voice, product catalogue, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`). Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
+> **Current stage:** Visiting-card assist: **QR (ZXing) + local printed OCR (Tesseract.js)**. Business taxonomy v1 loaded. Buyer FG: weekly DB sync (manual→cron), flat list — job not built yet. Live CRM/vendor, cloud OCR/voice, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`). Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -353,7 +353,7 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 
 ### Not implemented or not finalised
 
-- No cloud object-storage provider, cloud OCR/AI provider, live CRM product, or live enterprise-vendor API. Card QR is decoded locally (ZXing); outbox stubs write local JSON only.
+- No cloud object-storage provider, cloud OCR/AI provider, live CRM product, or live enterprise-vendor API. Card assist is local: ZXing QR on the server + Tesseract.js printed-text OCR in the browser; outbox stubs write local JSON only.
 - Internal/admin screens exist as a POC at `/staff` (Alpine Blue After Dark). Not a designed Stitch admin suite. Required later: richer supplier record, Excel workbook export, SSO.
 - Final design approval of the revised buyer confirmation should be confirmed/documented.
 - Desktop counterparts need scan-first alignment only where the old screens actually conflict.
@@ -380,7 +380,7 @@ The HLD explicitly requires cross-functional decisions on:
 
 1. Enterprise vendor API/interface, identity-match rules, approval owner, create vs update behavior.
 2. Marketing destination (CRM or mailbox), required lead fields, routing owner, dispatch frequency, and follow-up SLA.
-3. **Departments / product types / mappings / standards (IP, USP, BP, EP):** resolved for v1 in [taxonomy/](taxonomy/); owner and change process documented there. **Still open:** Sarv product catalogue (`products` / `product_standards`) and a named stall-day maintainer assignment.
+3. **Supplier taxonomy (departments / product types / mappings / IP–EP):** resolved for v1 in [taxonomy/](taxonomy/). **Buyer catalogue:** source = pharma-erp **finished goods** (`OUTPUT_PRODUCTS` / product catalog); presentation = **flat list** (multi-select OK); sync = **weekly DB sync** (read pharma-erp MySQL → upsert into exhibition portal), **manual first**, then **cron**. **Still open:** which exhibition tables hold the snapshot, connection/credentials on the Windows host, and named stall-day maintainer.
 4. Exact supplier and buyer validation policy. The current UX direction is clear, but policy needs formal confirmation.
 5. Lawful purpose, consent copy, allowed evidence sources, precision, fallback, retention/deletion process for location evidence.
 6. AI provider, supported languages, card/image retention, acceptable accuracy, review expectations, and data-processing terms.

@@ -28,7 +28,7 @@ mvn spring-boot:run                          # default profile (poc=true)
 # mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
-Flyway V1–V7. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest` (active business rows only; supplier submit with mapped V7 IDs).
+Flyway V1–V7. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest`. Card assist: ZXing on upload + `CLIENT_CARD_OCR` (`CardExtractionApiTest`, `CardTextParserTest`).
 
 
 ## Jenkins + public Windows host (`http://43.225.195.200/`)

@@ -115,9 +115,71 @@ public class ExtractionService {
             inquiries.updateCardQrPayload(inquiryId, scan.qrPayloadInternal());
         }
 
+        return persistCompletedScan(
+                inquiryId,
+                consent.id(),
+                assetId,
+                sessionId,
+                extractionId,
+                scan,
+                LocalCardScanEngine.PROVIDER,
+                now);
+    }
+
+    /**
+     * Stores visitor-device OCR proposals (e.g. Tesseract.js) after a card image upload.
+     * Does not invent a cloud AI vendor — local OCR only.
+     */
+    @Transactional
+    public ExtractionDto recordClientOcr(
+            UUID inquiryId,
+            UUID assetId,
+            String providerModelReference,
+            List<CardScanResult.ProposedField> proposedFields
+    ) {
+        InquiryDraftDto draft = inquiries.findDraft(inquiryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inquiry not found"));
+        if ("SUBMITTED".equals(draft.lifecycleState())) {
+            throw new InquiryValidationException("Submitted inquiries cannot be changed.");
+        }
+        var consent = consents.latest(inquiryId, "BUSINESS_CARD_EXTRACTION")
+                .filter(c -> "GRANTED".equals(c.decision()))
+                .orElseThrow(() -> new InquiryValidationException(
+                        "Card extraction requires granted BUSINESS_CARD_EXTRACTION consent."));
+        var asset = files.find(inquiryId, assetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+        if (!"BUSINESS_CARD".equals(asset.purpose()) || !"CLEAN".equals(asset.securityScanState())) {
+            throw new InquiryValidationException("Extraction needs a clean business-card image.");
+        }
+        String provider = providerModelReference == null || providerModelReference.isBlank()
+                ? "tesseract-js-v1"
+                : providerModelReference.trim();
+        if (provider.length() > 80) {
+            provider = provider.substring(0, 80);
+        }
+        Instant now = Instant.now();
+        UUID sessionId = UUID.randomUUID();
+        UUID extractionId = UUID.randomUUID();
+        List<CardScanResult.ProposedField> fields =
+                proposedFields == null ? List.of() : proposedFields;
+        CardScanResult scan = new CardScanResult(null, fields, provider);
+        return persistCompletedScan(
+                inquiryId, consent.id(), assetId, sessionId, extractionId, scan, provider, now);
+    }
+
+    private ExtractionDto persistCompletedScan(
+            UUID inquiryId,
+            UUID consentId,
+            UUID assetId,
+            UUID sessionId,
+            UUID extractionId,
+            CardScanResult scan,
+            String provider,
+            Instant now
+    ) {
         extractions.insertSession(
-                sessionId, inquiryId, consent.id(), "BUSINESS_CARD_SCAN", null,
-                "COMPLETED", LocalCardScanEngine.PROVIDER, now);
+                sessionId, inquiryId, consentId, "BUSINESS_CARD_SCAN", null,
+                "COMPLETED", provider, now);
         extractions.insertExtraction(
                 extractionId, sessionId, assetId, "COMPLETED", scan.providerModelReference(), now);
 
@@ -139,7 +201,7 @@ public class ExtractionService {
         audits.record(inquiryId, "AI_EXTRACTION", extractionId, "CARD_EXTRACTION_COMPLETED", Map.of(
                 "qrDetected", scan.qrPayloadInternal() != null && !scan.qrPayloadInternal().isBlank(),
                 "fieldCount", seen.size(),
-                "provider", LocalCardScanEngine.PROVIDER
+                "provider", provider
         ));
         return extractions.find(inquiryId, extractionId).orElseThrow();
     }
@@ -160,6 +222,19 @@ public class ExtractionService {
             throw new InquiryValidationException("assetId is required for card scan.");
         }
         return runCardScan(inquiryId, assetId);
+    }
+
+    @Transactional
+    public ExtractionDto startClientOcr(
+            UUID inquiryId,
+            UUID assetId,
+            String providerModelReference,
+            List<CardScanResult.ProposedField> fields
+    ) {
+        if (assetId == null) {
+            throw new InquiryValidationException("assetId is required for card scan.");
+        }
+        return recordClientOcr(inquiryId, assetId, providerModelReference, fields);
     }
 
     /**

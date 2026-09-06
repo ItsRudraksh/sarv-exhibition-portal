@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ApiError, applyExtractionProposals, inquiryApi } from './api'
+import { ApiError, applyContactProposals, applyExtractionProposals, inquiryApi } from './api'
+import {
+  CLIENT_OCR_PROVIDER,
+  extractionHasContactHints,
+  mergeCardProposals,
+  proposalsFromExtractionFields,
+  recognizeCardImage,
+} from './cardOcr'
 import {
   clearLegacyLocalDraft,
   createSeedDraft,
@@ -49,6 +56,9 @@ export function useInquiryJourney() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [cardSuggestions, setCardSuggestions] = useState(false)
+  const [cardScanStatus, setCardScanStatus] = useState<'idle' | 'scanning' | 'done' | 'empty'>(
+    'idle',
+  )
   const [campaignLabel, setCampaignLabel] = useState<string | null>(null)
   const [pocMode, setPocMode] = useState(true)
   const draftRef = useRef(draft)
@@ -276,12 +286,30 @@ export function useInquiryJourney() {
   const uploadCard = useCallback(
     async (side: CardSide, blob: Blob, filename: string, localMeta: CardFileMeta) => {
       setSubmitError(null)
+      setCardScanStatus('scanning')
       const field = side === 'front' ? 'cardFront' : 'cardBack'
+
+      // OCR the same JPEG we show/upload — do this first so the form can fill even offline.
+      const ocrFields = await recognizeCardImage(blob)
+
       if (!apiAvailable) {
-        setDraft((prev) => ({ ...prev, [field]: localMeta }))
+        const proposals = ocrFields
+        const filled = applyContactProposals(
+          { ...draftRef.current, [field]: localMeta },
+          proposals,
+        )
+        const suggested = extractionHasContactHints(proposals)
+        setCardSuggestions(suggested)
+        setCardScanStatus(suggested ? 'done' : 'empty')
         setSubmitError('Photo kept on this device only until the connection returns.')
+        setDraft(
+          suggested && side === 'front'
+            ? { ...filled, currentStep: 'contact-confirm' }
+            : filled,
+        )
         return
       }
+
       const asset = await inquiryApi.uploadFile(
         draftRef.current.id,
         blob,
@@ -296,15 +324,35 @@ export function useInquiryJourney() {
         assetId: asset.id,
         previewUrl: localMeta.previewUrl ?? inquiryApi.fileUrl(draftRef.current.id, asset.id),
       }
-      let next: InquiryDraft = { ...draftRef.current, [field]: meta }
-      try {
-        const extraction = await inquiryApi.latestExtraction(draftRef.current.id)
-        next = applyExtractionProposals(next, extraction)
-        setCardSuggestions(Boolean(extraction?.fields?.some((f) => f.reviewState === 'PENDING')))
-      } catch {
-        setCardSuggestions(false)
+
+      const serverExtraction = await inquiryApi.latestExtraction(draftRef.current.id).catch(() => null)
+      const qrProposals = proposalsFromExtractionFields(serverExtraction?.fields)
+      const merged = mergeCardProposals(qrProposals, ocrFields)
+
+      // Persist OCR-only gaps for audit when QR did not already cover contact fields.
+      const qrKeys = new Set(qrProposals.map((p) => p.fieldKey))
+      const ocrOnly = ocrFields.filter((p) => !qrKeys.has(p.fieldKey))
+      if (ocrOnly.length > 0 && asset.id) {
+        await inquiryApi
+          .submitClientCardOcr(
+            draftRef.current.id,
+            asset.id,
+            ocrOnly,
+            CLIENT_OCR_PROVIDER,
+          )
+          .catch(() => null)
       }
-      skipNextSave.current = true
+
+      let next: InquiryDraft = { ...draftRef.current, [field]: meta }
+      next = applyContactProposals(next, merged)
+      const suggested = extractionHasContactHints(merged)
+      setCardSuggestions(suggested)
+      setCardScanStatus(suggested ? 'done' : 'empty')
+      if (suggested && side === 'front') {
+        next = { ...next, currentStep: 'contact-confirm' }
+      }
+      // Allow autosave so filled contact reaches the server draft.
+      skipNextSave.current = false
       setDraft(next)
     },
     [apiAvailable],
@@ -365,6 +413,7 @@ export function useInquiryJourney() {
     skipNextSave.current = true
     setSubmitError(null)
     setCardSuggestions(false)
+    setCardScanStatus('idle')
     const entry = entryRef.current
     if (apiAvailable || navigator.onLine) {
       void inquiryApi
@@ -401,6 +450,7 @@ export function useInquiryJourney() {
     submitting,
     submitError,
     cardSuggestions,
+    cardScanStatus,
     campaignLabel,
     pocMode,
     entry,

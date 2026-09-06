@@ -10,7 +10,7 @@ import {
 } from '../../../components/ui'
 import {
   canUseLiveCamera,
-  prepareImageForPreview,
+  prepareCardImage,
   revokeCardPreview,
 } from '../../../lib/imageProcessing'
 import { LiveCameraSheet } from './LiveCameraSheet'
@@ -20,7 +20,7 @@ export interface CardCaptureScreenProps {
 }
 
 export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
-  const { draft, updateDraft, goToStep, uploadCard, declineCardConsent } = journey
+  const { draft, updateDraft, goToStep, uploadCard, declineCardConsent, cardScanStatus } = journey
   const fileRef = useRef<HTMLInputElement>(null)
   const pendingSideRef = useRef<CardSide>('front')
   const processingRef = useRef(false)
@@ -43,8 +43,8 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
     setError(null)
     setProcessingSide(side)
     try {
-      const meta = await prepareImageForPreview(source)
-      await uploadCard(side, source, meta.name, meta)
+      const { meta, blob } = await prepareCardImage(source)
+      await uploadCard(side, blob, meta.name, meta)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : copy.cardCapture.processingFailed)
     } finally {
@@ -147,6 +147,22 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
           <div className="notice notice--error" role="alert">
             <p>{error}</p>
           </div>
+        ) : null}
+
+        {cardScanStatus === 'scanning' ? (
+          <Notice>
+            <p>{copy.cardCapture.scanning}</p>
+          </Notice>
+        ) : null}
+        {cardScanStatus === 'done' ? (
+          <Notice>
+            <p>{copy.cardCapture.scanFound}</p>
+          </Notice>
+        ) : null}
+        {cardScanStatus === 'empty' ? (
+          <Notice>
+            <p>{copy.cardCapture.scanEmpty}</p>
+          </Notice>
         ) : null}
 
         <section className="stack-gap section-gap">
