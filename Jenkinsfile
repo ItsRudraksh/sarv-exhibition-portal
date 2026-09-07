@@ -354,9 +354,9 @@ pipeline {
                             \$ok = \$true
                             break
                         }
-                        Write-Host "health wait attempt \$i: HTTP \$(\$r.StatusCode)"
+                        Write-Host ("health wait attempt {0}: HTTP {1}" -f \$i, \$r.StatusCode)
                     } catch {
-                        Write-Host "health wait attempt \$i: \$(\$_.Exception.Message)"
+                        Write-Host ("health wait attempt {0}: {1}" -f \$i, \$_.Exception.Message)
                     }
                     Start-Sleep -Seconds 5
                 }
