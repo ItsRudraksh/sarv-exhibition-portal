@@ -125,6 +125,27 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + ", WinSW logs under " + \$installDir + " (*.out.log / *.err.log), and that no orphan java still holds the port.")
                     exit 1
                 }
+                Start-Sleep -Seconds 8
+                \$svc2 = Get-Service -Name \$service -ErrorAction SilentlyContinue
+                if (-not \$svc2 -or \$svc2.Status -ne 'Running') {
+                    Write-Host ("Service \$service is not Running after start (Status=" + \$(if (\$svc2) { \$svc2.Status } else { 'missing' }) + "). Dumping WinSW logs:")
+                    foreach (\$name in @(
+                        (\$service + '.err.log'),
+                        (\$service + '.out.log'),
+                        (\$service + '.wrapper.log'),
+                        'start-portal-boot.log'
+                    )) {
+                        \$p = Join-Path \$installDir \$name
+                        if (Test-Path -LiteralPath \$p) {
+                            Write-Host ("==== last 80 lines: " + \$p + " ====")
+                            Get-Content -LiteralPath \$p -Tail 80 -ErrorAction SilentlyContinue
+                        } else {
+                            Write-Host ("(missing log) " + \$p)
+                        }
+                    }
+                    Write-Error ("Service \$service exited immediately after net start. Usually java not found or Spring Boot failed — see logs above. Set JAVA_HOME in portal.env.ps1 if needed.")
+                    exit 1
+                }
                 Write-Host "Waiting for startup..."
                 Start-Sleep -Seconds 20
             """

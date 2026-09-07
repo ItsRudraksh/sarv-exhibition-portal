@@ -159,7 +159,7 @@ PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it
 | `backend/pom.xml` | Java **17**, `finalName` `exhibition-portal` |
 | `backend/src/main/resources/application-prod.properties` | Port 80, MySQL 3306, public CORS |
 | `deploy/windows/deploy.ps1` | Manual `npm` + `mvn` + copy JAR |
-| `deploy/windows/install-service.ps1` | **WinSW** Windows service (`*.exe` + `*.xml` under the install dir) so `net stop` / `net start` work. Downloads WinSW-x64 once if missing. Do **not** register bare `powershell -File start-portal.ps1` as the service binary (that yields NET 2186). |
+| `deploy/windows/install-service.ps1` | **WinSW** service: runs **`java.exe -jar`** directly with env from `portal.env.ps1` (not powershell wrapper — that exited and left Status=Stopped). Downloads WinSW-x64 once. Resolves Java 17 / `JAVA_HOME`. |
 | `deploy/windows/init-mysql.sql` | Create database + user |
 | `backend/run.ps1` | Local `spring-boot:run` |
 

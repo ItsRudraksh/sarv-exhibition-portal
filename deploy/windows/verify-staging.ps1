@@ -165,6 +165,15 @@ if ($svc) {
     $pathName = (Get-CimInstance Win32_Service -Filter ("Name='" + $ServiceName + "'") -ErrorAction SilentlyContinue).PathName
     if ($pathName -and ($pathName -like ('*' + $ServiceName + '.exe*'))) {
         Write-Check OK 'Service PathName uses WinSW (net start should work)'
+        $xmlPath = Join-Path $InstallDir ($ServiceName + '.xml')
+        if (Test-Path -LiteralPath $xmlPath) {
+            $xmlRaw = Get-Content -LiteralPath $xmlPath -Raw
+            if ($xmlRaw -match 'java\.exe</executable>') {
+                Write-Check OK 'WinSW XML runs java.exe directly'
+            } elseif ($xmlRaw -match 'powershell') {
+                Write-Check FAIL 'WinSW XML still wraps powershell (service often Stops immediately). Rebuild with java-direct install-service.ps1'
+            }
+        }
     } elseif ($pathName -and ($pathName -like '*powershell*start-portal.ps1*')) {
         Write-Check FAIL 'Service PathName is powershell-only (causes NET 2186). Rebuild after WinSW install-service.ps1, or run: .\\deploy\\windows\\install-service.ps1 -Staging'
     } elseif ($pathName) {
