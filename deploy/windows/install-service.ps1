@@ -61,13 +61,15 @@ $xml = @"
   <name>$displayName</name>
   <description>Sarv Exhibition Portal (Spring Boot). Env from portal.env.ps1 via start-portal.ps1.</description>
   <executable>$powershell</executable>
-  <arguments>-NoProfile -ExecutionPolicy Bypass -File "%BASE%\start-portal.ps1"</arguments>
+  <arguments>-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%BASE%\start-portal.ps1"</arguments>
   <workingdirectory>%BASE%</workingdirectory>
-  <logmode>roll</logmode>
+  <log mode="roll"></log>
   <onfailure action="restart" delay="10 sec"/>
 </service>
 "@
-Set-Content -LiteralPath $winswXml -Value $xml -Encoding UTF8
+# Windows PowerShell Set-Content -Encoding UTF8 writes a BOM; WinSW can choke on BOM XML.
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($winswXml, $xml, $utf8NoBom)
 
 function Stop-OrphanPortalJava {
     param([string] $Dir)

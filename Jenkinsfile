@@ -345,6 +345,8 @@ pipeline {
                         powershell """
                 \$ok = \$false
                 \$healthUrl = '${healthUrl}'
+                \$installDir = '${isMain ? env.PROD_DIR : env.STAGING_DIR}'
+                \$serviceName = '${isMain ? env.SERVICE_NAME : env.STAGING_SERVICE}'
                 for (\$i = 1; \$i -le 48; \$i++) {
                     try {
                         \$r = Invoke-WebRequest -Uri \$healthUrl -UseBasicParsing -TimeoutSec 5
@@ -358,9 +360,29 @@ pipeline {
                     } catch {
                         Write-Host ("health wait attempt {0}: {1}" -f \$i, \$_.Exception.Message)
                     }
+                    if ((\$i % 6) -eq 0) {
+                        \$svc = Get-Service -Name \$serviceName -ErrorAction SilentlyContinue
+                        Write-Host ("service {0} Status={1}" -f \$serviceName, \$(if (\$svc) { \$svc.Status } else { 'missing' }))
+                    }
                     Start-Sleep -Seconds 5
                 }
                 if (-not \$ok) {
+                    \$svc = Get-Service -Name \$serviceName -ErrorAction SilentlyContinue
+                    Write-Host ("Health FAILED. service {0} Status={1}" -f \$serviceName, \$(if (\$svc) { \$svc.Status } else { 'missing' }))
+                    foreach (\$name in @(
+                        (\$serviceName + '.err.log'),
+                        (\$serviceName + '.out.log'),
+                        (\$serviceName + '.wrapper.log'),
+                        'start-portal-boot.log'
+                    )) {
+                        \$p = Join-Path \$installDir \$name
+                        if (Test-Path -LiteralPath \$p) {
+                            Write-Host ("==== last 80 lines: " + \$p + " ====")
+                            Get-Content -LiteralPath \$p -Tail 80 -ErrorAction SilentlyContinue
+                        } else {
+                            Write-Host ("(missing log) " + \$p)
+                        }
+                    }
                     Write-Error "Health check failed for \$healthUrl. Confirm ${hint}."
                     exit 1
                 }

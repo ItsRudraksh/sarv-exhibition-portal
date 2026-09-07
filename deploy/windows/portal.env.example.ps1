@@ -9,6 +9,8 @@ $env:DATASOURCE_PASSWORD = 'change-me-db'
 # Required in prod. Must NOT be poc-staff or change-me-staff — app refuses to start.
 $env:EXHIBITION_STAFF_BOOTSTRAP_PASSWORD = 'change-me-staff'
 $env:EXHIBITION_STORAGE_ROOT = 'C:\exhibition-portal\files'
+# Optional: pin Java 17 for WinSW/LocalSystem (interactive PATH is not used by the service):
+# $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.18-hotspot'
 # Optional until live CRM/vendor APIs are chosen (local file outbox stubs):
 # $env:EXHIBITION_OUTBOX_MARKETING = 'local-mailbox'
 # $env:EXHIBITION_OUTBOX_VENDOR = 'local-vendor-stub'

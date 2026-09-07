@@ -260,6 +260,8 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 
 **Chat-independent reference — Health Check `$i:` (2026-09-07):** After WinSW deploy, `net start` succeeded but Health Check failed with PowerShell `InvalidVariableReferenceWithDrive` on `Write-Host "health wait attempt $i: ..."`. In PowerShell `$i:` is a drive-scoped variable. Fixed to use `-f` formatting (`"health wait attempt {0}: ..." -f $i, ...`).
 
+**Chat-independent reference — Health unable to connect (2026-09-07):** `net start` OK but actuator never binds — usually LocalSystem cannot find `java` (interactive PATH). `start-portal.ps1` now resolves `java.exe` via `JAVA_HOME` / common install roots, writes `start-portal-boot.log`, and Health Check dumps WinSW `*.err.log` / `*.out.log` / boot log on failure. Optional `$env:JAVA_HOME` in `portal.env.ps1`.
+
 **Chat-independent reference — mysql not on PATH / wrong cwd (2026-09-03):** `C:\exhibition-portal-staging` is the install dir (JAR + env), not the repo. `mysql` is not on PATH; use `C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe`. `.\deploy\windows\deploy.ps1` does not exist there and must not be run for staging (it targets production `C:\exhibition-portal`). Run `init-mysql.sql` from a git clone or Jenkins workspace. Jenkins now also copies `init-mysql.sql` into the install dir.
 
 **Chat-independent reference — staging verify script (2026-09-03):** Jenkins `50e6cb6d` copied JAR, pinned port 8082, installed service `exhibition-portal-staging`, then failed because `portal.env.ps1` still contains `change-me-db` / `change-me-staff`. Host check: `deploy/windows/verify-staging.ps1` (Jenkins copies it to the install dir). Does not print secrets.
