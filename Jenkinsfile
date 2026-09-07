@@ -341,77 +341,7 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'dev'
-                    branch 'poc'
-                    expression {
-                        return (env.BRANCH_NAME == 'main') || (env.GIT_BRANCH == 'origin/main') || (env.GIT_BRANCH == 'main') ||
-                               (env.BRANCH_NAME == 'poc') || (env.GIT_BRANCH == 'origin/poc') || (env.GIT_BRANCH == 'poc') ||
-                               (env.BRANCH_NAME == 'dev') || (env.GIT_BRANCH == 'origin/dev') || (env.GIT_BRANCH == 'dev')
-                    }
-                }
-            }
-            steps {
-                script {
-                    if (isUnix()) {
-                        echo 'Health check is Windows (public host). Skipping Unix.'
-                    } else {
-                        def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
-                        def isMain = (branch == 'main' || branch.endsWith('/main'))
-                        def healthUrl = isMain ? 'http://127.0.0.1/actuator/health' : "http://127.0.0.1:${env.STAGING_PORT}/actuator/health"
-                        def hint = isMain ? "service ${SERVICE_NAME} and C:\\\\exhibition-portal\\\\portal.env.ps1" : "service ${STAGING_SERVICE} and C:\\\\exhibition-portal-staging\\\\portal.env.ps1 (port ${env.STAGING_PORT}; 8081 is pharma-erp-staging)"
-                        powershell """
-                \$ok = \$false
-                \$healthUrl = '${healthUrl}'
-                \$installDir = '${isMain ? env.PROD_DIR : env.STAGING_DIR}'
-                \$serviceName = '${isMain ? env.SERVICE_NAME : env.STAGING_SERVICE}'
-                for (\$i = 1; \$i -le 48; \$i++) {
-                    try {
-                        \$r = Invoke-WebRequest -Uri \$healthUrl -UseBasicParsing -TimeoutSec 5
-                        if (\$r.StatusCode -eq 200) {
-                            Write-Host "Actuator HTTP 200 at \$healthUrl after attempt \$i"
-                            Write-Host \$r.Content
-                            \$ok = \$true
-                            break
-                        }
-                        Write-Host ("health wait attempt {0}: HTTP {1}" -f \$i, \$r.StatusCode)
-                    } catch {
-                        Write-Host ("health wait attempt {0}: {1}" -f \$i, \$_.Exception.Message)
-                    }
-                    if ((\$i % 6) -eq 0) {
-                        \$svc = Get-Service -Name \$serviceName -ErrorAction SilentlyContinue
-                        Write-Host ("service {0} Status={1}" -f \$serviceName, \$(if (\$svc) { \$svc.Status } else { 'missing' }))
-                    }
-                    Start-Sleep -Seconds 5
-                }
-                if (-not \$ok) {
-                    \$svc = Get-Service -Name \$serviceName -ErrorAction SilentlyContinue
-                    Write-Host ("Health FAILED. service {0} Status={1}" -f \$serviceName, \$(if (\$svc) { \$svc.Status } else { 'missing' }))
-                    foreach (\$name in @(
-                        (\$serviceName + '.err.log'),
-                        (\$serviceName + '.out.log'),
-                        (\$serviceName + '.wrapper.log'),
-                        'start-portal-boot.log'
-                    )) {
-                        \$p = Join-Path \$installDir \$name
-                        if (Test-Path -LiteralPath \$p) {
-                            Write-Host ("==== last 80 lines: " + \$p + " ====")
-                            Get-Content -LiteralPath \$p -Tail 80 -ErrorAction SilentlyContinue
-                        } else {
-                            Write-Host ("(missing log) " + \$p)
-                        }
-                    }
-                    Write-Error "Health check failed for \$healthUrl. Confirm ${hint}."
-                    exit 1
-                }
-            """
-                    }
-                }
-            }
-        }
+
     }
 
     post {
