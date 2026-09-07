@@ -46,8 +46,21 @@ foreach ($pair in @(
     Write-Host "Allowed inbound TCP $($pair.Port) on Private and Public profiles ($($pair.Name))."
 }
 
-$lanIp = Get-NetIPAddress -AddressFamily IPv4 |
-    Where-Object { $_.IPAddress -like '192.168.*' } |
-    Select-Object -First 1 -ExpandProperty IPAddress
-Write-Host "Open https://${lanIp}:5173/ on the phone."
+$lanIps = @(Get-NetIPAddress -AddressFamily IPv4 |
+    Where-Object {
+        $_.IPAddress -notlike '127.*' -and (
+            $_.IPAddress -like '192.168.*' -or
+            $_.IPAddress -like '10.*' -or
+            $_.IPAddress -match '^172\.(1[6-9]|2[0-9]|3[0-1])\.'
+        )
+    } |
+    Select-Object -ExpandProperty IPAddress -Unique)
+if ($lanIps.Count -eq 0) {
+    Write-Host 'No private LAN IPv4 found. Connect Wi-Fi and re-run.'
+} else {
+    foreach ($lanIp in $lanIps) {
+        Write-Host "Open https://${lanIp}:5173/?c=POC-STALL-1 on the phone."
+    }
+}
 Write-Host 'Accept the self-signed certificate warning (Android: Advanced -> Proceed). HTTPS is required for camera.'
+Write-Host 'The phone uses Vite on 5173; it does not need port 8080. Keep npm run dev and backend\\run.ps1 running.'

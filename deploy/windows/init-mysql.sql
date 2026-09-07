@@ -5,7 +5,7 @@
 --   Get-Content deploy\windows\init-mysql.sql | & 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' -u root -p
 -- Install dir (after Jenkins copies this file):
 --   Get-Content C:\exhibition-portal-staging\init-mysql.sql | & 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' -u root -p
--- Initial password matches local application.yml (`exhibition`). Change it on the public host:
+-- Initial password matches local application.properties (`exhibition`). Change it on the public host:
 --   ALTER USER 'exhibition'@'localhost' IDENTIFIED BY 'your-db-password';
 --   ALTER USER 'exhibition'@'127.0.0.1' IDENTIFIED BY 'your-db-password';
 

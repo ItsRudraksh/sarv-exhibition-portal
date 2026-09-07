@@ -112,7 +112,7 @@ cd C:\path\to\sarv-exhibition-portal
 net start exhibition-portal
 ```
 
-Local run without Jenkins: `backend\run.ps1` (port 8080, needs MySQL 3306). `mvn test` uses embedded MariaDB (mariaDB4j); no Docker.
+Local run without Jenkins: `backend\run.ps1` (port 8080, needs MySQL 3306, user `exhibition` / `exhibition`). `mvn test` uses embedded MariaDB (mariaDB4j); no Docker. If Flyway reports a failed V1 on an empty local DB, drop the leftover tables and re-run — see `backend/README.md`. Do not `flyway repair` that state.
 
 ## Jenkins (copy of pharma-erp flow)
 
@@ -157,7 +157,7 @@ PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it
 |---|---|
 | `Jenkinsfile` | Build + Windows service deploy |
 | `backend/pom.xml` | Java **17**, `finalName` `exhibition-portal` |
-| `backend/src/main/resources/application-prod.yml` | Port 80, MySQL 3306, public CORS |
+| `backend/src/main/resources/application-prod.properties` | Port 80, MySQL 3306, public CORS |
 | `deploy/windows/deploy.ps1` | Manual `npm` + `mvn` + copy JAR |
 | `deploy/windows/install-service.ps1` | **WinSW** Windows service (`*.exe` + `*.xml` under the install dir) so `net stop` / `net start` work. Downloads WinSW-x64 once if missing. Do **not** register bare `powershell -File start-portal.ps1` as the service binary (that yields NET 2186). |
 | `deploy/windows/init-mysql.sql` | Create database + user |

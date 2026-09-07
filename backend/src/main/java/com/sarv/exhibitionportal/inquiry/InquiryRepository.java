@@ -7,6 +7,7 @@ import com.sarv.exhibitionportal.api.dto.ContactDto;
 import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.api.dto.SupplierDto;
 import com.sarv.exhibitionportal.config.JdbcUuids;
+import com.sarv.exhibitionportal.finishedgoods.FinishedGoodsRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,9 +21,11 @@ import org.springframework.stereotype.Repository;
 public class InquiryRepository {
 
     private final JdbcClient jdbc;
+    private final FinishedGoodsRepository finishedGoods;
 
-    public InquiryRepository(JdbcClient jdbc) {
+    public InquiryRepository(JdbcClient jdbc, FinishedGoodsRepository finishedGoods) {
         this.jdbc = jdbc;
+        this.finishedGoods = finishedGoods;
     }
 
     public void insertDraft(UUID id, String referenceCode, String entryChannel, UUID campaignId, UUID exhibitionId) {
@@ -336,6 +339,7 @@ public class InquiryRepository {
                 .param("id", JdbcUuids.mysql(draft.id()))
                 .update();
         if (!"PURCHASE".equals(draft.route())) {
+            finishedGoods.replaceInquirySelections(draft.id(), List.of());
             return;
         }
         jdbc.sql("""
@@ -372,6 +376,7 @@ public class InquiryRepository {
                 .param("area", JdbcUuids.mysql(emptyToNull(buyer.productAreaSearch())))
                 .param("std", JdbcUuids.mysql(emptyToNull(spec.standard())))
                 .update();
+        finishedGoods.replaceInquirySelections(draft.id(), buyer.finishedGoods());
     }
 
     private void replaceUiState(InquiryDraftDto draft) {
@@ -412,7 +417,7 @@ public class InquiryRepository {
                 .update();
     }
 
-    private static InquiryDraftDto toDto(InquiryRow r, List<UUID> departments, List<UUID> productTypes) {
+    private InquiryDraftDto toDto(InquiryRow r, List<UUID> departments, List<UUID> productTypes) {
         String[] phone = splitPhone(r.phoneSubmitted(), r.phoneE164());
         ContactDto contact = new ContactDto(
                 nvl(r.personName()),
@@ -437,7 +442,11 @@ public class InquiryRepository {
                 nvl(r.neededBy()),
                 nvl(r.notes())
         );
-        BuyerDto buyer = new BuyerDto(nvl(r.requirement()), nvl(r.productArea()), specs);
+        BuyerDto buyer = new BuyerDto(
+                nvl(r.requirement()),
+                nvl(r.productArea()),
+                specs,
+                finishedGoods.selectionsForInquiry(r.id()));
         return new InquiryDraftDto(
                 r.id(),
                 r.lifecycle(),

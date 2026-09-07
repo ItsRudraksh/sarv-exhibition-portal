@@ -203,6 +203,16 @@ function asDraft(payload: InquiryDraft): InquiryDraft {
     buyer: {
       ...createEmptyDraft().buyer,
       ...payload.buyer,
+      finishedGoods: Array.isArray(payload.buyer?.finishedGoods)
+        ? payload.buyer.finishedGoods.map((row) => ({
+            finishedGoodId: String(row.finishedGoodId ?? ''),
+            quantity: String(row.quantity ?? ''),
+            name:
+              row && typeof row === 'object' && 'name' in row && row.name
+                ? String(row.name)
+                : undefined,
+          }))
+        : [],
       specifications: {
         ...createEmptyDraft().buyer.specifications,
         ...payload.buyer?.specifications,
@@ -340,6 +350,21 @@ export const inquiryApi = {
       }),
     })
   },
+
+  async listFinishedGoods(query?: string): Promise<FinishedGood[]> {
+    const q = query?.trim()
+    const path = q
+      ? `/finished-goods?q=${encodeURIComponent(q)}`
+      : '/finished-goods'
+    return request<FinishedGood[]>(path)
+  },
+}
+
+export interface FinishedGood {
+  id: string
+  externalId: number
+  code: string | null
+  name: string
 }
 
 export { ApiError }

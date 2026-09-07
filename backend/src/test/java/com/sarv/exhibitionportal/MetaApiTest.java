@@ -6,6 +6,9 @@ import com.sarv.exhibitionportal.api.dto.AppMetaDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,5 +25,17 @@ class MetaApiTest extends MysqlSpringBootTest {
         assertThat(response.getBody().poc()).isTrue();
         assertThat(response.getBody().referencePrefix()).isEqualTo("POC-");
         assertThat(response.getBody().stage()).isEqualTo("development");
+    }
+
+    @Test
+    void lanViteOriginIsAllowed() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setOrigin("https://192.168.1.7:5173");
+        headers.set("Access-Control-Request-Method", "GET");
+        ResponseEntity<Void> response = rest.exchange(
+                "/api/v1/meta", HttpMethod.OPTIONS, new HttpEntity<>(headers), Void.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getAccessControlAllowOrigin())
+                .isEqualTo("https://192.168.1.7:5173");
     }
 }

@@ -1,7 +1,7 @@
 # Exhibition Portal Database Design
 
 **Status:** Approved logical and physical design baseline  
-**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V7 in `backend/src/main/resources/db/migration/`.  
+**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V8 in `backend/src/main/resources/db/migration/`.  
 **Logical types in this document:** Originally written for PostgreSQL (`uuid`, `timestamptz`, `jsonb`, `text`). Keep them as the entity/invariant SSOT. The applied store maps them to `CHAR(36)`, `DATETIME(6)`, `JSON`, and `VARCHAR`/`TEXT`. Do **not** load `exhibition_portal_schema.sql`.  
 **Application target:** Java 17 Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
 **Scope:** Data design. The singleton DDL in this folder is the **historical full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  

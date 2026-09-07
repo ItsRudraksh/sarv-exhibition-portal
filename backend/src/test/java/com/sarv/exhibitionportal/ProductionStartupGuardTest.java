@@ -55,7 +55,8 @@ class ProductionStartupGuardTest {
                 24,
                 new ExhibitionProperties.Outbox(true, 5, 30, "local-mailbox", "local-vendor-stub", ""),
                 staffPassword,
-                poc ? "POC-" : "EP-"
+                poc ? "POC-" : "EP-",
+                new ExhibitionProperties.PharmaErp(false, "", "", "", false, "0 0 2 * * MON")
         );
     }
 }

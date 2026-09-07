@@ -17,7 +17,8 @@ public record ExhibitionProperties(
         int exportRetentionHours,
         Outbox outbox,
         String staffBootstrapPassword,
-        String referencePrefix
+        String referencePrefix,
+        PharmaErp pharmaErp
 ) {
     public ExhibitionProperties {
         if (staffBootstrapPassword == null) {
@@ -25,6 +26,9 @@ public record ExhibitionProperties(
         }
         if (referencePrefix == null || referencePrefix.isBlank()) {
             referencePrefix = poc ? "POC-" : "EP-";
+        }
+        if (pharmaErp == null) {
+            pharmaErp = new PharmaErp(false, "", "", "", false, "0 0 2 * * MON");
         }
     }
 
@@ -51,6 +55,34 @@ public record ExhibitionProperties(
             }
             if (forceFailureCode == null) {
                 forceFailureCode = "";
+            }
+        }
+    }
+
+    /**
+     * Read-only sync from pharma-erp MySQL ({@code pharmadb.products} / OUTPUT_PRODUCTS).
+     * Manual first ({@code schedule-enabled=false}); weekly cron when enabled.
+     */
+    public record PharmaErp(
+            boolean enabled,
+            String jdbcUrl,
+            String username,
+            String password,
+            boolean scheduleEnabled,
+            String syncCron
+    ) {
+        public PharmaErp {
+            if (jdbcUrl == null) {
+                jdbcUrl = "";
+            }
+            if (username == null) {
+                username = "";
+            }
+            if (password == null) {
+                password = "";
+            }
+            if (syncCron == null || syncCron.isBlank()) {
+                syncCron = "0 0 2 * * MON";
             }
         }
     }

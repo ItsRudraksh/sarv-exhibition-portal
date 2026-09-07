@@ -1,6 +1,7 @@
 package com.sarv.exhibitionportal.inquiry;
 
 import com.sarv.exhibitionportal.api.dto.BuyerDto;
+import com.sarv.exhibitionportal.api.dto.BuyerFinishedGoodDto;
 import com.sarv.exhibitionportal.api.dto.BuyerSpecificationsDto;
 import com.sarv.exhibitionportal.api.dto.CardFileDto;
 import com.sarv.exhibitionportal.api.dto.ContactDto;
@@ -50,6 +51,32 @@ class InquiryRulesTest {
         InquiryDraftDto draft = draft(null, new SupplierDto("Acme APIs", "https://acme.example", "", "", null),
                 new BuyerDto("Need", "", specs()));
         assertThrows(InquiryValidationException.class, () -> InquiryRules.assertCanSubmit(draft));
+    }
+
+    @Test
+    void buyerSubmitRequiresQuantityForEachFinishedGood() {
+        InquiryDraftDto draft = draft(
+                "PURCHASE",
+                new SupplierDto("", "", "", "", null),
+                new BuyerDto(
+                        "Need",
+                        "",
+                        specs(),
+                        List.of(new BuyerFinishedGoodDto(UUID.randomUUID(), ""))));
+        assertThrows(InquiryValidationException.class, () -> InquiryRules.assertCanSubmit(draft));
+    }
+
+    @Test
+    void buyerSubmitAcceptsFinishedGoodWithQuantity() {
+        InquiryDraftDto draft = draft(
+                "PURCHASE",
+                new SupplierDto("", "", "", "", null),
+                new BuyerDto(
+                        "Need",
+                        "",
+                        specs(),
+                        List.of(new BuyerFinishedGoodDto(UUID.randomUUID(), "25 kg"))));
+        assertDoesNotThrow(() -> InquiryRules.assertCanSubmit(draft));
     }
 
     private static BuyerSpecificationsDto specs() {

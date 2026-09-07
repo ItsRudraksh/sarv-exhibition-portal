@@ -1,6 +1,0 @@
-spring:
-  flyway:
-    enabled: true
-exhibition:
-  outbox:
-    schedule-enabled: false

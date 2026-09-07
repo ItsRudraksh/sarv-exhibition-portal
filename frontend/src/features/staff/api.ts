@@ -139,4 +139,27 @@ export const staffApi = {
     link.click()
     URL.revokeObjectURL(url)
   },
+
+  async syncFinishedGoods(): Promise<{
+    state: string
+    rowsUpserted: number
+    rowsDeactivated: number
+    message: string
+  }> {
+    const response = await staffFetch('/finished-goods/sync', { method: 'POST' })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<{
+      state: string
+      rowsUpserted: number
+      rowsDeactivated: number
+      message: string
+    }>
+  },
+
+  async finishedGoodsCount(): Promise<number> {
+    const response = await staffFetch('/finished-goods/count')
+    if (!response.ok) throw new Error(await readError(response))
+    const body = (await response.json()) as { active: number }
+    return body.active
+  },
 }

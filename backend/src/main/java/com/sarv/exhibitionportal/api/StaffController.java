@@ -2,9 +2,11 @@ package com.sarv.exhibitionportal.api;
 
 import com.sarv.exhibitionportal.api.dto.BuyerLeadDto;
 import com.sarv.exhibitionportal.api.dto.ExportJobDto;
+import com.sarv.exhibitionportal.api.dto.FinishedGoodsSyncResultDto;
 import com.sarv.exhibitionportal.api.dto.StaffMeDto;
 import com.sarv.exhibitionportal.api.dto.SupplierReviewDto;
 import com.sarv.exhibitionportal.exportjob.ExportService;
+import com.sarv.exhibitionportal.finishedgoods.FinishedGoodsService;
 import com.sarv.exhibitionportal.review.ReviewService;
 import com.sarv.exhibitionportal.staff.StaffUser;
 import java.util.List;
@@ -29,10 +31,16 @@ public class StaffController {
 
     private final ReviewService reviews;
     private final ExportService exports;
+    private final FinishedGoodsService finishedGoods;
 
-    public StaffController(ReviewService reviews, ExportService exports) {
+    public StaffController(
+            ReviewService reviews,
+            ExportService exports,
+            FinishedGoodsService finishedGoods
+    ) {
         this.reviews = reviews;
         this.exports = exports;
+        this.finishedGoods = finishedGoods;
     }
 
     @GetMapping("/me")
@@ -77,6 +85,16 @@ public class StaffController {
     @PostMapping("/exports")
     public ExportJobDto createExport(Authentication authentication) {
         return exports.createPurchaseLeadExport(actor(authentication));
+    }
+
+    @PostMapping("/finished-goods/sync")
+    public FinishedGoodsSyncResultDto syncFinishedGoods() {
+        return finishedGoods.syncFromPharmaErp();
+    }
+
+    @GetMapping("/finished-goods/count")
+    public java.util.Map<String, Integer> finishedGoodsCount() {
+        return java.util.Map.of("active", finishedGoods.activeCount());
     }
 
     @GetMapping("/exports/{id}")

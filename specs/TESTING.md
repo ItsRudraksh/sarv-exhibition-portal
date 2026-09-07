@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Updated:** 5 September 2026 (business taxonomy v1 — Flyway V7)
+**Updated:** 7 September 2026 (application.properties config; same-Wi‑Fi Vite LAN + Flyway V1 recovery)
 
 After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
 
@@ -17,7 +17,7 @@ Vite proxies `/api` to `http://localhost:8080`. Loads `GET /api/v1/meta` — pro
 
 **Entry URLs:** `https://localhost:5173/?c=POC-STALL-1` (stall), `https://localhost:5173/web` (website), `?channel=direct`, `?assist=1` (staff-assisted). Shared tablets show **Next visitor**.
 
-**Visitor UI smoke:** campaign entry → card/contact → buy or sell → submit → receipt (`POC-` locally / `EP-` on prod) → Next visitor. Staff: export downloads `.xlsx`.
+**Phone on the same Wi‑Fi:** `npm run dev` (Vite `--host`, HTTPS) + elevated `.\scripts\allow-vite-lan.ps1` (TCP 5173). Open the Vite **Network** URL, e.g. `https://192.168.1.12:5173/?c=POC-STALL-1`. Accept the self-signed cert. Guest Wi‑Fi / AP isolation still fails. Default CORS allows `https://192.168.*.*:5173` and `https://10.*.*.*:5173` (Vite proxy is same-origin; CORS is backup). Do not open 5173 on the public Windows host.
 
 ## Backend (`backend/`)
 
@@ -28,7 +28,11 @@ mvn spring-boot:run                          # default profile (poc=true)
 # mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
-Flyway V1–V7. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest`. Card assist: ZXing on upload + `CLIENT_CARD_OCR` (`CardExtractionApiTest`, `CardTextParserTest`).
+Config is `.properties` only (`application.properties` / `application-prod.properties`). `mvn test` activates profile `test` (`application-test.properties`); do not add `src/test/resources/application.properties` (it shadows main). Keys: `backend/README.md` § Configuration.
+
+Flyway V1–V9. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest`. Card assist: ZXing + `CLIENT_CARD_OCR`. Finished goods: `FinishedGoodsApiTest`; staff sync from pharmadb when `exhibition.pharma-erp.enabled=true` (local default is now `true`). Credentials alone do not fill the buy list — restart the API, then **Staff → Sync finished goods**. Per selected FG, quantity is required (`InquiryRulesTest`).
+
+**Local MySQL first boot:** `.\run.ps1` needs native MySQL 3306 and user `exhibition` / `exhibition` (`deploy/windows/init-mysql.sql`). If Flyway says **failed migration to version 1**, the local schema already has tables from a prior attempt — drop those empty tables and re-run (see `backend/README.md`). Do not `flyway repair` that state: later `CREATE TABLE` migrations will fail and seed (V2/V7) will be missing. `mvn test` does not use this MySQL instance.
 
 
 ## Jenkins + public Windows host (`http://43.225.195.200/`)

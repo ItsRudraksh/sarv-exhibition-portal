@@ -1,5 +1,6 @@
 package com.sarv.exhibitionportal.config;
 
+import java.util.Arrays;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -17,14 +18,25 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        String[] origins = properties.corsOrigins() == null || properties.corsOrigins().isEmpty()
+        String[] configured = properties.corsOrigins() == null || properties.corsOrigins().isEmpty()
                 ? new String[] {"https://localhost:5173"}
                 : properties.corsOrigins().toArray(String[]::new);
-        registry.addMapping("/api/**")
-                .allowedOrigins(origins)
+        String[] exact = Arrays.stream(configured)
+                .filter(origin -> origin != null && !origin.contains("*"))
+                .toArray(String[]::new);
+        String[] patterns = Arrays.stream(configured)
+                .filter(origin -> origin != null && origin.contains("*"))
+                .toArray(String[]::new);
+        var mapping = registry.addMapping("/api/**")
                 .allowedMethods("GET", "POST", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Content-Disposition")
                 .allowCredentials(false);
+        if (exact.length > 0) {
+            mapping.allowedOrigins(exact);
+        }
+        if (patterns.length > 0) {
+            mapping.allowedOriginPatterns(patterns);
+        }
     }
 }

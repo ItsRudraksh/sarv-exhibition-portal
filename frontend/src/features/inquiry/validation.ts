@@ -92,6 +92,12 @@ export function validateBuyerNeed(buyer: BuyerDetails): FieldErrors {
   if (!buyer.requirement.trim()) {
     errors.requirement = 'Describe the product or requirement to continue.'
   }
+  for (const row of buyer.finishedGoods) {
+    if (!row.quantity.trim()) {
+      errors[`fgQty-${row.finishedGoodId}`] =
+        'Enter a quantity for each selected finished good.'
+    }
+  }
   return errors
 }
 

@@ -4,7 +4,7 @@
 >
 > **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** Visiting-card assist: **QR (ZXing) + local printed OCR (Tesseract.js)**. Business taxonomy v1 loaded. Buyer FG: weekly DB sync (manual→cron), flat list — job not built yet. Live CRM/vendor, cloud OCR/voice, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** (`http://43.225.195.200/`). Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
+> **Current stage:** Buyer **finished goods** list from pharma-erp (Flyway V8 + weekly/manual DB sync). Visiting-card assist: QR + local OCR. Live CRM/vendor, cloud OCR/voice, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)**. Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -21,7 +21,7 @@ The product principle is **one configurable platform, not two disconnected forms
 
 The strongest current UX decision is that the experience is **scan-first and auto-saved**. A visitor may scan both sides of a business card, upload images, or continue manually. OCR/AI may propose values, but the visitor reviews the usable name, work email, and mobile number (including country code) before route selection. That confirmed identity is used to create a resumable partial inquiry. Meaningful progress is saved server-side so a visitor who gets busy can later be contacted rather than lost.
 
-The buyer route must be materially faster than the supplier route. Buyers are Sarv's potential customers and cannot be lost to a long B2B form. A buyer can submit after giving a saved contact and **one product-or-requirement statement**. Product-area search and specifications (quantity, pack size, standard, needed-by date, notes) are progressive and optional. A buyer company is helpful but must not block submission.
+The buyer route must be materially faster than the supplier route. Buyers are Sarv's potential customers and cannot be lost to a long B2B form. A buyer can submit after giving a saved contact and **one product-or-requirement statement**. Finished-goods multi-select shows **product names only** (no item codes); **each selected item requires its own quantity**. Pack size, standard, needed-by date, and notes stay under optional details. A buyer company is helpful but must not block submission.
 
 ## 2. Decision precedence and terminology
 
@@ -380,7 +380,7 @@ The HLD explicitly requires cross-functional decisions on:
 
 1. Enterprise vendor API/interface, identity-match rules, approval owner, create vs update behavior.
 2. Marketing destination (CRM or mailbox), required lead fields, routing owner, dispatch frequency, and follow-up SLA.
-3. **Supplier taxonomy (departments / product types / mappings / IP–EP):** resolved for v1 in [taxonomy/](taxonomy/). **Buyer catalogue:** source = pharma-erp **finished goods** (`OUTPUT_PRODUCTS` / product catalog); presentation = **flat list** (multi-select OK); sync = **weekly DB sync** (read pharma-erp MySQL → upsert into exhibition portal), **manual first**, then **cron**. **Still open:** which exhibition tables hold the snapshot, connection/credentials on the Windows host, and named stall-day maintainer.
+3. **Supplier taxonomy (departments / product types / mappings / IP–EP):** resolved for v1 in [taxonomy/](taxonomy/). **Buyer catalogue:** source = pharma-erp **finished goods** (`pharmadb.products` active rows); presentation = **flat multi-select**; sync = **weekly DB sync** via `POST /api/v1/staff/finished-goods/sync` (manual first; cron when `exhibition.pharma-erp.schedule-enabled=true`). Snapshot table: `finished_goods` (Flyway V8). **Still open:** named stall-day maintainer; production JDBC credentials on the host.
 4. Exact supplier and buyer validation policy. The current UX direction is clear, but policy needs formal confirmation.
 5. Lawful purpose, consent copy, allowed evidence sources, precision, fallback, retention/deletion process for location evidence.
 6. AI provider, supported languages, card/image retention, acceptable accuracy, review expectations, and data-processing terms.

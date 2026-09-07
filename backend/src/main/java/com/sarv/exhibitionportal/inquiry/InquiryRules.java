@@ -83,6 +83,17 @@ public final class InquiryRules {
         if (buyer == null || blank(buyer.requirement())) {
             throw new InquiryValidationException("Describe the product or requirement to continue.");
         }
+        if (buyer.finishedGoods() != null) {
+            for (var row : buyer.finishedGoods()) {
+                if (row == null || row.finishedGoodId() == null) {
+                    throw new InquiryValidationException("Each finished good selection needs a product.");
+                }
+                if (blank(row.quantity())) {
+                    throw new InquiryValidationException(
+                            "Enter a quantity for each selected finished good.");
+                }
+            }
+        }
     }
 
     private static boolean blank(String value) {

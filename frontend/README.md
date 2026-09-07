@@ -18,8 +18,9 @@ Start native MySQL 8 on `localhost:3306`, then the API (`.\run.ps1` in `backend/
 
 ### Test on your phone (same Wi‑Fi)
 
-1. Run `npm run dev` in `frontend/`. Vite prints a **Network** URL, e.g. `https://192.168.1.12:5173/`.
-2. **Windows Firewall** usually blocks that port when Wi‑Fi is a **Public** network (common at home). From an **elevated** PowerShell at the repo root:
+1. Keep the API running (`.\run.ps1` in `backend/`).
+2. Run `npm run dev` in `frontend/`. Vite prints a **Network** URL for this PC’s Wi‑Fi IP, e.g. `https://192.168.1.12:5173/`.
+3. **Windows Firewall** usually blocks that port when Wi‑Fi is a **Public** network (common at home). From an **elevated** PowerShell at the repo root:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -27,10 +28,10 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```
 
 That opens inbound TCP **5173** (and preview **4173**) on Private and Public. You can instead set the Wi‑Fi profile to **Private** in Windows Settings → Network.
-3. On the phone, use **https** (not http). You will see a self-signed certificate warning:
+4. On the phone, use **https** (not http) and the Network URL Vite printed. Stall entry: `https://<lan-ip>:5173/?c=POC-STALL-1`. You will see a self-signed certificate warning:
    - **Android Chrome:** Advanced → Proceed to 192.168.x.x (unsafe).
    - **iPhone Safari:** Show Details → visit this website. If there is no proceed button, the cert cannot be bypassed on that iOS version — use Android or desktop for camera smoke.
-4. Phone and PC must be on the same LAN. Guest Wi‑Fi / AP isolation (client isolation) will still fail even with the firewall rule.
+5. Phone and PC must be on the same LAN. Guest Wi‑Fi / AP isolation (client isolation) will still fail even with the firewall rule.
 
 HTTPS is required for in-page camera. The Vite `/api` proxy talks to the API on the PC, so the phone does not need port 8080.
 
@@ -61,6 +62,7 @@ Local **card assist** fills contact fields after camera/upload: client **jsQR** 
 - Taxonomy loads from `GET /api/v1/taxonomy` when the API is up. Fallback IDs in `features/inquiry/taxonomy.ts` must match Flyway `V7__business_taxonomy.sql` ([specs/taxonomy/](../specs/taxonomy/)).
 - Card QR payloads are stored server-side only; visitor GET never returns the raw payload.
 - Buyer company name is optional; the server allows buyer submit without a company.
+- Buyer finished-goods list shows **names only** (no item codes). Each selected finished good requires its own quantity. Pack/standard/date/notes stay under optional details.
 - Card capture requires an affirmative store-images consent, or continue without a card (decline). Camera permission copy is shown before `getUserMedia`.
 
 Use **Next visitor** / **Restart demo** (top-right) to clear the session and create a new server draft.

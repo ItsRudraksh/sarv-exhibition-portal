@@ -50,9 +50,17 @@ export interface BuyerSpecifications {
   notes: string
 }
 
+export interface BuyerFinishedGoodSelection {
+  finishedGoodId: string
+  quantity: string
+  /** Client display only; server persists id + quantity. */
+  name?: string
+}
+
 export interface BuyerDetails {
   requirement: string
   productAreaSearch: string
+  finishedGoods: BuyerFinishedGoodSelection[]
   specifications: BuyerSpecifications
 }
 
@@ -119,6 +127,7 @@ export const createEmptyDraft = (): InquiryDraft => ({
   buyer: {
     requirement: '',
     productAreaSearch: '',
+    finishedGoods: [],
     specifications: {
       quantity: '',
       packSize: '',

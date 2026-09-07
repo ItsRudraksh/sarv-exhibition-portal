@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   clearStaffAuth,
   setStaffAuth,
@@ -138,7 +138,10 @@ export function StaffApp() {
         <SupplierQueue rows={suppliers} onChange={() => void refreshQueues(me)} />
       ) : null}
       {tab === 'buyers' ? (
-        <BuyerQueue rows={buyers} onChange={() => void refreshQueues(me)} />
+        <>
+          <FinishedGoodsSyncPanel />
+          <BuyerQueue rows={buyers} onChange={() => void refreshQueues(me)} />
+        </>
       ) : null}
       {tab === 'exports' ? <ExportPanel /> : null}
     </div>
@@ -223,6 +226,55 @@ function SupplierQueue({
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+function FinishedGoodsSyncPanel() {
+  const [count, setCount] = useState<number | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    void staffApi
+      .finishedGoodsCount()
+      .then(setCount)
+      .catch(() => setCount(null))
+  }, [])
+
+  async function sync() {
+    setBusy(true)
+    setError(null)
+    setMessage(null)
+    try {
+      const result = await staffApi.syncFinishedGoods()
+      setMessage(
+        `${result.message} Upserted ${result.rowsUpserted}, deactivated ${result.rowsDeactivated}.`,
+      )
+      setCount(await staffApi.finishedGoodsCount())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sync failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="staff-section staff-card" style={{ marginBottom: 16 }}>
+      <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>Finished goods catalogue</h2>
+      <p className="staff-lede">
+        Buyer “I want to buy” searches this flat list. Sync pulls active products from pharma-erp
+        MySQL ({`pharmadb.products`}). Enable JDBC in portal env first.
+      </p>
+      <p className="staff-meta">
+        Active rows: {count === null ? '—' : count}
+      </p>
+      {error ? <p className="staff-error">{error}</p> : null}
+      {message ? <p className="staff-lede">{message}</p> : null}
+      <button type="button" disabled={busy} onClick={() => void sync()}>
+        {busy ? 'Syncing…' : 'Sync finished goods from pharma-erp'}
+      </button>
     </section>
   )
 }

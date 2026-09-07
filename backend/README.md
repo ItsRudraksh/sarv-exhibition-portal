@@ -6,7 +6,45 @@ Java 17 + Spring Boot 3.5 + **MySQL 8** + Flyway. Draft and submit API for the v
 
 `mvn test` uses **embedded MariaDB** (mariaDB4j). Docker is not required.
 
-For `mvn spring-boot:run` or `.\run.ps1`, use **native MySQL 8** on `localhost:3306` (database `exhibition_portal`, user `exhibition`). See `deploy/windows/init-mysql.sql`.
+For `mvn spring-boot:run` or `.\run.ps1`, use **native MySQL 8** on `localhost:3306` (database `exhibition_portal`, user `exhibition` / password `exhibition`). See `deploy/windows/init-mysql.sql`.
+
+If Flyway reports **failed migration to version 1**, do not run `repair` on a half-created local schema. Drop the empty local tables and start again so V1–V7 (including seed) re-apply:
+
+```powershell
+$mysql = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
+& $mysql -u exhibition -p exhibition_portal
+```
+
+Then in `mysql`:
+
+```sql
+SET FOREIGN_KEY_CHECKS = 0;
+SET GROUP_CONCAT_MAX_LEN = 1000000;
+SELECT GROUP_CONCAT(CONCAT('`', table_name, '`')) INTO @tables
+FROM information_schema.tables WHERE table_schema = 'exhibition_portal';
+SET @sql = IF(@tables IS NULL, 'SELECT 1', CONCAT('DROP TABLE IF EXISTS ', @tables));
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+`'exhibition'@'127.0.0.1'` is optional for local `.\run.ps1` (`localhost` is enough). Create it only if `ALTER USER` error 1396 appears; `CREATE USER IF NOT EXISTS` first.
+
+## Configuration
+
+All tunable settings live in properties files (YAML removed to keep one source of truth):
+
+| File | When used |
+|------|-----------|
+| `src/main/resources/application.properties` | Local / default |
+| `src/main/resources/application-prod.properties` | `spring.profiles.active=prod` |
+| `src/main/resources/application-ci.properties` | CI profile |
+| `src/test/resources/application-test.properties` | `@ActiveProfiles("test")` — outbox stubs for `mvn test` |
+
+Do **not** put a second `application.properties` under `src/test/resources/` — on the test classpath it replaces the main file (same resource name). Use `application-test.properties` instead.
+
+Override any key with the matching environment variable (`DATASOURCE_*`, `EXHIBITION_*`, `SERVER_PORT`). Host example: `deploy/windows/portal.env.example.ps1`.
+
+Notable keys: `exhibition.poc`, `exhibition.cors-origins`, `exhibition.storage-root`, file size caps, outbox destinations, `exhibition.staff-bootstrap-password`, and `exhibition.pharma-erp.*` (buyer finished-goods DB sync).
 
 ## Start
 

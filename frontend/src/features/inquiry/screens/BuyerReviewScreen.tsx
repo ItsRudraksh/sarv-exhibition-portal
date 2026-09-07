@@ -15,7 +15,12 @@ export interface BuyerReviewScreenProps {
 function formatSpecs(draft: InquiryJourney['draft']): string {
   const s = draft.buyer.specifications
   const parts: string[] = []
-  if (s.quantity) parts.push(`Quantity: ${s.quantity}`)
+  for (const row of draft.buyer.finishedGoods) {
+    const label = row.name?.trim() || 'Selected product'
+    if (row.quantity.trim()) {
+      parts.push(`${label}: ${row.quantity}`)
+    }
+  }
   if (s.packSize) parts.push(`Pack size: ${s.packSize}`)
   if (s.standard) parts.push(`Standard: ${s.standard}`)
   if (s.neededByDate) parts.push(`Needed by: ${s.neededByDate}`)

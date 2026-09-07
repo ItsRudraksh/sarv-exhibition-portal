@@ -49,7 +49,7 @@ sarv-exhibition-portal/
   backend/               # Spring Boot module (POC)
     pom.xml
     src/main/java/com/sarv/exhibitionportal/
-    src/main/resources/application.yml
+    src/main/resources/application.properties
     src/main/resources/db/migration/   # Flyway V1+
     src/test/java/
   Jenkinsfile             # Checkout, npm, mvn (Java17/Maven3), Windows service deploy
@@ -120,7 +120,7 @@ Visitor uploads are scoped to the draft id (no visitor login). Bytes go to a **l
 | `POST` | `/api/v1/inquiries/{id}/consents` | Append-only consent event |
 | `GET` | `/api/v1/inquiries/{id}/consents` | List consent events, latest first |
 
-Allowlist: JPEG/PNG/WebP for cards; those plus PDF for catalogue. Size caps in `application.yml`. Magic-byte check after write; **REJECTED** files stay on disk and in `file_assets` (not served). This is **not** an antivirus product.
+Allowlist: JPEG/PNG/WebP for cards; those plus PDF for catalogue. Size caps in `application.properties`. Magic-byte check after write; **REJECTED** files stay on disk and in `file_assets` (not served). This is **not** an antivirus product.
 
 Consent: `BUSINESS_CARD_EXTRACTION` granted on card upload, declined on continue-without-a-card. **Latest row wins**; never UPDATE a prior row. Location grant is rejected — GPS and raw IP are not collected.
 
@@ -230,7 +230,13 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 
 ---
 
-**Chat-independent reference — Buyer FG source (2026-09-06):** Buyer picks a **flat multi-select list** of Sarv finished goods from pharma-erp (`OUTPUT_PRODUCTS` / product catalog). Sync = **weekly DB sync** (pharma-erp MySQL → exhibition portal upsert); **manual first**, **cron** later. Not CSV/file. Seller path stays departments/product types. Sync job and target tables not implemented yet.
+**Chat-independent reference — Buyer FG per-item qty (2026-09-07):** Flyway V9 adds `purchase_inquiry_finished_goods.quantity_text`. API `buyer.finishedGoods[]` is `{ finishedGoodId, quantity }` (replaces `finishedGoodIds`). Each selected FG requires quantity (client + `InquiryRules`). UI: name-only list with strong selected highlight + per-item qty fields.
+
+**Chat-independent reference — application.properties (2026-09-07):** Backend config is `.properties` only (`application.properties`, `application-prod.properties`, `application-ci.properties`). YAML removed so env/`exhibition.*` keys have one source of truth. Tests use `@ActiveProfiles("test")` + `application-test.properties` (never a test `application.properties`, which would shadow main). See `backend/README.md` § Configuration.
+
+**Chat-independent reference — Buyer FG sync (2026-09-07):** Flyway V8 `finished_goods` + `purchase_inquiry_finished_goods`. `GET /api/v1/finished-goods?q=` for visitor buy path. Staff `POST /api/v1/staff/finished-goods/sync` reads `pharmadb.products` (active). Config: `exhibition.pharma-erp.*`. UI: BuyerNeedScreen flat multi-select; Staff Buyers tab sync panel. Tests: `FinishedGoodsApiTest`.
+
+**Chat-independent reference — Buyer FG source (2026-09-06):** Buyer picks a **flat multi-select list** of Sarv finished goods from pharma-erp (`OUTPUT_PRODUCTS` / product catalog). Sync = **weekly DB sync** (pharma-erp MySQL → exhibition portal upsert); **manual first**, **cron** later. Not CSV/file. Seller path stays departments/product types.
 
 **Chat-independent reference — Phase 8 (2026-09-05):** ProductionStartupGuard; `GET /api/v1/meta`; reference prefix `EP-` in prod; purchase-lead **xlsx** export; visitor UI hides prototype banners when `poc=false`. Tests: `ProductionStartupGuardTest`, `MetaApiTest`; export assertions updated in `StaffReviewApiTest`.
 
@@ -255,3 +261,7 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 **Chat-independent reference — mysql not on PATH / wrong cwd (2026-09-03):** `C:\exhibition-portal-staging` is the install dir (JAR + env), not the repo. `mysql` is not on PATH; use `C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe`. `.\deploy\windows\deploy.ps1` does not exist there and must not be run for staging (it targets production `C:\exhibition-portal`). Run `init-mysql.sql` from a git clone or Jenkins workspace. Jenkins now also copies `init-mysql.sql` into the install dir.
 
 **Chat-independent reference — staging verify script (2026-09-03):** Jenkins `50e6cb6d` copied JAR, pinned port 8082, installed service `exhibition-portal-staging`, then failed because `portal.env.ps1` still contains `change-me-db` / `change-me-staff`. Host check: `deploy/windows/verify-staging.ps1` (Jenkins copies it to the install dir). Does not print secrets.
+
+**Chat-independent reference — local Flyway failed V1 (2026-09-07):** After creating MySQL user `exhibition`, a first `.\run.ps1` can still fail if `exhibition_portal` already has tables but `flyway_schema_history` has `success=0` for V1 (tables existed; CREATE TABLE aborted in ~14ms). **Do not `flyway repair` that local state** — V2/V7 seed never applied, and later CREATE TABLE versions would collide. Drop empty local tables, then re-run so Flyway applies V1–V7. SQL: `backend/README.md`. `'exhibition'@'127.0.0.1'` is optional for `localhost` JDBC.
+
+**Chat-independent reference — same-Wi-Fi phone (2026-09-07):** Local visitor UI is Vite HTTPS on **0.0.0.0:5173** (`npm run dev`). Phone uses the printed **Network** URL (`https://<lan-ip>:5173/?c=POC-STALL-1`). Firewall: elevated `scripts/allow-vite-lan.ps1` (TCP 5173/4173 Private+Public). Home Wi‑Fi is often **Public**; that rule is required. `/api` is proxied to `localhost:8080`, so the phone does not need 8080. Default CORS uses `https://192.168.*.*:5173` / `https://10.*.*.*:5173` instead of a hard-coded DHCP IP. Do not expose 5173 on the public host.
