@@ -125,10 +125,35 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + ", WinSW logs under " + \$installDir + " (*.out.log / *.err.log), and that no orphan java still holds the port.")
                     exit 1
                 }
-                Start-Sleep -Seconds 8
-                \$svc2 = Get-Service -Name \$service -ErrorAction SilentlyContinue
-                if (-not \$svc2 -or \$svc2.Status -ne 'Running') {
-                    Write-Host ("Service \$service is not Running after start (Status=" + \$(if (\$svc2) { \$svc2.Status } else { 'missing' }) + "). Dumping WinSW logs:")
+
+                # Spring Boot + Flyway often needs 20-40s; ApplicationRunner failures exit AFTER Tomcat is up.
+                # A short check marks the pipeline green while the service is already Stopped.
+                \$healthUrl = if (\$kind -eq 'staging') { "http://127.0.0.1:\$stagingPort/actuator/health" } else { 'http://127.0.0.1/actuator/health' }
+                \$ok = \$false
+                for (\$i = 1; \$i -le 24; \$i++) {
+                    Start-Sleep -Seconds 5
+                    \$svc2 = Get-Service -Name \$service -ErrorAction SilentlyContinue
+                    \$status = if (\$svc2) { \$svc2.Status.ToString() } else { 'missing' }
+                    if (\$status -ne 'Running') {
+                        Write-Host ("startup wait {0}: service Status={1}" -f \$i, \$status)
+                        break
+                    }
+                    try {
+                        \$r = Invoke-WebRequest -Uri \$healthUrl -UseBasicParsing -TimeoutSec 5
+                        if (\$r.StatusCode -eq 200) {
+                            Write-Host ("Actuator HTTP 200 at {0} after {1}s" -f \$healthUrl, (\$i * 5))
+                            Write-Host \$r.Content
+                            \$ok = \$true
+                            break
+                        }
+                        Write-Host ("startup wait {0}: service Running, HTTP {1}" -f \$i, \$r.StatusCode)
+                    } catch {
+                        Write-Host ("startup wait {0}: service Running, not ready yet ({1})" -f \$i, \$_.Exception.Message)
+                    }
+                }
+                if (-not \$ok) {
+                    \$svc2 = Get-Service -Name \$service -ErrorAction SilentlyContinue
+                    Write-Host ("Deploy verification FAILED. service Status={0} url={1}" -f \$(if (\$svc2) { \$svc2.Status } else { 'missing' }), \$healthUrl)
                     foreach (\$name in @(
                         (\$service + '.err.log'),
                         (\$service + '.out.log'),
@@ -137,17 +162,20 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     )) {
                         \$p = Join-Path \$installDir \$name
                         if (Test-Path -LiteralPath \$p) {
-                            Write-Host ("==== last 80 lines: " + \$p + " ====")
-                            Get-Content -LiteralPath \$p -Tail 80 -ErrorAction SilentlyContinue
+                            Write-Host ("==== last 100 lines: " + \$p + " ====")
+                            Get-Content -LiteralPath \$p -Tail 100 -ErrorAction SilentlyContinue
                         } else {
                             Write-Host ("(missing log) " + \$p)
                         }
                     }
-                    Write-Error ("Service \$service exited immediately after net start. Usually java not found or Spring Boot failed — see logs above. Set JAVA_HOME in portal.env.ps1 if needed.")
+                    Write-Host "==== WinSW XML executable / env names (values redacted) ===="
+                    \$xmlPath = Join-Path \$installDir (\$service + '.xml')
+                    if (Test-Path -LiteralPath \$xmlPath) {
+                        Select-String -Path \$xmlPath -Pattern 'executable|env name=' | ForEach-Object { \$_.Line.Trim() }
+                    }
+                    Write-Error ("Staging/production process did not stay healthy. See WinSW logs above (DB password, Flyway, ProductionStartupGuard, port bind).")
                     exit 1
                 }
-                Write-Host "Waiting for startup..."
-                Start-Sleep -Seconds 20
             """
 }
 

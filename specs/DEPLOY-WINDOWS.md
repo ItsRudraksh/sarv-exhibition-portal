@@ -114,6 +114,22 @@ net start exhibition-portal
 
 Local run without Jenkins: `backend\run.ps1` (port 8080, needs MySQL 3306, user `exhibition` / `exhibition`). `mvn test` uses embedded MariaDB (mariaDB4j); no Docker. If Flyway reports a failed V1 on an empty local DB, drop the leftover tables and re-run — see `backend/README.md`. Do not `flyway repair` that state.
 
+### Flyway failed V1 on staging (WinSW crash loop)
+
+If `exhibition-portal-staging.err.log` shows `Detected failed migration to version 1 (poc core schema)`, Java exits and WinSW restarts every few seconds. **Stop the service first.** Staging with no valuable data — drop and recreate the DB (same advice as local; do **not** `flyway repair`):
+
+```powershell
+net stop exhibition-portal-staging
+$mysql = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
+# As root (or any admin MySQL user):
+& $mysql -u root -p -e "DROP DATABASE IF EXISTS exhibition_portal; CREATE DATABASE exhibition_portal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON exhibition_portal.* TO 'exhibition'@'localhost'; GRANT ALL PRIVILEGES ON exhibition_portal.* TO 'exhibition'@'127.0.0.1'; FLUSH PRIVILEGES;"
+net start exhibition-portal-staging
+Start-Sleep -Seconds 25
+Invoke-WebRequest http://127.0.0.1:8082/actuator/health -UseBasicParsing
+```
+
+Do not paste `portal.env.ps1` / WinSW XML password lines into chat.
+
 ## Jenkins (copy of pharma-erp flow)
 
 Root **`Jenkinsfile`**. One agent: **Checkout → Frontend (npm) → Maven → Deploy**.

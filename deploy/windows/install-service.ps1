@@ -129,7 +129,13 @@ Then re-run install-service.ps1 -Staging
 }
 Write-Host "WinSW will run: $javaExe -jar $jar"
 
-# Required / common Spring env vars from portal.env.ps1
+# Ensure storage root exists (java-direct no longer goes through start-portal.ps1 mkdir)
+$storageRoot = $null
+if ($envMap.ContainsKey('EXHIBITION_STORAGE_ROOT')) { $storageRoot = $envMap['EXHIBITION_STORAGE_ROOT'] }
+if ($storageRoot) {
+    New-Item -ItemType Directory -Force -Path $storageRoot | Out-Null
+    Write-Host "Storage root: $storageRoot"
+}
 $envKeys = @(
     'SPRING_PROFILES_ACTIVE',
     'SERVER_PORT',
