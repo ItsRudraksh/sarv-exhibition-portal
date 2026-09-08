@@ -99,6 +99,42 @@ cd C:\path\to\sarv-exhibition-portal
 
 Or skip the manual `install-service.ps1` and rebuild `exibit-portal-pipeline_poc` after passwords are set (Jenkins installs the service if missing).
 
+### 2b. Buyer finished goods on staging (empty buy list)
+
+Git being clean/pushed does **not** copy the local `finished_goods` snapshot. Staging `GET /api/v1/finished-goods` is `[]` until Staff syncs from pharma-erp. The visitor copy *“No finished goods loaded yet…”* is that empty snapshot, not a missing frontend deploy.
+
+Staging uses profile **`prod`**, where `exhibition.pharma-erp.enabled` defaults to **false**. Local `.\run.ps1` defaults to **true**. WinSW reads env from `exhibition-portal-staging.xml`, not from `portal.env.ps1` at runtime.
+
+On the Windows Server:
+
+```powershell
+notepad C:\exhibition-portal-staging\portal.env.ps1
+```
+
+Uncomment and set (same MySQL as pharma-erp on this host, typically `pharmadb` on 3306). Do not paste the password into chat:
+
+```powershell
+$env:EXHIBITION_PHARMA_ERP_ENABLED = 'true'
+$env:EXHIBITION_PHARMA_ERP_JDBC_URL = 'jdbc:mysql://127.0.0.1:3306/pharmadb?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8'
+$env:EXHIBITION_PHARMA_ERP_USERNAME = 'botuser'   # or the host's read user
+$env:EXHIBITION_PHARMA_ERP_PASSWORD = 'the-pharma-db-password'
+$env:EXHIBITION_PHARMA_ERP_SCHEDULE = 'false'
+```
+
+Then bake env into WinSW and restart (from the **git clone**, not `C:\exhibition-portal-staging`):
+
+```powershell
+cd C:\path\to\sarv-exhibition-portal
+.\deploy\windows\install-service.ps1 -Staging
+net start exhibition-portal-staging
+```
+
+Or rebuild Jenkins job `exibit-portal-pipeline_poc` after saving `portal.env.ps1`.
+
+Then open `http://43.225.195.200:8082/staff` → Buyers → **Sync finished goods from pharma-erp**. Reload the visitor buy screen. Confirm: `http://43.225.195.200:8082/api/v1/finished-goods` is a non-empty JSON array.
+
+Host check (no secrets printed): `.\deploy\windows\verify-staging.ps1`.
+
 ### 3. Production only (`main` / `C:\exhibition-portal`)
 
 Elevated, **from the repo**, not from the staging folder:

@@ -114,6 +114,7 @@ $dbUser = $null
 $url = $null
 $dbPass = $null
 $staffPass = $null
+$pharmaEnabled = $null
 if (Test-Path -LiteralPath $envFile) {
     $raw = Get-Content -LiteralPath $envFile -Raw
     $portValue = Get-EnvAssignment $raw 'SERVER_PORT'
@@ -157,6 +158,29 @@ if (Test-Path -LiteralPath $envFile) {
     } else {
         Write-Check OK ("EXHIBITION_STAFF_BOOTSTRAP_PASSWORD is set (length {0}, not printed)" -f $staffPass.Length)
     }
+
+    $pharmaEnabled = Get-EnvAssignment $raw 'EXHIBITION_PHARMA_ERP_ENABLED'
+    $pharmaUrl = Get-EnvAssignment $raw 'EXHIBITION_PHARMA_ERP_JDBC_URL'
+    $pharmaUser = Get-EnvAssignment $raw 'EXHIBITION_PHARMA_ERP_USERNAME'
+    $pharmaPass = Get-EnvAssignment $raw 'EXHIBITION_PHARMA_ERP_PASSWORD'
+    if ($pharmaEnabled -eq 'true') {
+        Write-Check OK 'EXHIBITION_PHARMA_ERP_ENABLED=true'
+        if ([string]::IsNullOrWhiteSpace($pharmaUrl) -or $pharmaUrl -notmatch 'pharmadb') {
+            Write-Check WARN 'EXHIBITION_PHARMA_ERP_JDBC_URL missing or not pharmadb'
+        } else {
+            Write-Check OK 'EXHIBITION_PHARMA_ERP_JDBC_URL points at pharmadb (password not printed)'
+        }
+        if ([string]::IsNullOrWhiteSpace($pharmaUser)) {
+            Write-Check WARN 'EXHIBITION_PHARMA_ERP_USERNAME missing'
+        }
+        if ([string]::IsNullOrWhiteSpace($pharmaPass)) {
+            Write-Check WARN 'EXHIBITION_PHARMA_ERP_PASSWORD empty — Staff sync will fail'
+        } else {
+            Write-Check OK ("EXHIBITION_PHARMA_ERP_PASSWORD is set (length {0}, not printed)" -f $pharmaPass.Length)
+        }
+    } else {
+        Write-Check WARN 'EXHIBITION_PHARMA_ERP_ENABLED is not true. Prod default is false, so GET /api/v1/finished-goods stays []. Uncomment EXHIBITION_PHARMA_ERP_* in portal.env.ps1, re-run install-service.ps1 -Staging, restart, then Staff → Sync finished goods. Git does not copy local MySQL catalogue rows.'
+    }
 }
 
 $svc = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
@@ -172,6 +196,13 @@ if ($svc) {
                 Write-Check OK 'WinSW XML runs java.exe directly'
             } elseif ($xmlRaw -match 'powershell') {
                 Write-Check FAIL 'WinSW XML still wraps powershell (service often Stops immediately). Rebuild with java-direct install-service.ps1'
+            }
+            if ($pharmaEnabled -eq 'true') {
+                if ($xmlRaw -match 'EXHIBITION_PHARMA_ERP_ENABLED') {
+                    Write-Check OK 'WinSW XML includes EXHIBITION_PHARMA_ERP_ENABLED'
+                } else {
+                    Write-Check FAIL 'portal.env.ps1 has pharma-erp enabled but WinSW XML does not. Java reads WinSW env, not the ps1 at runtime. Re-run install-service.ps1 -Staging then net start.'
+                }
             }
         }
     } elseif ($pathName -and ($pathName -like '*powershell*start-portal.ps1*')) {
@@ -266,6 +297,19 @@ try {
     Write-Check OK ("Health $healthUrl HTTP $($r.StatusCode) $($r.Content)")
 } catch {
     Write-Check INFO ("Health $healthUrl not up: $($_.Exception.Message)")
+}
+
+$fgUrl = "http://127.0.0.1:$ExpectPort/api/v1/finished-goods"
+try {
+    $fg = Invoke-RestMethod -Uri $fgUrl -TimeoutSec 5
+    $n = @($fg).Count
+    if ($n -gt 0) {
+        Write-Check OK ("GET finished-goods returned {0} active row(s)" -f $n)
+    } else {
+        Write-Check INFO 'GET finished-goods returned []. Buy list stays empty until Staff → Sync finished goods (after EXHIBITION_PHARMA_ERP_* is in WinSW). Git push does not copy local catalogue rows.'
+    }
+} catch {
+    Write-Check INFO ("GET finished-goods not reachable: $($_.Exception.Message)")
 }
 
 Write-Host ''
