@@ -42,7 +42,7 @@ All tunable settings live in properties files (YAML removed to keep one source o
 
 Do **not** put a second `application.properties` under `src/test/resources/` — on the test classpath it replaces the main file (same resource name). Use `application-test.properties` instead.
 
-Override any key with the matching environment variable (`DATASOURCE_*`, `EXHIBITION_*`, `SERVER_PORT`). Host example: `deploy/windows/portal.env.example.ps1`.
+Override any key with the matching environment variable (`DATASOURCE_*`, `EXHIBITION_*`, `SERVER_PORT`). Host example: `deploy/windows/portal.env.example.ps1`. On Windows service, Java also loads `portal.env.ps1` from the install working directory on boot (so JDBC flags do not stay stuck in a stale WinSW XML). When `exhibition.pharma-erp.enabled=true`, boot auto-syncs finished goods from `pharmadb`.
 
 Notable keys: `exhibition.poc`, `exhibition.cors-origins`, `exhibition.storage-root`, file size caps, outbox destinations, `exhibition.staff-bootstrap-password`, and `exhibition.pharma-erp.*` (buyer finished-goods DB sync).
 

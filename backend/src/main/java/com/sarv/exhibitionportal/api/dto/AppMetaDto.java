@@ -3,5 +3,7 @@ package com.sarv.exhibitionportal.api.dto;
 public record AppMetaDto(
         boolean poc,
         String referencePrefix,
-        String stage
+        String stage,
+        boolean pharmaErpEnabled,
+        int finishedGoodsActive
 ) {}

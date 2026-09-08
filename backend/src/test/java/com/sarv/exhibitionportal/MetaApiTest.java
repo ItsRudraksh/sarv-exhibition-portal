@@ -25,6 +25,8 @@ class MetaApiTest extends MysqlSpringBootTest {
         assertThat(response.getBody().poc()).isTrue();
         assertThat(response.getBody().referencePrefix()).isEqualTo("POC-");
         assertThat(response.getBody().stage()).isEqualTo("development");
+        assertThat(response.getBody().pharmaErpEnabled()).isFalse();
+        assertThat(response.getBody().finishedGoodsActive()).isGreaterThanOrEqualTo(0);
     }
 
     @Test

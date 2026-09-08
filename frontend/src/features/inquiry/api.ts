@@ -25,6 +25,8 @@ export interface AppMeta {
   poc: boolean
   referencePrefix: string
   stage: string
+  pharmaErpEnabled?: boolean
+  finishedGoodsActive?: number
 }
 
 export interface StoredFileAsset {

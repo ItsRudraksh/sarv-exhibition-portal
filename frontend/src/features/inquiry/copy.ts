@@ -107,7 +107,7 @@ export const copy = {
     searchAreas: 'Search finished goods (optional)',
     searchPlaceholder: 'Search Sarv finished goods…',
     catalogueEmpty:
-      'No finished goods loaded yet. After setting exhibition.pharma-erp.* and restarting the API, stall staff must run Staff → Sync finished goods.',
+      'No finished goods loaded on this server yet. Stall staff: open /staff → Buyers → Sync finished goods (after pharma-erp JDBC is enabled). Git does not copy the local catalogue.',
     selectedGoods: 'Selected finished goods (quantity required)',
     selectedBadge: 'Selected',
     removeGood: 'Remove',

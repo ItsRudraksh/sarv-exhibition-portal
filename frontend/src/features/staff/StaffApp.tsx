@@ -117,6 +117,7 @@ export function StaffApp() {
           Sign out
         </button>
       </header>
+      {me.roles.includes('ADMIN') || me.roles.includes('MARKETING') ? <FinishedGoodsSyncPanel /> : null}
       <nav className="staff-tabs">
         {me.roles.includes('ADMIN') || me.roles.includes('SUPPLIER_REVIEWER') ? (
           <button type="button" className={tab === 'suppliers' ? 'is-active' : ''} onClick={() => setTab('suppliers')}>
@@ -138,10 +139,7 @@ export function StaffApp() {
         <SupplierQueue rows={suppliers} onChange={() => void refreshQueues(me)} />
       ) : null}
       {tab === 'buyers' ? (
-        <>
-          <FinishedGoodsSyncPanel />
-          <BuyerQueue rows={buyers} onChange={() => void refreshQueues(me)} />
-        </>
+        <BuyerQueue rows={buyers} onChange={() => void refreshQueues(me)} />
       ) : null}
       {tab === 'exports' ? <ExportPanel /> : null}
     </div>

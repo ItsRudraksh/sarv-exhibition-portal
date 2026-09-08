@@ -101,39 +101,25 @@ Or skip the manual `install-service.ps1` and rebuild `exibit-portal-pipeline_poc
 
 ### 2b. Buyer finished goods on staging (empty buy list)
 
-Git being clean/pushed does **not** copy the local `finished_goods` snapshot. Staging `GET /api/v1/finished-goods` is `[]` until Staff syncs from pharma-erp. The visitor copy *“No finished goods loaded yet…”* is that empty snapshot, not a missing frontend deploy.
+Git being clean/pushed does **not** copy the local `finished_goods` snapshot. Staging `GET /api/v1/finished-goods` is `[]` until this host pulls `pharmadb`. Profile **`prod`** defaults `exhibition.pharma-erp.enabled=false`. Diagnose without secrets: `http://43.225.195.200:8082/api/v1/meta` (`pharmaErpEnabled`, `finishedGoodsActive`).
 
-Staging uses profile **`prod`**, where `exhibition.pharma-erp.enabled` defaults to **false**. Local `.\run.ps1` defaults to **true**. WinSW reads env from `exhibition-portal-staging.xml`, not from `portal.env.ps1` at runtime.
-
-On the Windows Server:
-
-```powershell
-notepad C:\exhibition-portal-staging\portal.env.ps1
-```
-
-Uncomment and set (same MySQL as pharma-erp on this host, typically `pharmadb` on 3306). Do not paste the password into chat:
+On the Windows Server, uncomment in `C:\exhibition-portal-staging\portal.env.ps1` (do not paste the password into chat):
 
 ```powershell
 $env:EXHIBITION_PHARMA_ERP_ENABLED = 'true'
 $env:EXHIBITION_PHARMA_ERP_JDBC_URL = 'jdbc:mysql://127.0.0.1:3306/pharmadb?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8'
-$env:EXHIBITION_PHARMA_ERP_USERNAME = 'botuser'   # or the host's read user
+$env:EXHIBITION_PHARMA_ERP_USERNAME = 'botuser'
 $env:EXHIBITION_PHARMA_ERP_PASSWORD = 'the-pharma-db-password'
 $env:EXHIBITION_PHARMA_ERP_SCHEDULE = 'false'
 ```
 
-Then bake env into WinSW and restart (from the **git clone**, not `C:\exhibition-portal-staging`):
+Then **rebuild `exibit-portal-pipeline_poc`** so the JAR that reads `portal.env.ps1` on boot is installed. After that JAR is live, `net stop` / `net start exhibition-portal-staging` is enough — Java loads the ps1 from `%BASE%` and auto-syncs on startup when enabled. Staff **Sync finished goods** is also on `/staff` immediately after sign-in (ADMIN / MARKETING), not only the Buyers tab.
 
-```powershell
-cd C:\path\to\sarv-exhibition-portal
-.\deploy\windows\install-service.ps1 -Staging
-net start exhibition-portal-staging
-```
+Until that Jenkins deploy, WinSW XML is stale unless you re-run `.\deploy\windows\install-service.ps1 -Staging` from the git clone.
 
-Or rebuild Jenkins job `exibit-portal-pipeline_poc` after saving `portal.env.ps1`.
+Confirm: `finishedGoodsActive` > 0 on `/api/v1/meta` and `/api/v1/finished-goods` is a non-empty array.
 
-Then open `http://43.225.195.200:8082/staff` → Buyers → **Sync finished goods from pharma-erp**. Reload the visitor buy screen. Confirm: `http://43.225.195.200:8082/api/v1/finished-goods` is a non-empty JSON array.
-
-Host check (no secrets printed): `.\deploy\windows\verify-staging.ps1`.
+Host check: `.\deploy\windows\verify-staging.ps1`.
 
 ### 3. Production only (`main` / `C:\exhibition-portal`)
 
