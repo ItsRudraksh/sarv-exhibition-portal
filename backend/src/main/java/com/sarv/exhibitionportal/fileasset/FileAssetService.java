@@ -62,6 +62,9 @@ public class FileAssetService {
         if ("BUSINESS_CARD".equals(resolvedPurpose) && side != null && !"front".equals(side) && !"back".equals(side)) {
             throw new InquiryValidationException("Card side must be front or back.");
         }
+        if (isSupporting(resolvedPurpose) && files.countSupporting(inquiryId) >= properties.attachmentMaxCount()) {
+            throw new InquiryValidationException("You can attach up to " + properties.attachmentMaxCount() + " files.");
+        }
         byte[] bytes;
         try {
             bytes = file.getBytes();
@@ -126,9 +129,12 @@ public class FileAssetService {
             // Same transaction so consent is visible; scan soft-fails to COMPLETED/empty rather than
             // rolling back the upload.
             extractions.runCardScan(inquiryId, assetId);
-        } else {
+        } else if ("CATALOGUE_ORIGINAL".equals(resolvedPurpose)) {
             files.markBundle(bundleId, "READY", null);
             files.attachCatalogue(inquiryId, bundleId, assetId, filename, declared, bytes.length);
+        } else if ("INQUIRY_ATTACHMENT".equals(resolvedPurpose) && "SUPPLIER".equals(draft.route())) {
+            files.ensureSupplierInquiry(inquiryId);
+            files.attachPrimaryCatalogueIfAbsent(inquiryId, assetId, filename, declared, bytes.length);
         }
         audits.record(inquiryId, "FILE_ASSET", assetId, "FILE_UPLOADED", Map.of(
                 "purpose", resolvedPurpose,
@@ -137,11 +143,29 @@ public class FileAssetService {
         return files.toDto(files.find(inquiryId, assetId).orElseThrow());
     }
 
+    @Transactional
+    public void removeSupporting(UUID inquiryId, UUID assetId) {
+        var draft = inquiries.findDraft(inquiryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inquiry not found"));
+        if ("SUBMITTED".equals(draft.lifecycleState())) {
+            throw new InquiryValidationException("Submitted inquiries cannot be changed.");
+        }
+        var row = files.find(inquiryId, assetId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+        if (!isSupporting(row.purpose()) || "PURGED".equals(row.processingState())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
+        }
+        files.markPurged(inquiryId, assetId);
+        audits.record(inquiryId, "FILE_ASSET", assetId, "FILE_REMOVED", Map.of(
+                "purpose", row.purpose()
+        ));
+    }
+
     @Transactional(readOnly = true)
     public StoredFile download(UUID inquiryId, UUID assetId) {
         var row = files.find(inquiryId, assetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
-        if (!"CLEAN".equals(row.securityScanState())) {
+        if (!"CLEAN".equals(row.securityScanState()) || "PURGED".equals(row.processingState())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
         }
         try {
@@ -154,12 +178,19 @@ public class FileAssetService {
 
     public record StoredFile(String filename, String mediaType, byte[] bytes) {}
 
+    private static boolean isSupporting(String purpose) {
+        return "CATALOGUE_ORIGINAL".equals(purpose) || "INQUIRY_ATTACHMENT".equals(purpose);
+    }
+
     private static String resolvePurpose(String purpose) {
         if (purpose == null || purpose.isBlank() || "BUSINESS_CARD".equals(purpose)) {
             return "BUSINESS_CARD";
         }
         if ("CATALOGUE_ORIGINAL".equals(purpose) || "CATALOGUE".equals(purpose)) {
             return "CATALOGUE_ORIGINAL";
+        }
+        if ("INQUIRY_ATTACHMENT".equals(purpose) || "ATTACHMENT".equals(purpose)) {
+            return "INQUIRY_ATTACHMENT";
         }
         throw new InquiryValidationException("Unsupported file purpose.");
     }

@@ -74,7 +74,7 @@ class TaxonomyApiTest extends MysqlSpringBootTest {
                 created.id(), "DRAFT", "supplier-review", "SUPPLIER", "EXHIBITION_QR",
                 null, null, null,
                 new ContactDto("Asha Rao", "asha@example.com", "+91", "9876543210"),
-                new SupplierDto("Himalaya Intermediates", "https://supplier.example", "", "", null),
+                new SupplierDto("Himalaya Intermediates", "https://supplier.example", "", "", null, "Phyto extracts"),
                 List.of(DEPT_PHYTO),
                 List.of(TYPE_PHYTO_EXTRACTS),
                 new BuyerDto("", "", new BuyerSpecificationsDto("", "", "", "", "")),

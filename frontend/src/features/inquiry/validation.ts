@@ -36,18 +36,29 @@ export function isContactValid(contact: ContactDetails): boolean {
   return Object.keys(validateContact(contact)).length === 0
 }
 
-export function validateSupplierDepartments(departmentIds: string[]): FieldErrors {
-  if (departmentIds.length === 0) {
-    return { departments: 'Select at least one department.' }
+export function validateSupplierDepartments(
+  departmentIds: string[],
+  otherCategory: boolean,
+): FieldErrors {
+  if (departmentIds.length === 0 && !otherCategory) {
+    return { departments: 'Select at least one category, or choose Other.' }
   }
   return {}
 }
 
-export function validateSupplierProductTypes(productTypeIds: string[]): FieldErrors {
-  if (productTypeIds.length === 0) {
-    return { productTypes: 'Select at least one product type.' }
+export function validateSupplierProductTypes(
+  productTypeIds: string[],
+  otherProductType: boolean,
+  capabilityNotes: string,
+): FieldErrors {
+  const errors: FieldErrors = {}
+  if (!capabilityNotes.trim()) {
+    errors.capabilityNotes = 'Describe what you can supply.'
   }
-  return {}
+  if (productTypeIds.length === 0 && !otherProductType && !capabilityNotes.trim()) {
+    errors.productTypes = 'Select a product type, Other, or describe what you can supply.'
+  }
+  return errors
 }
 
 export function getMissingSupplierFields(supplier: SupplierDetails): string[] {
@@ -64,13 +75,18 @@ export function validateSupplierSmartDetails(supplier: SupplierDetails): FieldEr
   return errors
 }
 
+export function hasSupportingFiles(supplier: SupplierDetails): boolean {
+  if (supplier.catalogueFile !== null) return true
+  return supplier.attachments.some((file) => file.name.trim().length > 0)
+}
+
 export function validateSupplierReview(supplier: SupplierDetails): FieldErrors {
   const errors: FieldErrors = {}
   const hasWebsite = supplier.websiteUrl.trim().length > 0
-  const hasCatalogue = supplier.catalogueFile !== null
+  const hasFiles = hasSupportingFiles(supplier)
 
-  if (!hasWebsite && !hasCatalogue) {
-    errors.catalogue = 'Add a catalogue file or a website URL — at least one is required.'
+  if (!hasWebsite && !hasFiles) {
+    errors.catalogue = 'Add a supporting file or a website URL — at least one is required.'
   }
 
   if (hasWebsite) {
@@ -94,8 +110,14 @@ export function validateBuyerNeed(buyer: BuyerDetails): FieldErrors {
   }
   for (const row of buyer.finishedGoods) {
     if (!row.quantity.trim()) {
-      errors[`fgQty-${row.finishedGoodId}`] =
-        'Enter a quantity for each selected finished good.'
+      errors[`qty-PHARMA_ERP-${row.finishedGoodId}`] =
+        'Enter a quantity for each selected product.'
+    }
+  }
+  for (const row of buyer.tradingProducts) {
+    if (!row.quantity.trim()) {
+      errors[`qty-TRADING-${row.tradingProductId}`] =
+        'Enter a quantity for each selected product.'
     }
   }
   return errors
@@ -104,10 +126,10 @@ export function validateBuyerNeed(buyer: BuyerDetails): FieldErrors {
 export function isSupplierDraftComplete(draft: InquiryDraft): boolean {
   return (
     isContactValid(draft.contact) &&
-    draft.departmentIds.length > 0 &&
-    draft.productTypeIds.length > 0 &&
+    (draft.departmentIds.length > 0 || draft.supplier.otherCategory) &&
+    draft.supplier.capabilityNotes.trim().length > 0 &&
     draft.supplier.companyName.trim().length > 0 &&
-  (draft.supplier.websiteUrl.trim().length > 0 || draft.supplier.catalogueFile !== null)
+    (draft.supplier.websiteUrl.trim().length > 0 || hasSupportingFiles(draft.supplier))
   )
 }
 

@@ -38,6 +38,10 @@ export interface SupplierDetails {
   jobTitle: string
   locationFromCard: string
   catalogueFile: CardFileMeta | null
+  otherCategory: boolean
+  otherProductType: boolean
+  capabilityNotes: string
+  attachments: CardFileMeta[]
 }
 
 export type PharmacopoeialStandard = 'IP' | 'USP' | 'BP' | 'EP'
@@ -57,11 +61,19 @@ export interface BuyerFinishedGoodSelection {
   name?: string
 }
 
+export interface BuyerTradingProductSelection {
+  tradingProductId: string
+  quantity: string
+  name?: string
+}
+
 export interface BuyerDetails {
   requirement: string
   productAreaSearch: string
   finishedGoods: BuyerFinishedGoodSelection[]
+  tradingProducts: BuyerTradingProductSelection[]
   specifications: BuyerSpecifications
+  attachments: CardFileMeta[]
 }
 
 export interface InquiryDraft {
@@ -100,6 +112,9 @@ function createDraftId(): string {
   return `draft-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 }
 
+export const ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024
+export const ATTACHMENT_MAX_COUNT = 10
+
 export const createEmptyDraft = (): InquiryDraft => ({
   id: createDraftId(),
   lifecycleState: 'DRAFT',
@@ -121,6 +136,10 @@ export const createEmptyDraft = (): InquiryDraft => ({
     jobTitle: '',
     locationFromCard: '',
     catalogueFile: null,
+    otherCategory: false,
+    otherProductType: false,
+    capabilityNotes: '',
+    attachments: [],
   },
   departmentIds: [],
   productTypeIds: [],
@@ -128,6 +147,7 @@ export const createEmptyDraft = (): InquiryDraft => ({
     requirement: '',
     productAreaSearch: '',
     finishedGoods: [],
+    tradingProducts: [],
     specifications: {
       quantity: '',
       packSize: '',
@@ -135,6 +155,7 @@ export const createEmptyDraft = (): InquiryDraft => ({
       neededByDate: '',
       notes: '',
     },
+    attachments: [],
   },
   contactConfirmed: false,
   submittedAt: null,

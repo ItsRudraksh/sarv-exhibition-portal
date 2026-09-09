@@ -67,9 +67,14 @@ export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScre
           <div className="card section-gap">
             <div className="card-row">
               <div>
-                <p className="card-row-label">Departments</p>
+                <p className="card-row-label">Categories</p>
                 <p className="card-row-value">
-                  {departments.map((d) => d.name).join(', ') || '—'}
+                  {[
+                    ...departments.map((d) => d.name),
+                    draft.supplier.otherCategory ? copy.supplier.otherCategory : '',
+                  ]
+                    .filter(Boolean)
+                    .join(', ') || '—'}
                 </p>
               </div>
             </div>
@@ -77,7 +82,12 @@ export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScre
               <div>
                 <p className="card-row-label">Product types</p>
                 <p className="card-row-value">
-                  {productTypes.map((p) => p.name).join(', ') || '—'}
+                  {[
+                    ...productTypes.map((p) => p.name),
+                    draft.supplier.otherProductType ? copy.supplier.otherProductType : '',
+                  ]
+                    .filter(Boolean)
+                    .join(', ') || '—'}
                 </p>
               </div>
             </div>

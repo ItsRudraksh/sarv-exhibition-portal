@@ -10,6 +10,7 @@ import {
   FixedFooter,
   PrimaryButton,
   SearchIcon,
+  TextField,
 } from '../../../components/ui'
 
 export interface SupplierProductTypesScreenProps {
@@ -19,7 +20,7 @@ export interface SupplierProductTypesScreenProps {
 export function SupplierProductTypesScreen({ journey }: SupplierProductTypesScreenProps) {
   const { draft, updateDraft, goBack, advance } = journey
   const [search, setSearch] = useState('')
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const available = useMemo(
     () => getProductTypesForDepartments(draft.departmentIds),
@@ -37,21 +38,26 @@ export function SupplierProductTypesScreen({ journey }: SupplierProductTypesScre
       ? draft.productTypeIds.filter((x) => x !== id)
       : [...draft.productTypeIds, id]
     updateDraft({ productTypeIds: ids })
-    setError('')
+    setErrors({})
   }
 
   const handleContinue = () => {
-    const errs = validateSupplierProductTypes(draft.productTypeIds)
-    if (errs.productTypes) {
-      setError(errs.productTypes)
-      return
+    const fieldErrors = validateSupplierProductTypes(
+      draft.productTypeIds,
+      draft.supplier.otherProductType,
+      draft.supplier.capabilityNotes,
+    )
+    setErrors(fieldErrors)
+    if (Object.keys(fieldErrors).length === 0) {
+      advance()
     }
-    advance()
   }
 
-  // Prune invalid product types when departments change
   const validIds = new Set(available.map((p) => p.id))
   const effectiveSelected = draft.productTypeIds.filter((id) => validIds.has(id))
+  const canContinue =
+    draft.supplier.capabilityNotes.trim().length > 0 &&
+    (effectiveSelected.length > 0 || draft.supplier.otherProductType || draft.supplier.capabilityNotes.trim().length > 0)
 
   return (
     <div className="inquiry-app">
@@ -73,42 +79,91 @@ export function SupplierProductTypesScreen({ journey }: SupplierProductTypesScre
           <span aria-hidden>↻</span> {copy.supplier.savedSelections}
         </p>
 
-        <div className="search-input-wrap">
-          <SearchIcon />
-          <input
-            type="search"
-            placeholder="Search product types"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search product types"
+        {available.length > 0 ? (
+          <>
+            <div className="search-input-wrap">
+              <SearchIcon />
+              <input
+                type="search"
+                placeholder="Search product types"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Search product types"
+              />
+            </div>
+
+            <div className="checkbox-list" role="group" aria-label="Product types">
+              {filtered.map((pt) => (
+                <label key={pt.id} className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    checked={effectiveSelected.includes(pt.id)}
+                    onChange={() => toggle(pt.id)}
+                  />
+                  <span>{pt.name}</span>
+                </label>
+              ))}
+              <label className="checkbox-item">
+                <input
+                  type="checkbox"
+                  checked={draft.supplier.otherProductType}
+                  onChange={() =>
+                    updateDraft({
+                      supplier: {
+                        ...draft.supplier,
+                        otherProductType: !draft.supplier.otherProductType,
+                      },
+                    })
+                  }
+                />
+                <span>{copy.supplier.otherProductType}</span>
+              </label>
+            </div>
+          </>
+        ) : (
+          <div className="checkbox-list" role="group" aria-label="Product types">
+            <label className="checkbox-item">
+              <input
+                type="checkbox"
+                checked={draft.supplier.otherProductType}
+                onChange={() =>
+                  updateDraft({
+                    supplier: {
+                      ...draft.supplier,
+                      otherProductType: !draft.supplier.otherProductType,
+                    },
+                  })
+                }
+              />
+              <span>{copy.supplier.otherProductType}</span>
+            </label>
+          </div>
+        )}
+
+        <div className="section-gap" style={{ marginTop: 16 }}>
+          <TextField
+            id="capabilityNotes"
+            label={copy.supplier.capabilityLabel}
+            value={draft.supplier.capabilityNotes}
+            onChange={(v) =>
+              updateDraft({ supplier: { ...draft.supplier, capabilityNotes: v } })
+            }
+            multiline
+            required
+            error={errors.capabilityNotes}
+            hint={copy.supplier.capabilityHint}
           />
         </div>
 
-        <div className="checkbox-list" role="group" aria-label="Product types">
-          {filtered.map((pt) => (
-            <label key={pt.id} className="checkbox-item">
-              <input
-                type="checkbox"
-                checked={effectiveSelected.includes(pt.id)}
-                onChange={() => toggle(pt.id)}
-              />
-              <span>{pt.name}</span>
-            </label>
-          ))}
-        </div>
-
-        {error ? (
+        {errors.productTypes ? (
           <p className="field-error" role="alert" style={{ marginTop: 12 }}>
-            {error}
+            {errors.productTypes}
           </p>
         ) : null}
       </main>
 
       <FixedFooter note={copy.supplier.savedSelections}>
-        <PrimaryButton
-          disabled={effectiveSelected.length === 0}
-          onClick={handleContinue}
-        >
+        <PrimaryButton disabled={!canContinue} onClick={handleContinue}>
           {copy.common.continue}
         </PrimaryButton>
       </FixedFooter>

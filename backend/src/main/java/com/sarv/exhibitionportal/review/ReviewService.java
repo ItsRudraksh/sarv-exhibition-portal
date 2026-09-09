@@ -169,6 +169,7 @@ public class ReviewService {
                 row.reviewState(),
                 row.productionState(),
                 row.websiteUrl(),
+                row.capabilityNotes(),
                 row.approvedAt(),
                 row.approvedByUserId(),
                 row.companyName(),

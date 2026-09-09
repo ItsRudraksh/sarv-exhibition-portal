@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
 import {
@@ -6,6 +6,7 @@ import {
   getProductTypesByIds,
 } from '../taxonomy'
 import { validateSupplierReview, formatPhone } from '../validation'
+import { InquiryAttachments } from '../InquiryAttachments'
 import {
   AppHeader,
   FixedFooter,
@@ -19,18 +20,39 @@ export interface SupplierReviewScreenProps {
 }
 
 export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
-  const { draft, updateDraft, goBack, submit, goToStep, submitting, submitError, uploadCatalogue, apiAvailable } = journey
+  const {
+    draft,
+    updateDraft,
+    goBack,
+    submit,
+    goToStep,
+    submitting,
+    submitError,
+    uploadAttachments,
+    removeAttachment,
+    apiAvailable,
+  } = journey
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [uploading, setUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
 
   const departments = getDepartmentsByIds(draft.departmentIds)
   const productTypes = getProductTypesByIds(draft.productTypeIds)
+  const categoryValue = [
+    ...departments.map((d) => d.name),
+    draft.supplier.otherCategory ? copy.supplier.otherCategory : '',
+  ]
+    .filter(Boolean)
+    .join(', ')
+  const typeValue = [
+    ...productTypes.map((p) => p.name),
+    draft.supplier.otherProductType ? copy.supplier.otherProductType : '',
+  ]
+    .filter(Boolean)
+    .join(', ')
 
-  const handleFile = (file: File | undefined) => {
-    if (!file) return
+  const handleFiles = (list: FileList) => {
     setUploading(true)
-    void uploadCatalogue(file)
+    void uploadAttachments(list)
       .then(() => {
         setErrors((e) => {
           const next = { ...e }
@@ -80,8 +102,9 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
           title={copy.supplier.supplyCapability}
           onEdit={() => goToStep('supplier-departments')}
           rows={[
-            { label: 'Departments', value: departments.map((d) => d.name).join(', ') },
-            { label: 'Product types', value: productTypes.map((p) => p.name).join(', ') },
+            { label: 'Categories', value: categoryValue || '—' },
+            { label: 'Product types', value: typeValue || '—' },
+            { label: copy.supplier.capabilityLabel, value: draft.supplier.capabilityNotes },
           ]}
         />
 
@@ -90,42 +113,16 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
             {copy.supplier.supportingInfo}
           </h2>
           <div className="stack-gap">
-            <div className="card" style={{ padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                <div>
-                  <p style={{ margin: 0, fontWeight: 600, fontSize: '0.875rem' }}>
-                    {copy.supplier.catalogue}
-                  </p>
-                  <p className="step-label step-label--muted" style={{ marginTop: 4 }}>
-                    {copy.supplier.catalogueHint}
-                  </p>
-                  {draft.supplier.catalogueFile ? (
-                    <p style={{ margin: '8px 0 0', fontSize: '0.875rem' }}>
-                      {draft.supplier.catalogueFile.name} —{' '}
-                      {draft.supplier.catalogueFile.assetId || apiAvailable
-                        ? copy.common.uploaded
-                        : copy.common.localFileOnly}
-                    </p>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  style={{ width: 'auto', minHeight: 36, fontSize: '0.875rem' }}
-                  disabled={uploading}
-                  onClick={() => fileRef.current?.click()}
-                >
-                  {uploading ? copy.cardCapture.uploading : 'Add catalogue'}
-                </button>
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,image/*"
-                className="sr-only"
-                onChange={(e) => handleFile(e.target.files?.[0])}
-              />
-            </div>
+            <InquiryAttachments
+              title={copy.supplier.attachmentsTitle}
+              hint={copy.supplier.attachmentsHint}
+              files={draft.supplier.attachments}
+              uploading={uploading}
+              error={errors.catalogue}
+              apiAvailable={apiAvailable}
+              onAdd={handleFiles}
+              onRemove={(file) => void removeAttachment(file)}
+            />
 
             <TextField
               id="websiteUrl"
@@ -139,11 +136,6 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
               error={errors.websiteUrl}
             />
 
-            {errors.catalogue ? (
-              <p className="field-error" role="alert">
-                {errors.catalogue}
-              </p>
-            ) : null}
             {submitError ? (
               <p className="field-error" role="alert">
                 {submitError}

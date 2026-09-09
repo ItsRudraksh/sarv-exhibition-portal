@@ -13,6 +13,7 @@ public record ExhibitionProperties(
         int fileRetentionDays,
         long cardMaxBytes,
         long catalogueMaxBytes,
+        int attachmentMaxCount,
         String consentPolicyVersion,
         int exportRetentionHours,
         Outbox outbox,
@@ -26,6 +27,9 @@ public record ExhibitionProperties(
         }
         if (referencePrefix == null || referencePrefix.isBlank()) {
             referencePrefix = poc ? "POC-" : "EP-";
+        }
+        if (attachmentMaxCount <= 0) {
+            attachmentMaxCount = 10;
         }
         if (pharmaErp == null) {
             pharmaErp = new PharmaErp(false, "", "", "", false, "0 0 2 * * MON");

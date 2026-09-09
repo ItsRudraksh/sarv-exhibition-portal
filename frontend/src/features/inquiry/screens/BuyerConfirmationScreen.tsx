@@ -54,6 +54,16 @@ export function BuyerConfirmationScreen({ journey }: BuyerConfirmationScreenProp
               <p className="card-row-value">{draft.buyer.requirement}</p>
             </div>
           </div>
+          {draft.buyer.attachments.length > 0 ? (
+            <div className="card-row">
+              <div>
+                <p className="card-row-label">{copy.buyer.attachmentsTitle}</p>
+                <p className="card-row-value">
+                  {draft.buyer.attachments.map((file) => file.name).join(', ')}
+                </p>
+              </div>
+            </div>
+          ) : null}
           <div className="card-row">
             <div>
               <p className="card-row-label">Contact</p>

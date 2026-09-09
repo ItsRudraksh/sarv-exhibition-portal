@@ -1,7 +1,9 @@
 package com.sarv.exhibitionportal.fileasset;
 
+import com.sarv.exhibitionportal.api.dto.CardFileDto;
 import com.sarv.exhibitionportal.api.dto.FileAssetDto;
 import com.sarv.exhibitionportal.config.JdbcUuids;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -180,6 +182,90 @@ public class FileAssetRepository {
                 .param("type", JdbcUuids.mysql(type))
                 .param("size", JdbcUuids.mysql(size))
                 .param("id", JdbcUuids.mysql(inquiryId))
+                .update();
+    }
+
+    public void attachPrimaryCatalogueIfAbsent(UUID inquiryId, UUID assetId, String name, String type, long size) {
+        jdbc.sql("""
+                 update supplier_inquiries
+                 set catalogue_asset_id = :asset,
+                     catalogue_filename = :name,
+                     catalogue_media_type = :type,
+                     catalogue_byte_size = :size,
+                     updated_at = CURRENT_TIMESTAMP
+                 where inquiry_id = :id and catalogue_asset_id is null
+                 """)
+                .param("asset", JdbcUuids.mysql(assetId))
+                .param("name", JdbcUuids.mysql(name))
+                .param("type", JdbcUuids.mysql(type))
+                .param("size", JdbcUuids.mysql(size))
+                .param("id", JdbcUuids.mysql(inquiryId))
+                .update();
+    }
+
+    public List<FileAssetRow> listSupporting(UUID inquiryId) {
+        return jdbc.sql("""
+                        select id, inquiry_id, catalogue_bundle_id, purpose, original_filename, media_type,
+                               byte_size, sha256_digest, storage_key, security_scan_state, processing_state
+                        from file_assets
+                        where inquiry_id = :inquiry
+                          and purpose in ('CATALOGUE_ORIGINAL', 'INQUIRY_ATTACHMENT')
+                          and security_scan_state = 'CLEAN'
+                          and processing_state <> 'PURGED'
+                        order by created_at
+                        """)
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .query((rs, n) -> new FileAssetRow(
+                        JdbcUuids.get(rs, "id"),
+                        JdbcUuids.get(rs, "inquiry_id"),
+                        JdbcUuids.get(rs, "catalogue_bundle_id"),
+                        rs.getString("purpose"),
+                        rs.getString("original_filename"),
+                        rs.getString("media_type"),
+                        rs.getLong("byte_size"),
+                        rs.getString("sha256_digest"),
+                        rs.getString("storage_key"),
+                        rs.getString("security_scan_state"),
+                        rs.getString("processing_state"),
+                        null
+                ))
+                .list();
+    }
+
+    public int countSupporting(UUID inquiryId) {
+        Long count = jdbc.sql("""
+                select count(*) from file_assets
+                where inquiry_id = :inquiry
+                  and purpose in ('CATALOGUE_ORIGINAL', 'INQUIRY_ATTACHMENT')
+                  and security_scan_state = 'CLEAN'
+                  and processing_state <> 'PURGED'
+                """)
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .query(Long.class)
+                .single();
+        return count == null ? 0 : count.intValue();
+    }
+
+    public List<CardFileDto> supportingCards(UUID inquiryId) {
+        return listSupporting(inquiryId).stream()
+                .map(row -> new CardFileDto(
+                        row.originalFilename(),
+                        row.byteSize(),
+                        row.mediaType(),
+                        row.id()))
+                .toList();
+    }
+
+    public void markPurged(UUID inquiryId, UUID assetId) {
+        jdbc.sql("""
+                 update file_assets
+                 set processing_state = 'PURGED',
+                     updated_at = CURRENT_TIMESTAMP
+                 where inquiry_id = :inquiry and id = :id
+                   and purpose in ('CATALOGUE_ORIGINAL', 'INQUIRY_ATTACHMENT')
+                 """)
+                .param("inquiry", JdbcUuids.mysql(inquiryId))
+                .param("id", JdbcUuids.mysql(assetId))
                 .update();
     }
 

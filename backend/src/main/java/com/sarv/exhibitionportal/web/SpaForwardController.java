@@ -16,6 +16,16 @@ public class SpaForwardController {
         return "forward:/index.html";
     }
 
+    @GetMapping({"/admin", "/admin/"})
+    public String adminRoot() {
+        return "forward:/index.html";
+    }
+
+    @GetMapping("/admin/{*path}")
+    public String adminPath() {
+        return "forward:/index.html";
+    }
+
     @GetMapping({"/web", "/web/"})
     public String websiteEntry() {
         return "forward:/index.html";

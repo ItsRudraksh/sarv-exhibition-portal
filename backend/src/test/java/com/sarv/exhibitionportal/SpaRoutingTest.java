@@ -28,6 +28,13 @@ class SpaRoutingTest extends MysqlSpringBootTest {
     }
 
     @Test
+    void adminRouteForwardsToSpaWithoutAuth() {
+        ResponseEntity<String> admin = rest.getForEntity("/admin", String.class);
+        assertThat(admin.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(admin.getBody()).contains("sarv-spa-ok");
+    }
+
+    @Test
     void websiteEntryForwardsToSpaWithoutAuth() {
         ResponseEntity<String> web = rest.getForEntity("/web", String.class);
         assertThat(web.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
-import { inquiryApi, type FinishedGood } from '../api'
+import { inquiryApi, type BuyerProduct } from '../api'
 import { PHARMACOPOEIAL_STANDARDS } from '../taxonomy'
 import { validateBuyerNeed } from '../validation'
-import type { BuyerFinishedGoodSelection, PharmacopoeialStandard } from '../types'
+import type { BuyerFinishedGoodSelection, BuyerTradingProductSelection, PharmacopoeialStandard } from '../types'
+import { InquiryAttachments } from '../InquiryAttachments'
 import {
   AppHeader,
   FixedFooter,
@@ -18,17 +19,18 @@ export interface BuyerNeedScreenProps {
 }
 
 export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
-  const { draft, updateDraft, goBack, advance } = journey
+  const { draft, updateDraft, goBack, advance, uploadAttachments, removeAttachment, apiAvailable } = journey
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [specsOpen, setSpecsOpen] = useState(false)
-  const [catalogue, setCatalogue] = useState<FinishedGood[]>([])
+  const [catalogue, setCatalogue] = useState<BuyerProduct[]>([])
   const [catalogueLoaded, setCatalogueLoaded] = useState(false)
   const [search, setSearch] = useState(draft.buyer.productAreaSearch)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     void inquiryApi
-      .listFinishedGoods()
+      .listBuyerProducts()
       .then((rows) => {
         if (!cancelled) {
           setCatalogue(rows)
@@ -52,19 +54,33 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
     return catalogue.filter((g) => g.name.toLowerCase().includes(term)).slice(0, 40)
   }, [catalogue, search])
 
-  const selectedIds = useMemo(
-    () => new Set(draft.buyer.finishedGoods.map((g) => g.finishedGoodId)),
-    [draft.buyer.finishedGoods],
-  )
+  const selectedIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const row of draft.buyer.finishedGoods) {
+      ids.add(`PHARMA_ERP:${row.finishedGoodId}`)
+    }
+    for (const row of draft.buyer.tradingProducts) {
+      ids.add(`TRADING:${row.tradingProductId}`)
+    }
+    return ids
+  }, [draft.buyer.finishedGoods, draft.buyer.tradingProducts])
 
   const selected = useMemo(() => {
-    return draft.buyer.finishedGoods
-      .map((row) => {
-        const good = catalogue.find((g) => g.id === row.finishedGoodId)
-        return good ? { good, quantity: row.quantity } : null
-      })
-      .filter((row): row is { good: FinishedGood; quantity: string } => row !== null)
-  }, [catalogue, draft.buyer.finishedGoods])
+    const rows: { good: BuyerProduct; quantity: string; qtyKey: string }[] = []
+    for (const row of draft.buyer.finishedGoods) {
+      const good = catalogue.find((g) => g.id === row.finishedGoodId && g.sourceKind === 'PHARMA_ERP')
+      if (good) {
+        rows.push({ good, quantity: row.quantity, qtyKey: `qty-PHARMA_ERP-${good.id}` })
+      }
+    }
+    for (const row of draft.buyer.tradingProducts) {
+      const good = catalogue.find((g) => g.id === row.tradingProductId && g.sourceKind !== 'PHARMA_ERP')
+      if (good) {
+        rows.push({ good, quantity: row.quantity, qtyKey: `qty-TRADING-${good.id}` })
+      }
+    }
+    return rows
+  }, [catalogue, draft.buyer.finishedGoods, draft.buyer.tradingProducts])
 
   const updateBuyer = (field: keyof typeof draft.buyer, value: string) => {
     updateDraft({ buyer: { ...draft.buyer, [field]: value } })
@@ -82,41 +98,68 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
     })
   }
 
-  const setFinishedGoods = (rows: BuyerFinishedGoodSelection[]) => {
-    const names = rows
-      .map((row) => catalogue.find((g) => g.id === row.finishedGoodId)?.name)
-      .filter((name): name is string => Boolean(name))
+  const setCatalogueSelections = (
+    finishedGoods: BuyerFinishedGoodSelection[],
+    tradingProducts: BuyerTradingProductSelection[],
+  ) => {
+    const names = [
+      ...finishedGoods.map((row) => catalogue.find((g) => g.id === row.finishedGoodId)?.name),
+      ...tradingProducts.map((row) => catalogue.find((g) => g.id === row.tradingProductId)?.name),
+    ].filter((name): name is string => Boolean(name))
     const requirement =
       draft.buyer.requirement.trim() &&
-      !draft.buyer.finishedGoods.some((row) =>
-        draft.buyer.requirement.includes(
-          catalogue.find((g) => g.id === row.finishedGoodId)?.name ?? '',
-        ),
-      )
+      ![...draft.buyer.finishedGoods, ...draft.buyer.tradingProducts].some((row) => {
+        const name =
+          'finishedGoodId' in row
+            ? catalogue.find((g) => g.id === row.finishedGoodId)?.name
+            : catalogue.find((g) => g.id === row.tradingProductId)?.name
+        return name ? draft.buyer.requirement.includes(name) : false
+      })
         ? draft.buyer.requirement
         : names.join(', ')
     updateDraft({
       buyer: {
         ...draft.buyer,
-        finishedGoods: rows,
+        finishedGoods,
+        tradingProducts,
         productAreaSearch: search,
         requirement: requirement || draft.buyer.requirement,
       },
     })
   }
 
-  const toggleGood = (good: FinishedGood) => {
-    const exists = draft.buyer.finishedGoods.some((row) => row.finishedGoodId === good.id)
-    const rows = exists
-      ? draft.buyer.finishedGoods.filter((row) => row.finishedGoodId !== good.id)
-      : [...draft.buyer.finishedGoods, { finishedGoodId: good.id, quantity: '', name: good.name }]
-    setFinishedGoods(rows)
+  const isPharma = (good: BuyerProduct) => good.sourceKind === 'PHARMA_ERP'
+
+  const toggleGood = (good: BuyerProduct) => {
+    if (isPharma(good)) {
+      const exists = draft.buyer.finishedGoods.some((row) => row.finishedGoodId === good.id)
+      const finishedGoods = exists
+        ? draft.buyer.finishedGoods.filter((row) => row.finishedGoodId !== good.id)
+        : [...draft.buyer.finishedGoods, { finishedGoodId: good.id, quantity: '', name: good.name }]
+      setCatalogueSelections(finishedGoods, draft.buyer.tradingProducts)
+      return
+    }
+    const exists = draft.buyer.tradingProducts.some((row) => row.tradingProductId === good.id)
+    const tradingProducts = exists
+      ? draft.buyer.tradingProducts.filter((row) => row.tradingProductId !== good.id)
+      : [...draft.buyer.tradingProducts, { tradingProductId: good.id, quantity: '', name: good.name }]
+    setCatalogueSelections(draft.buyer.finishedGoods, tradingProducts)
   }
 
-  const updateQuantity = (finishedGoodId: string, quantity: string) => {
-    setFinishedGoods(
-      draft.buyer.finishedGoods.map((row) =>
-        row.finishedGoodId === finishedGoodId ? { ...row, quantity } : row,
+  const updateQuantity = (good: BuyerProduct, quantity: string) => {
+    if (isPharma(good)) {
+      setCatalogueSelections(
+        draft.buyer.finishedGoods.map((row) =>
+          row.finishedGoodId === good.id ? { ...row, quantity } : row,
+        ),
+        draft.buyer.tradingProducts,
+      )
+      return
+    }
+    setCatalogueSelections(
+      draft.buyer.finishedGoods,
+      draft.buyer.tradingProducts.map((row) =>
+        row.tradingProductId === good.id ? { ...row, quantity } : row,
       ),
     )
   }
@@ -192,9 +235,9 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
             {selected.length > 0 ? (
               <div className="stack-gap" style={{ marginTop: 12 }}>
                 <span className="field-hint">{copy.buyer.selectedGoods}</span>
-                {selected.map(({ good, quantity }) => (
+                {selected.map(({ good, quantity, qtyKey }) => (
                   <div
-                    key={good.id}
+                    key={`${good.sourceKind}-${good.id}`}
                     style={{
                       border: '2px solid var(--color-alpine-blue)',
                       borderRadius: 'var(--radius)',
@@ -222,13 +265,13 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
                       </button>
                     </div>
                     <TextField
-                      id={`fg-qty-${good.id}`}
+                      id={qtyKey}
                       label={copy.buyer.quantityLabel}
                       value={quantity}
-                      onChange={(v) => updateQuantity(good.id, v)}
+                      onChange={(v) => updateQuantity(good, v)}
                       placeholder={copy.buyer.quantityPlaceholder}
                       required
-                      error={errors[`fgQty-${good.id}`]}
+                      error={errors[qtyKey]}
                     />
                   </div>
                 ))}
@@ -248,9 +291,11 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
                 }}
               >
                 {filtered.map((r) => {
-                  const checked = selectedIds.has(r.id)
+                  const checked = selectedIds.has(
+                    r.sourceKind === 'PHARMA_ERP' ? `PHARMA_ERP:${r.id}` : `TRADING:${r.id}`,
+                  )
                   return (
-                    <li key={r.id}>
+                    <li key={`${r.sourceKind}-${r.id}`}>
                       <button
                         type="button"
                         aria-pressed={checked}
@@ -368,6 +413,35 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
               </div>
             ) : null}
           </div>
+
+          <InquiryAttachments
+            title={copy.buyer.attachmentsTitle}
+            hint={copy.buyer.attachmentsHint}
+            files={draft.buyer.attachments}
+            uploading={uploading}
+            error={errors.attachments}
+            apiAvailable={apiAvailable}
+            onAdd={(list) => {
+              setUploading(true)
+              void uploadAttachments(list)
+                .then(() => {
+                  setErrors((e) => {
+                    const next = { ...e }
+                    delete next.attachments
+                    return next
+                  })
+                })
+                .catch((caught: unknown) => {
+                  setErrors((e) => ({
+                    ...e,
+                    attachments:
+                      caught instanceof Error ? caught.message : copy.cardCapture.processingFailed,
+                  }))
+                })
+                .finally(() => setUploading(false))
+            }}
+            onRemove={(file) => void removeAttachment(file)}
+          />
 
           <p className="field-hint">{copy.buyer.teamFollowUp}</p>
         </div>

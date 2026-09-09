@@ -21,6 +21,12 @@ function formatSpecs(draft: InquiryJourney['draft']): string {
       parts.push(`${label}: ${row.quantity}`)
     }
   }
+  for (const row of draft.buyer.tradingProducts) {
+    const label = row.name?.trim() || 'Selected product'
+    if (row.quantity.trim()) {
+      parts.push(`${label}: ${row.quantity}`)
+    }
+  }
   if (s.packSize) parts.push(`Pack size: ${s.packSize}`)
   if (s.standard) parts.push(`Standard: ${s.standard}`)
   if (s.neededByDate) parts.push(`Needed by: ${s.neededByDate}`)
@@ -61,6 +67,11 @@ export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
           <p style={{ margin: '0 0 16px', fontSize: '1.125rem', fontWeight: 600 }}>
             {draft.buyer.requirement}
           </p>
+          {draft.buyer.attachments.length > 0 ? (
+            <p className="field-hint" style={{ marginBottom: 16 }}>
+              {draft.buyer.attachments.map((file) => file.name).join(', ')}
+            </p>
+          ) : null}
           <div style={{ borderTop: '1px solid var(--color-glass-border)', paddingTop: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>

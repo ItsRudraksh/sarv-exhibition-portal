@@ -31,6 +31,69 @@ export interface StaffMe {
   roles: string[]
 }
 
+export interface StaffRole {
+  code: string
+  name: string
+  description: string | null
+}
+
+export interface StaffAccount {
+  id: string
+  email: string
+  displayName: string
+  status: string
+  roles: string[]
+  createdAt: string | null
+  updatedAt: string | null
+}
+
+export interface StaffAccountWrite {
+  email: string
+  displayName: string
+  password?: string | null
+  roles: string[]
+  status: string
+}
+
+export interface TradingProduct {
+  id: string
+  name: string
+  listedForBuyers: boolean
+  active: boolean
+}
+
+export interface TradingSupplier {
+  id: string
+  sourceKind: 'OFFLINE' | 'PORTAL' | string
+  portalInquiryId: string | null
+  companyName: string
+  contactName: string | null
+  email: string | null
+  phone: string | null
+  websiteUrl: string | null
+  notes: string | null
+  status: string
+  products: TradingProduct[]
+  suggestedProductNames: string[]
+}
+
+export interface PortalSupplierCandidate {
+  inquiryId: string
+  referenceCode: string
+  companyName: string | null
+  personName: string | null
+  reviewState: string
+}
+
+export interface OfflineSupplierWrite {
+  companyName: string
+  contactName?: string | null
+  email?: string | null
+  phone?: string | null
+  websiteUrl?: string | null
+  notes?: string | null
+}
+
 export interface SupplierReview {
   id: string
   referenceCode: string
@@ -39,6 +102,7 @@ export interface SupplierReview {
   productionState: string
   deliveryState: string | null
   websiteUrl: string | null
+  capabilityNotes: string | null
   approvedAt: string | null
   approvedByUserId: string | null
   companyName: string | null
@@ -161,5 +225,122 @@ export const staffApi = {
     if (!response.ok) throw new Error(await readError(response))
     const body = (await response.json()) as { active: number }
     return body.active
+  },
+
+  async listRoles(): Promise<StaffRole[]> {
+    const response = await staffFetch('/roles')
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<StaffRole[]>
+  },
+
+  async listUsers(): Promise<StaffAccount[]> {
+    const response = await staffFetch('/users')
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<StaffAccount[]>
+  },
+
+  async createUser(body: StaffAccountWrite): Promise<StaffAccount> {
+    const response = await staffFetch('/users', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<StaffAccount>
+  },
+
+  async updateUser(id: string, body: StaffAccountWrite): Promise<StaffAccount> {
+    const response = await staffFetch(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<StaffAccount>
+  },
+
+  async deactivateUser(id: string): Promise<StaffAccount> {
+    const response = await staffFetch(`/users/${id}`, { method: 'DELETE' })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<StaffAccount>
+  },
+
+  async listTradingSuppliers(): Promise<TradingSupplier[]> {
+    const response = await staffFetch('/trading-suppliers')
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingSupplier[]>
+  },
+
+  async portalCandidates(): Promise<PortalSupplierCandidate[]> {
+    const response = await staffFetch('/trading-suppliers/portal-candidates')
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<PortalSupplierCandidate[]>
+  },
+
+  async createOfflineSupplier(body: OfflineSupplierWrite): Promise<TradingSupplier> {
+    const response = await staffFetch('/trading-suppliers', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingSupplier>
+  },
+
+  async linkPortalSupplier(inquiryId: string): Promise<TradingSupplier> {
+    const response = await staffFetch('/trading-suppliers/from-portal', {
+      method: 'POST',
+      body: JSON.stringify({ inquiryId }),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingSupplier>
+  },
+
+  async updateTradingSupplier(
+    id: string,
+    body: OfflineSupplierWrite & { status?: string },
+  ): Promise<TradingSupplier> {
+    const response = await staffFetch(`/trading-suppliers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingSupplier>
+  },
+
+  async deactivateTradingSupplier(id: string): Promise<TradingSupplier> {
+    const response = await staffFetch(`/trading-suppliers/${id}`, { method: 'DELETE' })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingSupplier>
+  },
+
+  async addTradingProduct(
+    supplierId: string,
+    body: { name: string; listedForBuyers: boolean },
+  ): Promise<TradingProduct> {
+    const response = await staffFetch(`/trading-suppliers/${supplierId}/products`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingProduct>
+  },
+
+  async updateTradingProduct(
+    supplierId: string,
+    productId: string,
+    body: { name: string; listedForBuyers: boolean },
+  ): Promise<TradingProduct> {
+    const response = await staffFetch(`/trading-suppliers/${supplierId}/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingProduct>
+  },
+
+  async deactivateTradingProduct(supplierId: string, productId: string): Promise<TradingProduct> {
+    const response = await staffFetch(`/trading-suppliers/${supplierId}/products/${productId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) throw new Error(await readError(response))
+    return response.json() as Promise<TradingProduct>
   },
 }

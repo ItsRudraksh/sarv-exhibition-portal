@@ -7,6 +7,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,5 +52,11 @@ public class FileController {
                         .build()
                         .toString())
                 .body(stored.bytes());
+    }
+
+    @DeleteMapping("/{assetId}")
+    public ResponseEntity<Void> remove(@PathVariable UUID inquiryId, @PathVariable UUID assetId) {
+        files.removeSupporting(inquiryId, assetId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -43,7 +43,7 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
   }
 
   const handleContinue = () => {
-    const errs = validateSupplierDepartments(draft.departmentIds)
+    const errs = validateSupplierDepartments(draft.departmentIds, draft.supplier.otherCategory)
     const msg = errs.departments
     if (msg) {
       setError(msg)
@@ -51,6 +51,8 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
     }
     advance()
   }
+
+  const canContinue = draft.departmentIds.length > 0 || draft.supplier.otherCategory
 
   return (
     <div className="inquiry-app">
@@ -75,14 +77,14 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
           <SearchIcon />
           <input
             type="search"
-            placeholder="Search departments"
+            placeholder="Search categories"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search departments"
+            aria-label="Search categories"
           />
         </div>
 
-        <div className="checkbox-list" role="group" aria-label="Departments">
+        <div className="checkbox-list" role="group" aria-label="Categories">
           {filtered.map((dept) => (
             <label key={dept.id} className="checkbox-item">
               <input
@@ -93,6 +95,18 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
               <span>{dept.name}</span>
             </label>
           ))}
+          <label className="checkbox-item">
+            <input
+              type="checkbox"
+              checked={draft.supplier.otherCategory}
+              onChange={() =>
+                updateDraft({
+                  supplier: { ...draft.supplier, otherCategory: !draft.supplier.otherCategory },
+                })
+              }
+            />
+            <span>{copy.supplier.otherCategory}</span>
+          </label>
         </div>
 
         {error ? (
@@ -107,10 +121,7 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
       </main>
 
       <FixedFooter>
-        <PrimaryButton
-          disabled={draft.departmentIds.length === 0}
-          onClick={handleContinue}
-        >
+        <PrimaryButton disabled={!canContinue} onClick={handleContinue}>
           {copy.common.continue}
         </PrimaryButton>
       </FixedFooter>

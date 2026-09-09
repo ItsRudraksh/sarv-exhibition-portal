@@ -94,7 +94,7 @@ public class ReviewRepository {
     public Optional<SupplierReviewRow> findSupplier(UUID inquiryId) {
         return jdbc.sql("""
                 select i.id, i.reference_code, i.submitted_at, s.review_state, s.production_state,
-                       s.website_url, s.approved_at, s.approved_by_user_id,
+                       s.website_url, s.capability_notes, s.approved_at, s.approved_by_user_id,
                        p.company_name_submitted, p.person_name_submitted, p.email_submitted, p.phone_submitted
                 from inquiries i
                 join supplier_inquiries s on s.inquiry_id = i.id
@@ -109,6 +109,7 @@ public class ReviewRepository {
                         rs.getString("review_state"),
                         rs.getString("production_state"),
                         rs.getString("website_url"),
+                        rs.getString("capability_notes"),
                         ts(rs.getTimestamp("approved_at")),
                         JdbcUuids.get(rs, "approved_by_user_id"),
                         rs.getString("company_name_submitted"),
@@ -122,7 +123,7 @@ public class ReviewRepository {
     public List<SupplierReviewRow> listSuppliers() {
         return jdbc.sql("""
                 select i.id, i.reference_code, i.submitted_at, s.review_state, s.production_state,
-                       s.website_url, s.approved_at, s.approved_by_user_id,
+                       s.website_url, s.capability_notes, s.approved_at, s.approved_by_user_id,
                        p.company_name_submitted, p.person_name_submitted, p.email_submitted, p.phone_submitted
                 from inquiries i
                 join supplier_inquiries s on s.inquiry_id = i.id
@@ -137,6 +138,7 @@ public class ReviewRepository {
                         rs.getString("review_state"),
                         rs.getString("production_state"),
                         rs.getString("website_url"),
+                        rs.getString("capability_notes"),
                         ts(rs.getTimestamp("approved_at")),
                         JdbcUuids.get(rs, "approved_by_user_id"),
                         rs.getString("company_name_submitted"),
@@ -249,6 +251,7 @@ public class ReviewRepository {
             String reviewState,
             String productionState,
             String websiteUrl,
+            String capabilityNotes,
             Instant approvedAt,
             UUID approvedByUserId,
             String companyName,

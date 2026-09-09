@@ -1,6 +1,6 @@
 # Sarv Biolabs Exhibition Portal — Frontend
 
-Visitor inquiry UI for the scan-first exhibition portal, plus a **separate** staff app at `/staff`. Talks to the Java POC at `/api/v1` (Vite proxies to `http://localhost:8080`). Shared stall tablets keep only a **sessionStorage draft id** — not contact PII in `localStorage`.
+Visitor inquiry UI for the scan-first exhibition portal, plus a **separate** staff app at `/staff` and an **ADMIN** panel at `/admin`. Talks to the Java POC at `/api/v1` (Vite proxies to `http://localhost:8080`). Shared stall tablets keep only a **sessionStorage draft id** — not contact PII in `localStorage`.
 
 ## Commands
 
@@ -39,6 +39,10 @@ HTTPS is required for in-page camera. The Vite `/api` proxy talks to the API on 
 
 Open `https://localhost:5173/staff`. This is not part of the visitor inquiry shell. Seeded POC logins (password `poc-staff`): `reviewer@sarv.local`, `marketing@sarv.local`, `admin@sarv.local`. Add to production enqueues a vendor outbox stub; it does not call a vendor API.
 
+### Admin (`/admin`)
+
+Open `https://localhost:5173/admin` with an **ADMIN** account (`admin@sarv.local` locally). **Buyer catalogue:** add offline suppliers and product names; link a submitted “I want to sell” inquiry and tag products so buyers can select them (names only). This does not Add to production. **Staff IDs:** create, update, and deactivate accounts. Accounts are deactivated, not deleted, so review history stays intact. Non-admin sign-in is rejected with a link back to `/staff`.
+
 ## What this is
 
 A **mobile-first React + Vite + TypeScript** app of the 11-screen visitor journey:
@@ -46,7 +50,7 @@ A **mobile-first React + Vite + TypeScript** app of the 11-screen visitor journe
 1. Business card capture (or manual continuation)
 2. Contact details confirmation
 3. Intent selection (`I want to sell` / `I want to buy`)
-4–8. Supplier path (departments → product types → smart details → review → confirmation)
+4–8. Supplier path (categories + Other → product types + Other + free-text offering → smart details → review with files/website → confirmation)
 9–11. Buyer path (need capture → review → confirmation)
 
 Local **card assist** fills contact fields after camera/upload: client **jsQR** (vCard/MECARD) + local **Tesseract.js** (worker/core/lang bundled under Vite; `public/tessdata/eng.traineddata`). Server ZXing still runs on upload. On success, contact fields autofill and the app advances to contact confirm. Cloud OCR is not used.
@@ -58,7 +62,7 @@ Local **card assist** fills contact fields after camera/upload: client **jsQR** 
 - Server draft: `inquiryApi` in `features/inquiry/api.ts` (`POST` create with channel/campaign, `PATCH/GET`, contact confirm, submit, files, consents, extractions).
 - Session pointer: `sarv-inquiry-pointer-v1` in **sessionStorage** (draft id only). Legacy full-draft `localStorage` key is cleared on load.
 - Entry parsing: `features/inquiry/entryContext.ts`.
-- Card and catalogue files are stored privately when the API is up. Offline: on-screen only; submit requires the API for a receipt.
+- Card and supporting files are stored privately when the API is up. Supplier review needs a website **or** at least one file. Both sell and buy can attach multiple PDF/JPEG/PNG/WebP files (5 MB each, up to 10). Offline: on-screen only; submit requires the API for a receipt.
 - Taxonomy loads from `GET /api/v1/taxonomy` when the API is up. Fallback IDs in `features/inquiry/taxonomy.ts` must match Flyway `V7__business_taxonomy.sql` ([specs/taxonomy/](../specs/taxonomy/)).
 - Card QR payloads are stored server-side only; visitor GET never returns the raw payload.
 - Buyer company name is optional; the server allows buyer submit without a company.
@@ -91,6 +95,7 @@ src/
     InquiryApp.tsx    # Step orchestration
     screens/          # One component per screen
   features/staff/     # Internal review UI at /staff (not the visitor shell)
+  features/admin/     # ADMIN staff-account CRUD at /admin
   components/ui.tsx   # Shared UI primitives
   styles/             # Alpine Blue tokens, visitor layout, staff dark theme
 ```

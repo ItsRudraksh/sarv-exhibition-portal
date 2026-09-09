@@ -8,6 +8,8 @@ import com.sarv.exhibitionportal.api.dto.InquiryDraftDto;
 import com.sarv.exhibitionportal.api.dto.SupplierDto;
 import com.sarv.exhibitionportal.config.JdbcUuids;
 import com.sarv.exhibitionportal.finishedgoods.FinishedGoodsRepository;
+import com.sarv.exhibitionportal.fileasset.FileAssetRepository;
+import com.sarv.exhibitionportal.trading.TradingCatalogueRepository;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,10 +24,19 @@ public class InquiryRepository {
 
     private final JdbcClient jdbc;
     private final FinishedGoodsRepository finishedGoods;
+    private final TradingCatalogueRepository trading;
+    private final FileAssetRepository files;
 
-    public InquiryRepository(JdbcClient jdbc, FinishedGoodsRepository finishedGoods) {
+    public InquiryRepository(
+            JdbcClient jdbc,
+            FinishedGoodsRepository finishedGoods,
+            TradingCatalogueRepository trading,
+            FileAssetRepository files
+    ) {
         this.jdbc = jdbc;
         this.finishedGoods = finishedGoods;
+        this.trading = trading;
+        this.files = files;
     }
 
     public void insertDraft(UUID id, String referenceCode, String entryChannel, UUID campaignId, UUID exhibitionId) {
@@ -71,7 +82,7 @@ public class InquiryRepository {
                        p.person_name_submitted, p.email_submitted, p.phone_submitted, p.phone_e164,
                        p.company_name_submitted, p.job_title_submitted, p.role,
                        s.website_url, s.catalogue_filename, s.catalogue_media_type, s.catalogue_byte_size,
-                       s.catalogue_asset_id,
+                       s.catalogue_asset_id, s.other_category, s.other_product_type, s.capability_notes,
                        u.card_front_name, u.card_front_size, u.card_front_type, u.card_front_asset_id,
                        u.card_back_name, u.card_back_size, u.card_back_type, u.card_back_asset_id,
                        u.card_qr_payload_internal,
@@ -106,6 +117,9 @@ public class InquiryRepository {
                         rs.getString("catalogue_media_type"),
                         longOrNull(rs.getObject("catalogue_byte_size")),
                         JdbcUuids.get(rs, "catalogue_asset_id"),
+                        rs.getBoolean("other_category"),
+                        rs.getBoolean("other_product_type"),
+                        rs.getString("capability_notes"),
                         rs.getString("card_front_name"),
                         longOrNull(rs.getObject("card_front_size")),
                         rs.getString("card_front_type"),
@@ -274,14 +288,17 @@ public class InquiryRepository {
         jdbc.sql("""
                  insert into supplier_inquiries (
                      inquiry_id, website_url, catalogue_filename, catalogue_media_type, catalogue_byte_size,
-                     catalogue_asset_id
-                 ) values (:id, :url, :fname, :mtype, :size, :asset)
+                     catalogue_asset_id, other_category, other_product_type, capability_notes
+                 ) values (:id, :url, :fname, :mtype, :size, :asset, :otherCat, :otherType, :notes)
                  on duplicate key update
                      website_url = VALUES(website_url),
                      catalogue_filename = COALESCE(VALUES(catalogue_filename), catalogue_filename),
                      catalogue_media_type = COALESCE(VALUES(catalogue_media_type), catalogue_media_type),
                      catalogue_byte_size = COALESCE(VALUES(catalogue_byte_size), catalogue_byte_size),
-                     catalogue_asset_id = COALESCE(VALUES(catalogue_asset_id), catalogue_asset_id)
+                     catalogue_asset_id = COALESCE(VALUES(catalogue_asset_id), catalogue_asset_id),
+                     other_category = VALUES(other_category),
+                     other_product_type = VALUES(other_product_type),
+                     capability_notes = VALUES(capability_notes)
                  """)
                 .param("id", JdbcUuids.mysql(draft.id()))
                 .param("url", JdbcUuids.mysql(emptyToNull(supplier.websiteUrl())))
@@ -289,6 +306,9 @@ public class InquiryRepository {
                 .param("mtype", JdbcUuids.mysql(cat == null ? null : emptyToNull(cat.type())))
                 .param("size", JdbcUuids.mysql(cat == null ? null : cat.size()))
                 .param("asset", JdbcUuids.mysql(cat == null ? null : cat.assetId()))
+                .param("otherCat", JdbcUuids.mysql(supplier.otherCategory()))
+                .param("otherType", JdbcUuids.mysql(supplier.otherProductType()))
+                .param("notes", JdbcUuids.mysql(emptyToNull(supplier.capabilityNotes())))
                 .update();
         jdbc.sql("delete from supplier_inquiry_product_types where inquiry_id = :id")
                 .param("id", JdbcUuids.mysql(draft.id()))
@@ -340,6 +360,7 @@ public class InquiryRepository {
                 .update();
         if (!"PURCHASE".equals(draft.route())) {
             finishedGoods.replaceInquirySelections(draft.id(), List.of());
+            trading.replaceInquirySelections(draft.id(), List.of());
             return;
         }
         jdbc.sql("""
@@ -377,6 +398,15 @@ public class InquiryRepository {
                 .param("std", JdbcUuids.mysql(emptyToNull(spec.standard())))
                 .update();
         finishedGoods.replaceInquirySelections(draft.id(), buyer.finishedGoods());
+        if (buyer.tradingProducts() != null) {
+            for (var row : buyer.tradingProducts()) {
+                if (row != null && row.tradingProductId() != null && !trading.isSelectable(row.tradingProductId())) {
+                    throw new InquiryValidationException(
+                            "A selected trading product is not listed for buyers.");
+                }
+            }
+        }
+        trading.replaceInquirySelections(draft.id(), buyer.tradingProducts());
     }
 
     private void replaceUiState(InquiryDraftDto draft) {
@@ -425,15 +455,20 @@ public class InquiryRepository {
                 phone[0],
                 phone[1]
         );
+        List<CardFileDto> attachments = files.supportingCards(r.id());
         CardFileDto catalogue = r.catalogueFilename() == null
-                ? null
+                ? (attachments.isEmpty() ? null : attachments.get(0))
                 : new CardFileDto(r.catalogueFilename(), r.catalogueSize(), r.catalogueType(), r.catalogueAssetId());
         SupplierDto supplier = new SupplierDto(
                 nvl(r.companyName()),
                 nvl(r.websiteUrl()),
                 nvl(r.jobTitle()),
                 nvl(r.locationFromCard()),
-                catalogue
+                catalogue,
+                r.otherCategory(),
+                r.otherProductType(),
+                nvl(r.capabilityNotes()),
+                attachments
         );
         BuyerSpecificationsDto specs = new BuyerSpecificationsDto(
                 nvl(r.quantity()),
@@ -446,7 +481,9 @@ public class InquiryRepository {
                 nvl(r.requirement()),
                 nvl(r.productArea()),
                 specs,
-                finishedGoods.selectionsForInquiry(r.id()));
+                finishedGoods.selectionsForInquiry(r.id()),
+                trading.selectionsForInquiry(r.id()),
+                attachments);
         return new InquiryDraftDto(
                 r.id(),
                 r.lifecycle(),
@@ -546,6 +583,9 @@ public class InquiryRepository {
             String catalogueType,
             Long catalogueSize,
             UUID catalogueAssetId,
+            boolean otherCategory,
+            boolean otherProductType,
+            String capabilityNotes,
             String frontName,
             Long frontSize,
             String frontType,

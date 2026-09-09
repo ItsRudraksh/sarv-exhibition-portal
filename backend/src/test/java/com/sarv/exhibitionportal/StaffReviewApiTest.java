@@ -186,7 +186,7 @@ class StaffReviewApiTest extends MysqlSpringBootTest {
                 id, "DRAFT", "supplier-review", "SUPPLIER", "EXHIBITION_QR",
                 null, null, null,
                 new ContactDto("Asha Rao", "asha@example.com", "+91", "9876543210"),
-                new SupplierDto("Himalaya Intermediates", "https://supplier.example", "", "", null),
+                new SupplierDto("Himalaya Intermediates", "https://supplier.example", "", "", null, "Phyto extracts"),
                 List.of(UUID.fromString("a1000000-0000-4000-8000-000000000001")),
                 List.of(UUID.fromString("a2000000-0000-4000-8000-000000000003")),
                 new BuyerDto("", "", new BuyerSpecificationsDto("", "", "", "", "")),

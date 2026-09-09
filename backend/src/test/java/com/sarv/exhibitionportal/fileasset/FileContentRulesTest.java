@@ -28,6 +28,14 @@ class FileContentRulesTest {
                 "CATALOGUE_ORIGINAL", "image/png", PNG));
         assertDoesNotThrow(() -> FileContentRules.assertContentsMatch(
                 "CATALOGUE_ORIGINAL", "application/pdf", PDF));
+        assertDoesNotThrow(() -> FileContentRules.assertContentsMatch(
+                "INQUIRY_ATTACHMENT", "application/pdf", PDF));
+    }
+
+    @Test
+    void rejectsAttachmentOverMaxBytes() {
+        assertThrows(InquiryValidationException.class, () -> FileContentRules.assertDeclaredAllowlist(
+                "INQUIRY_ATTACHMENT", "spec.pdf", "application/pdf", 5_242_881, 5_242_880));
     }
 
     @Test

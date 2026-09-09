@@ -1,7 +1,7 @@
 # Exhibition Portal Database Design
 
 **Status:** Approved logical and physical design baseline  
-**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V8 in `backend/src/main/resources/db/migration/`.  
+**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V11 in `backend/src/main/resources/db/migration/`.  
 **Logical types in this document:** Originally written for PostgreSQL (`uuid`, `timestamptz`, `jsonb`, `text`). Keep them as the entity/invariant SSOT. The applied store maps them to `CHAR(36)`, `DATETIME(6)`, `JSON`, and `VARCHAR`/`TEXT`. Do **not** load `exhibition_portal_schema.sql`.  
 **Application target:** Java 17 Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
 **Scope:** Data design. The singleton DDL in this folder is the **historical full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
@@ -22,7 +22,7 @@ These are required for the scan-first visitor flow. They are applied in Flyway V
 
 `EXHIBITION_QR` still needs `qr_campaign_id`; POC seeds campaign `22222222-2222-4222-8222-222222222222`. Supplier product types persist as `(inquiry_id, department_id, product_type_id)`. **V5:** `integration_deliveries` destinations are POC stubs (`poc-mailbox`, `poc-vendor-stub`), not live systems. **V6:** AI assist tables; visitor field review does not require `reviewed_by_user_id` (staff FK remains optional). **V7:** business taxonomy active rows (`a100…`/`a200…`); POC taxonomy archived (`poc_` codes).
 
-POC **audit:** `workflow_events` on create/submit/review/outbox. **V3–V6:** `audit_events` also on file, consent, Add to production, reject, export, outbox enqueue/retry/success/fail, and card extraction completed/failed. Metadata must not include email, phone, filenames, or raw QR payloads.
+POC **audit:** `workflow_events` on create/submit/review/outbox. **V3–V6:** `audit_events` also on file, consent, Add to production, reject, export, outbox enqueue/retry/success/fail, and card extraction completed/failed. **Admin staff CRUD:** `STAFF_USER_CREATED` / `STAFF_USER_UPDATED` / `STAFF_USER_DEACTIVATED` on entity `APP_USER` (no email or password in metadata). **Trading catalogue:** `TRADING_SUPPLIER_*` / `TRADING_PRODUCT_*` (including `LISTED` / `UNLISTED`) with no PII in metadata. **Files:** `FILE_UPLOADED` / `FILE_SCAN_REJECTED` / `FILE_REMOVED` on `FILE_ASSET` (purpose and scan state only — no filenames). Metadata must not include email, phone, filenames, or raw QR payloads.
 
 ## 1. Design outcome
 
@@ -273,6 +273,9 @@ One-to-one extension for an inquiry whose route is `SUPPLIER`.
 | `production_state` | `text` | `NOT_REQUESTED`, `QUEUED`, `IN_PROGRESS`, `SUCCEEDED`, or `FAILED`. |
 | `approved_at` | `timestamptz` | Nullable; required for `APPROVED`. |
 | `approved_by_user_id` | `uuid` | Nullable FK to `app_users`; required for `APPROVED`. |
+| `other_category` | `boolean` | Visitor selected Other instead of (or in addition to) listed departments. Default false. **V11**. |
+| `other_product_type` | `boolean` | Visitor selected Other for product types / subcategories. Default false. **V11**. |
+| `capability_notes` | `text` | Free-text offering description (required on supplier submit). **V11**. |
 
 ### `supplier_inquiry_departments`
 
@@ -352,7 +355,7 @@ The generic, metadata-only asset register. It supports catalogue uploads, busine
 | `inquiry_id` | `uuid` | Required FK to `inquiries`. |
 | `catalogue_bundle_id` | `uuid` | Nullable FK to `catalogue_bundles`. |
 | `source_asset_id` | `uuid` | Nullable self-FK; identifies an original asset from which a PDF or other derivative was created. |
-| `purpose` | `text` | `CATALOGUE_ORIGINAL`, `CATALOGUE_DERIVED_PDF`, `BUSINESS_CARD`, or `VOICE_INPUT`. |
+| `purpose` | `text` | `CATALOGUE_ORIGINAL`, `CATALOGUE_DERIVED_PDF`, `BUSINESS_CARD`, `VOICE_INPUT`, `EXCEL_EXPORT`, or `INQUIRY_ATTACHMENT` (**V11**, supporting files on sell and buy). |
 | `original_filename`, `media_type` | `text` | Required metadata. |
 | `byte_size` | `bigint` | Required, positive. |
 | `sha256_digest` | `char(64)` | Required integrity digest. |
@@ -420,9 +423,19 @@ The portal authorizes internal staff; visitor authentication is not needed for t
 
 | Table | Essential columns | Constraints |
 |---|---|---|
-| `app_users` | `id`, `external_subject`, `email_normalized`, `display_name`, `status` | `external_subject` and normalized email are unique. **POC V4** also has `password_hash` for local HTTP Basic (`{noop}…`). Public hosts must set `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (bcrypt rotate on start). Replace with SSO; do not ship noop hashes. |
+| `app_users` | `id`, `external_subject`, `email_normalized`, `display_name`, `status` | `external_subject` and normalized email are unique. **POC V4** also has `password_hash` for local HTTP Basic (`{noop}…`). Public hosts must set `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (bcrypt rotate on start **for seeded `poc-*` `external_subject` only**). Admin-created users (`staff:{uuid}`) keep the password set in `/admin`. Replace with SSO; do not ship noop hashes. **ADMIN CRUD** via `/api/v1/staff/users` deactivates (`INACTIVE`) rather than deleting, so approvals/exports/audit FKs stay valid. |
 | `roles` | `id`, `code`, `name` | Codes include `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`, and `TAXONOMY_MANAGER`. |
 | `user_roles` | `user_id`, `role_id` | Composite primary key. |
+
+### `trading_suppliers` and `trading_products` (Flyway V10)
+
+Buyer catalogue is not only pharma-erp `finished_goods`. Admin lists named products from other sources.
+
+| Table | Essential columns | Constraints |
+|---|---|---|
+| `trading_suppliers` | `id`, `source_kind` (`OFFLINE` / `PORTAL`), `portal_inquiry_id`, company/contact, `status` | `PORTAL` rows require a unique FK to a submitted `supplier_inquiries` row. `OFFLINE` has no portal FK. Deactivate rather than delete. Linking a portal inquiry is **not** Add to production. |
+| `trading_products` | `id`, `supplier_id`, `name`, `listed_for_buyers`, `is_active` | Buyer-visible **name only** (no item codes). Unique `(supplier_id, name)`. Only `listed_for_buyers=1` + active supplier appear on `GET /api/v1/buyer-products`. |
+| `purchase_inquiry_trading_products` | `inquiry_id`, `trading_product_id`, `quantity_text` | Same quantity rule as finished-goods selections. |
 
 ### `review_cases` and `review_decisions`
 

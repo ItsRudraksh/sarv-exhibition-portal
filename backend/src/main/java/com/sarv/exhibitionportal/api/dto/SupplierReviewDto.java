@@ -10,6 +10,7 @@ public record SupplierReviewDto(
         String reviewState,
         String productionState,
         String websiteUrl,
+        String capabilityNotes,
         Instant approvedAt,
         UUID approvedByUserId,
         String companyName,

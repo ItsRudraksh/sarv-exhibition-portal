@@ -57,6 +57,19 @@ public class AuditRepository {
         insert(inquiryId, entityType, entityId, eventType, actorKind, null, metadata);
     }
 
+    public long countByEntityAndEvent(String entityType, UUID entityId, String eventType) {
+        Long count = jdbc.sql("""
+                              select count(*) from audit_events
+                              where entity_type = :etype and entity_id = :eid and event_type = :event
+                              """)
+                .param("etype", JdbcUuids.mysql(entityType))
+                .param("eid", JdbcUuids.mysql(entityId))
+                .param("event", JdbcUuids.mysql(eventType))
+                .query(Long.class)
+                .single();
+        return count == null ? 0 : count;
+    }
+
     public long countByInquiryAndEvent(UUID inquiryId, String eventType) {
         Long count = jdbc.sql("""
                               select count(*) from audit_events

@@ -10,7 +10,7 @@ The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibiti
 
 | Topic | Production behaviour |
 |---|---|
-| URL | `http://43.225.195.200/` (visitor) and `http://43.225.195.200/staff` (internal) |
+| URL | `http://43.225.195.200/` (visitor), `http://43.225.195.200/staff` (review), `http://43.225.195.200/admin` (staff IDs, ADMIN) |
 | Java | **17** (`javac`/`java` 17.0.x). Do not build with Java 21 bytecode. |
 | Camera | In-page `getUserMedia` needs HTTPS. On HTTP, visitors **upload** a photo or use the phone file picker. |
 | Auth | **Required:** `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `poc-staff` / `change-me-staff`). Prod refuses to start otherwise. |
@@ -205,4 +205,4 @@ Maven copies `frontend/dist` into the JAR when `frontend/dist/index.html` exists
 
 ## After first boot
 
-Staff passwords for ACTIVE `app_users` are rotated to `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (bcrypt). You can unset that env later; hashes stay in MySQL.
+Staff passwords for seeded `poc-*` `app_users` are rotated to `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (bcrypt). Accounts created in `/admin` keep the password set there. You can unset that env later; hashes stay in MySQL.

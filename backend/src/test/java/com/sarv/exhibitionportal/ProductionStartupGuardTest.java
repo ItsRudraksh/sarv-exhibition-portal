@@ -51,6 +51,7 @@ class ProductionStartupGuardTest {
                 730,
                 1024,
                 2048,
+                10,
                 "card-extraction-v1",
                 24,
                 new ExhibitionProperties.Outbox(true, 5, 30, "local-mailbox", "local-vendor-stub", ""),

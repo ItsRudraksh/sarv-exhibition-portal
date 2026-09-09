@@ -13,6 +13,11 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Rotates passwords for seeded {@code poc-*} {@code app_users} when
+ * {@code EXHIBITION_STAFF_BOOTSTRAP_PASSWORD} is set. Accounts created in /admin
+ * use {@code staff:{uuid}} as {@code external_subject} and keep the password set there.
+ */
 @Component
 @Order(100)
 public class StaffPasswordBootstrap implements ApplicationRunner {
@@ -52,10 +57,10 @@ public class StaffPasswordBootstrap implements ApplicationRunner {
         int updated = jdbc.sql("""
                 update app_users
                 set password_hash = :hash, updated_at = current_timestamp
-                where status = 'ACTIVE'
+                where status = 'ACTIVE' and external_subject like 'poc-%'
                 """)
                 .param("hash", JdbcUuids.mysql(hash))
                 .update();
-        log.info("Rotated password_hash for {} active staff users", updated);
+        log.info("Rotated password_hash for {} seeded poc-* staff users", updated);
     }
 }

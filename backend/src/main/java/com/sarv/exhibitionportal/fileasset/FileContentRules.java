@@ -33,7 +33,7 @@ public final class FileContentRules {
         if (!allowedTypes(purpose).contains(mediaType)) {
             throw new InquiryValidationException(
                     "Use a JPEG, PNG, or WebP image"
-                            + ("CATALOGUE_ORIGINAL".equals(purpose) ? ", or a PDF." : "."));
+                            + (allowsPdf(purpose) ? ", or a PDF." : "."));
         }
         return mediaType;
     }
@@ -51,6 +51,10 @@ public final class FileContentRules {
 
     public static Set<String> allowedTypes(String purpose) {
         return "BUSINESS_CARD".equals(purpose) ? CARD_TYPES : CATALOGUE_TYPES;
+    }
+
+    public static boolean allowsPdf(String purpose) {
+        return "CATALOGUE_ORIGINAL".equals(purpose) || "INQUIRY_ATTACHMENT".equals(purpose);
     }
 
     public static String normalizeType(String declaredType, String filename) {

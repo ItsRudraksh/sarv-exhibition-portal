@@ -15,6 +15,8 @@ import {
   type EntryContext,
 } from './entryContext'
 import {
+  ATTACHMENT_MAX_BYTES,
+  ATTACHMENT_MAX_COUNT,
   BUYER_STEPS,
   SHARED_STEPS,
   SUPPLIER_STEPS,
@@ -24,11 +26,34 @@ import {
   type InquiryRoute,
   type InquiryStep,
 } from './types'
+import { copy } from './copy'
 
 function getStepOrder(route: InquiryRoute | null): InquiryStep[] {
   if (route === 'SUPPLIER') return [...SHARED_STEPS, ...SUPPLIER_STEPS]
   if (route === 'PURCHASE') return [...SHARED_STEPS, ...BUYER_STEPS]
   return SHARED_STEPS
+}
+
+function withAttachments(draft: InquiryDraft, files: CardFileMeta[]): InquiryDraft {
+  return {
+    ...draft,
+    supplier: {
+      ...draft.supplier,
+      attachments: files,
+      catalogueFile: files[0] ?? null,
+    },
+    buyer: {
+      ...draft.buyer,
+      attachments: files,
+    },
+  }
+}
+
+function currentAttachments(draft: InquiryDraft): CardFileMeta[] {
+  const listed = draft.supplier.attachments.length > 0
+    ? draft.supplier.attachments
+    : draft.buyer.attachments
+  return listed
 }
 
 function getPreviousStep(draft: InquiryDraft): InquiryStep | null {
@@ -359,38 +384,64 @@ export function useInquiryJourney() {
     [apiAvailable],
   )
 
-  const uploadCatalogue = useCallback(
-    async (file: File) => {
+  const uploadAttachments = useCallback(
+    async (list: FileList) => {
       setSubmitError(null)
-      const local: CardFileMeta = { name: file.name, size: file.size, type: file.type }
+      const incoming = Array.from(list)
+      const current = currentAttachments(draftRef.current)
+      if (current.length + incoming.length > ATTACHMENT_MAX_COUNT) {
+        throw new Error(copy.supplier.attachmentsTooMany)
+      }
+      for (const file of incoming) {
+        if (file.size > ATTACHMENT_MAX_BYTES) {
+          throw new Error(copy.supplier.attachmentsTooLarge)
+        }
+      }
       if (!apiAvailable) {
-        setDraft((prev) => ({
-          ...prev,
-          supplier: { ...prev.supplier, catalogueFile: local },
+        const locals: CardFileMeta[] = incoming.map((file) => ({
+          name: file.name,
+          size: file.size,
+          type: file.type,
         }))
-        setSubmitError('Catalogue kept on this device only until the connection returns.')
+        setDraft((prev) => withAttachments(prev, [...currentAttachments(prev), ...locals]))
+        setSubmitError('Files kept on this device only until the connection returns.')
         return
       }
-      const asset = await inquiryApi.uploadFile(
-        draftRef.current.id,
-        file,
-        'CATALOGUE_ORIGINAL',
-        undefined,
-        file.name,
-      )
+      const uploaded: CardFileMeta[] = []
+      for (const file of incoming) {
+        const asset = await inquiryApi.uploadFile(
+          draftRef.current.id,
+          file,
+          'INQUIRY_ATTACHMENT',
+          undefined,
+          file.name,
+        )
+        uploaded.push({
+          name: asset.originalFilename,
+          size: asset.byteSize,
+          type: asset.mediaType,
+          assetId: asset.id,
+        })
+      }
       skipNextSave.current = true
-      setDraft((prev) => ({
-        ...prev,
-        supplier: {
-          ...prev.supplier,
-          catalogueFile: {
-            name: asset.originalFilename,
-            size: asset.byteSize,
-            type: asset.mediaType,
-            assetId: asset.id,
-          },
-        },
-      }))
+      setDraft((prev) => withAttachments(prev, [...currentAttachments(prev), ...uploaded]))
+    },
+    [apiAvailable],
+  )
+
+  const removeAttachment = useCallback(
+    async (file: CardFileMeta) => {
+      if (apiAvailable && file.assetId) {
+        await inquiryApi.deleteFile(draftRef.current.id, file.assetId)
+      }
+      skipNextSave.current = true
+      setDraft((prev) => {
+        const next = currentAttachments(prev).filter((row) => {
+          if (file.assetId) return row.assetId !== file.assetId
+          return !(row.name === file.name && row.size === file.size && !row.assetId)
+        })
+        return withAttachments(prev, next)
+      })
     },
     [apiAvailable],
   )
@@ -465,7 +516,8 @@ export function useInquiryJourney() {
     advance,
     submit,
     uploadCard,
-    uploadCatalogue,
+    uploadAttachments,
+    removeAttachment,
     declineCardConsent,
     restart,
     canGoBack,

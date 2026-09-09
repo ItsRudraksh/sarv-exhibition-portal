@@ -134,6 +134,10 @@ function fileSnapshot(file: CardFileMeta | null): CardFileMeta | null {
   }
 }
 
+function fileListSnapshot(files: CardFileMeta[] | undefined): CardFileMeta[] {
+  return Array.isArray(files) ? files.map((file) => fileSnapshot(file)).filter((f): f is CardFileMeta => f !== null) : []
+}
+
 function stripPreviewUrls(draft: InquiryDraft): InquiryDraft {
   return {
     ...draft,
@@ -142,6 +146,11 @@ function stripPreviewUrls(draft: InquiryDraft): InquiryDraft {
     supplier: {
       ...draft.supplier,
       catalogueFile: fileSnapshot(draft.supplier.catalogueFile),
+      attachments: fileListSnapshot(draft.supplier.attachments),
+    },
+    buyer: {
+      ...draft.buyer,
+      attachments: fileListSnapshot(draft.buyer.attachments),
     },
   }
 }
@@ -197,14 +206,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 function asDraft(payload: InquiryDraft): InquiryDraft {
+  const empty = createEmptyDraft()
+  const attachments = fileListSnapshot(
+    payload.supplier?.attachments?.length
+      ? payload.supplier.attachments
+      : payload.buyer?.attachments,
+  )
+  const catalogue = fileSnapshot(payload.supplier?.catalogueFile) ?? attachments[0] ?? null
   return withFileUrls({
-    ...createEmptyDraft(),
+    ...empty,
     ...payload,
-    contact: { ...createEmptyDraft().contact, ...payload.contact },
-    supplier: { ...createEmptyDraft().supplier, ...payload.supplier },
+    contact: { ...empty.contact, ...payload.contact },
+    supplier: {
+      ...empty.supplier,
+      ...payload.supplier,
+      otherCategory: Boolean(payload.supplier?.otherCategory),
+      otherProductType: Boolean(payload.supplier?.otherProductType),
+      capabilityNotes: payload.supplier?.capabilityNotes ?? '',
+      attachments,
+      catalogueFile: catalogue,
+    },
     buyer: {
-      ...createEmptyDraft().buyer,
+      ...empty.buyer,
       ...payload.buyer,
+      attachments,
       finishedGoods: Array.isArray(payload.buyer?.finishedGoods)
         ? payload.buyer.finishedGoods.map((row) => ({
             finishedGoodId: String(row.finishedGoodId ?? ''),
@@ -215,8 +240,18 @@ function asDraft(payload: InquiryDraft): InquiryDraft {
                 : undefined,
           }))
         : [],
+      tradingProducts: Array.isArray(payload.buyer?.tradingProducts)
+        ? payload.buyer.tradingProducts.map((row) => ({
+            tradingProductId: String(row.tradingProductId ?? ''),
+            quantity: String(row.quantity ?? ''),
+            name:
+              row && typeof row === 'object' && 'name' in row && row.name
+                ? String(row.name)
+                : undefined,
+          }))
+        : [],
       specifications: {
-        ...createEmptyDraft().buyer.specifications,
+        ...empty.buyer.specifications,
         ...payload.buyer?.specifications,
       },
     },
@@ -296,7 +331,7 @@ export const inquiryApi = {
   async uploadFile(
     inquiryId: string,
     file: Blob,
-    purpose: 'BUSINESS_CARD' | 'CATALOGUE_ORIGINAL',
+    purpose: 'BUSINESS_CARD' | 'CATALOGUE_ORIGINAL' | 'INQUIRY_ATTACHMENT',
     side?: 'front' | 'back',
     filename?: string,
   ): Promise<StoredFileAsset> {
@@ -317,6 +352,20 @@ export const inquiryApi = {
       throw new ApiError(message)
     }
     return parsed as StoredFileAsset
+  },
+
+  async deleteFile(inquiryId: string, assetId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/inquiries/${inquiryId}/files/${assetId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok && response.status !== 204) {
+      const parsed = await parseJson(response)
+      const message =
+        parsed && typeof parsed === 'object' && 'message' in parsed
+          ? String((parsed as { message: string }).message)
+          : `Could not remove file (${response.status})`
+      throw new ApiError(message)
+    }
   },
 
   async recordConsent(inquiryId: string, purpose: string, decision: 'GRANTED' | 'DECLINED' | 'REVOKED') {
@@ -353,6 +402,14 @@ export const inquiryApi = {
     })
   },
 
+  async listBuyerProducts(query?: string): Promise<BuyerProduct[]> {
+    const q = query?.trim()
+    const path = q
+      ? `/buyer-products?q=${encodeURIComponent(q)}`
+      : '/buyer-products'
+    return request<BuyerProduct[]>(path)
+  },
+
   async listFinishedGoods(query?: string): Promise<FinishedGood[]> {
     const q = query?.trim()
     const path = q
@@ -360,6 +417,12 @@ export const inquiryApi = {
       : '/finished-goods'
     return request<FinishedGood[]>(path)
   },
+}
+
+export interface BuyerProduct {
+  id: string
+  name: string
+  sourceKind: 'PHARMA_ERP' | 'PORTAL_SUPPLIER' | 'OFFLINE_SUPPLIER' | string
 }
 
 export interface FinishedGood {

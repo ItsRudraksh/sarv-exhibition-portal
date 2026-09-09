@@ -3,6 +3,7 @@ import {
   clearStaffAuth,
   setStaffAuth,
   staffApi,
+  staffAuthHeader,
   type BuyerLead,
   type StaffMe,
   type SupplierReview,
@@ -19,6 +20,35 @@ export function StaffApp() {
   const [busy, setBusy] = useState(false)
   const [suppliers, setSuppliers] = useState<SupplierReview[]>([])
   const [buyers, setBuyers] = useState<BuyerLead[]>([])
+  const [restoring, setRestoring] = useState(() => Boolean(staffAuthHeader()))
+
+  useEffect(() => {
+    if (!staffAuthHeader()) {
+      return
+    }
+    void staffApi
+      .me()
+      .then(async (user) => {
+        setMe(user)
+        chooseTab(user)
+        await refreshQueues(user)
+      })
+      .catch(() => {
+        clearStaffAuth()
+        setMe(null)
+      })
+      .finally(() => setRestoring(false))
+  }, [])
+
+  function chooseTab(user: StaffMe) {
+    if (user.roles.includes('ADMIN') || user.roles.includes('SUPPLIER_REVIEWER')) {
+      setTab('suppliers')
+    } else if (user.roles.includes('MARKETING')) {
+      setTab('buyers')
+    } else {
+      setTab('exports')
+    }
+  }
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault()
@@ -28,13 +58,7 @@ export function StaffApp() {
     try {
       const user = await staffApi.me()
       setMe(user)
-      if (user.roles.includes('ADMIN') || user.roles.includes('SUPPLIER_REVIEWER')) {
-        setTab('suppliers')
-      } else if (user.roles.includes('MARKETING')) {
-        setTab('buyers')
-      } else {
-        setTab('exports')
-      }
+      chooseTab(user)
       await refreshQueues(user)
     } catch (err) {
       clearStaffAuth()
@@ -60,6 +84,17 @@ export function StaffApp() {
     setMe(null)
     setSuppliers([])
     setBuyers([])
+  }
+
+  if (restoring) {
+    return (
+      <div className="staff-app">
+        <header className="staff-header">
+          <p className="staff-kicker">Internal</p>
+          <h1>Staff review</h1>
+        </header>
+      </div>
+    )
   }
 
   if (!me) {
@@ -113,9 +148,16 @@ export function StaffApp() {
         <p className="staff-lede">
           {me.displayName} · {me.roles.join(', ')}
         </p>
-        <button type="button" className="staff-text-btn" onClick={signOut}>
-          Sign out
-        </button>
+        <div className="staff-header-links">
+          {me.roles.includes('ADMIN') ? (
+            <a className="staff-text-btn" href="/admin">
+              Admin panel
+            </a>
+          ) : null}
+          <button type="button" className="staff-text-btn" onClick={signOut}>
+            Sign out
+          </button>
+        </div>
       </header>
       {me.roles.includes('ADMIN') || me.roles.includes('MARKETING') ? <FinishedGoodsSyncPanel /> : null}
       <nav className="staff-tabs">
@@ -195,6 +237,9 @@ function SupplierQueue({
                 {row.reviewState} · production {row.productionState}
                 {row.deliveryState ? ` · outbox ${row.deliveryState}` : ''}
               </span>
+              {row.capabilityNotes ? (
+                <span className="staff-meta">{row.capabilityNotes}</span>
+              ) : null}
             </div>
             <div className="staff-actions">
               <button
@@ -262,7 +307,8 @@ function FinishedGoodsSyncPanel() {
     <section className="staff-section staff-card" style={{ marginBottom: 16 }}>
       <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>Finished goods catalogue</h2>
       <p className="staff-lede">
-        Buyer “I want to buy” searches this flat list. Sync pulls active products from pharma-erp
+        Buyer “I want to buy” searches Sarv finished goods plus products listed on /admin
+        (offline and portal suppliers). Sync pulls active products from pharma-erp
         MySQL ({`pharmadb.products`}). Enable JDBC in portal env first.
       </p>
       <p className="staff-meta">

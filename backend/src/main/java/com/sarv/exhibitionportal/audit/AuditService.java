@@ -37,4 +37,8 @@ public class AuditService {
     public long count(UUID inquiryId, String eventType) {
         return audits.countByInquiryAndEvent(inquiryId, eventType);
     }
+
+    public long countByEntity(String entityType, UUID entityId, String eventType) {
+        return audits.countByEntityAndEvent(entityType, entityId, eventType);
+    }
 }

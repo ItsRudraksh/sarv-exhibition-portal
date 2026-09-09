@@ -65,15 +65,15 @@ Entry
   -> select I want to sell / I want to buy
 
 Supplier
-  -> select one or more departments
-  -> select relevant product types filtered by departments
+  -> select one or more categories and/or Other
+  -> select product types filtered by categories, and/or Other, plus a required free-text offering description
   -> smart details check: preview extracted/saved values; show only missing required fields
-  -> review: at least a website OR a catalogue is required
+  -> review: at least a website OR one supporting file is required; multiple PDF/image files up to 5 MB each
   -> submit supplier inquiry -> confirmation / internal review
 
 Buyer
   -> one required product-or-requirement description
-  -> optional product-area search and collapsed optional specifications
+  -> optional product-area search, collapsed optional specifications, and optional supporting files (same 5 MB / 10-file cap)
   -> review need + saved contact
   -> submit inquiry -> confirmation / sales or marketing follow-up
 ```
@@ -86,7 +86,7 @@ Buyer
 - The frontend must show that details are reviewable/correctable. AI or card-derived values cannot silently replace confirmed values.
 - Use client-side state/draft persistence only as a mock of the planned server-side draft model. Make it robust enough to demonstrate resume/reload during this prototype, but do not claim it is secure production persistence.
 - Buyer minimum path: confirmed contact plus one product/requirement statement. Product area, quantity, pack size, standards, needed-by date, notes, and buyer company information are optional/progressive.
-- Supplier minimum path: company, contact, reliable contact method, department, product type, and website or catalogue. Use nonidentifying placeholder/mock data, never a fake real person/company.
+- Supplier minimum path: company, contact, reliable contact method, at least one category **or Other**, a free-text offering description, and website or supporting file(s). Listed product types are optional when Other/notes cover the offering. Use nonidentifying placeholder/mock data, never a fake real person/company.
 - Do not force an obsolete mandatory buyer category/standard/profile form. `PP` is not a valid standard; controlled standards are IP, USP, BP, and EP when the user elects to provide one.
 - Supplier submission only enters internal review. Do not claim approval, vendor creation, availability, a response SLA, a tracking number, or an external integration result.
 - Location must remain consent-based. Do not implement invisible location collection or raw-IP collection.
@@ -103,8 +103,8 @@ Implement all eleven current visitor screens as actual React states/routes/views
 1. Business-card capture start.
 2. Extracted/saved contact-details confirmation.
 3. Intent selection.
-4. Supplier department multi-select.
-5. Supplier product-type selection filtered from chosen departments.
+4. Supplier category multi-select plus Other.
+5. Supplier product-type selection filtered from chosen categories, plus Other and a required free-text offering.
 6. Supplier smart-details check, including a realistic missing-required-data state.
 7. Supplier review/submit.
 8. Supplier submission confirmation.
@@ -120,7 +120,7 @@ Implement these interactions:
 - Contact form with proper labels, validation, country-code selection, editable values, and saved-draft feedback.
 - Persist non-sensitive prototype draft state to `sessionStorage` or `localStorage` through an isolated adapter; include a visible, accessible way to restart/clear the demo. Explain in the README that this is a prototype only, not a production privacy solution.
 - Intent selection after a valid contact checkpoint.
-- Supplier department checkboxes/search, then product types derived from selected departments. Do not hard-code all choices into JSX; use typed mock taxonomy data.
+- Supplier category checkboxes/search plus Other, then product types derived from selected categories plus Other and a required free-text offering. Do not hard-code all choices into JSX; use typed mock taxonomy data.
 - Supplier smart details page that can show both an extracted-data preview and an incomplete-data state which asks only for the required missing fields. Keep optional company details collapsed.
 - Supplier review validation: website URL and/or a local catalogue file selection. Treat a selected file as local-only and clearly avoid a claim that it was uploaded/scanned.
 - Buyer requirement textarea with one required value; optional product-area search and progressive specification disclosure. Validate only what is genuinely required.

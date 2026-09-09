@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FileConsentAuditApiTest extends MysqlSpringBootTest {
 
     private static final byte[] JPEG = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x10, 0x11, 0x12};
+    private static final byte[] PDF = "%PDF-1.4 sample".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
 
     @Autowired
     private TestRestTemplate rest;
@@ -103,6 +104,26 @@ class FileConsentAuditApiTest extends MysqlSpringBootTest {
                 java.util.Map.of("purpose", "LOCATION_EVIDENCE", "decision", "GRANTED"),
                 String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void supportingAttachmentsCanBeAddedAndRemoved() {
+        InquiryDraftDto created = rest.postForObject("/api/v1/inquiries", null, InquiryDraftDto.class);
+        assertThat(created).isNotNull();
+        FileAssetDto first = upload(
+                created.id(), "INQUIRY_ATTACHMENT", null, "one.pdf", "application/pdf", PDF);
+        FileAssetDto second = upload(
+                created.id(), "INQUIRY_ATTACHMENT", null, "two.pdf", "application/pdf", PDF);
+        assertThat(first.purpose()).isEqualTo("INQUIRY_ATTACHMENT");
+        InquiryDraftDto withFiles = rest.getForObject("/api/v1/inquiries/" + created.id(), InquiryDraftDto.class);
+        assertThat(withFiles).isNotNull();
+        assertThat(withFiles.buyer().attachments()).hasSize(2);
+        rest.delete("/api/v1/inquiries/" + created.id() + "/files/" + first.id());
+        InquiryDraftDto after = rest.getForObject("/api/v1/inquiries/" + created.id(), InquiryDraftDto.class);
+        assertThat(after).isNotNull();
+        assertThat(after.buyer().attachments()).hasSize(1);
+        assertThat(after.buyer().attachments().get(0).assetId()).isEqualTo(second.id());
+        assertThat(audits.count(created.id(), "FILE_REMOVED")).isEqualTo(1);
     }
 
     private FileAssetDto upload(

@@ -71,6 +71,7 @@ Then in `frontend/`: `npm run dev` (Vite proxies `/api` to port 8080).
 | POST | `/api/v1/inquiries/{id}/submit` |
 | POST | `/api/v1/inquiries/{id}/files` |
 | GET | `/api/v1/inquiries/{id}/files/{assetId}` |
+| DELETE | `/api/v1/inquiries/{id}/files/{assetId}` |
 | POST | `/api/v1/inquiries/{id}/consents` |
 | GET | `/api/v1/inquiries/{id}/consents` |
 | POST | `/api/v1/inquiries/{id}/extractions` |
@@ -78,6 +79,7 @@ Then in `frontend/`: `npm run dev` (Vite proxies `/api` to port 8080).
 | GET | `/api/v1/campaigns/{code}` |
 | GET | `/api/v1/taxonomy/departments` |
 | GET | `/api/v1/taxonomy/product-types` |
+| GET | `/api/v1/buyer-products` |
 
 ## Staff endpoints (HTTP Basic)
 
@@ -93,8 +95,22 @@ Seeded local users (password `poc-staff`): `reviewer@sarv.local`, `marketing@sar
 | POST | `/api/v1/staff/exports` |
 | GET | `/api/v1/staff/exports/{id}` |
 | GET | `/api/v1/staff/exports/{id}/file` |
+| GET | `/api/v1/staff/roles` |
+| GET | `/api/v1/staff/users` |
+| POST | `/api/v1/staff/users` |
+| PUT | `/api/v1/staff/users/{id}` |
+| DELETE | `/api/v1/staff/users/{id}` |
+| GET | `/api/v1/staff/trading-suppliers` |
+| GET | `/api/v1/staff/trading-suppliers/portal-candidates` |
+| POST | `/api/v1/staff/trading-suppliers` |
+| POST | `/api/v1/staff/trading-suppliers/from-portal` |
+| PUT | `/api/v1/staff/trading-suppliers/{id}` |
+| DELETE | `/api/v1/staff/trading-suppliers/{id}` |
+| POST | `/api/v1/staff/trading-suppliers/{id}/products` |
+| PUT | `/api/v1/staff/trading-suppliers/{id}/products/{productId}` |
+| DELETE | `/api/v1/staff/trading-suppliers/{id}/products/{productId}` |
 
-Files are stored under `exhibition.storage-root` (default `./var/exhibition-files`). MySQL holds metadata only. Content allowlist is not an antivirus product. Location is not collected.
+Files are stored under `exhibition.storage-root` (default `./var/exhibition-files`). MySQL holds metadata only. Content allowlist is not an antivirus product. Location is not collected. `DELETE /api/v1/staff/users/{id}` deactivates the account (`INACTIVE`); it does not hard-delete. Trading supplier/product DELETE also deactivates. `GET /api/v1/buyer-products` is the visitor catalogue (pharma-erp FG + tagged trading products, names only).
 
 POC limits: local card-QR assist only (not cloud OCR), no live CRM or live vendor API. Outbox stubs: `poc-mailbox` / `poc-vendor-stub`. Create body may include `entryChannel`, `campaignCode`, `staffAssisted`. See `specs/BUILD-PLAN.md`.
 

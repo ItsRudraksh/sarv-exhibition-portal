@@ -37,10 +37,12 @@ public class SecurityConfig {
                                 "/web/**",
                                 "/staff",
                                 "/staff/**",
+                                "/admin",
+                                "/admin/**",
                                 "/error")
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/api/v1/inquiries/**", "/api/v1/taxonomy/**", "/api/v1/campaigns/**", "/api/v1/meta", "/api/v1/finished-goods/**")
+                        .requestMatchers("/api/v1/inquiries/**", "/api/v1/taxonomy/**", "/api/v1/campaigns/**", "/api/v1/meta", "/api/v1/finished-goods/**", "/api/v1/buyer-products/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/staff/me").authenticated()
                         .requestMatchers("/api/v1/staff/suppliers/**")
@@ -51,6 +53,10 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "EXPORTER", "MARKETING")
                         .requestMatchers("/api/v1/staff/finished-goods/**")
                         .hasAnyRole("ADMIN", "MARKETING")
+                        .requestMatchers("/api/v1/staff/trading-suppliers/**")
+                        .hasAnyRole("ADMIN", "TAXONOMY_MANAGER")
+                        .requestMatchers("/api/v1/staff/users/**", "/api/v1/staff/roles")
+                        .hasRole("ADMIN")
                         .requestMatchers("/api/v1/staff/**").hasRole("ADMIN")
                         .anyRequest().denyAll());
         return http.build();

@@ -4,7 +4,7 @@
 >
 > **Assembled:** 21 August 2026 · **Specs relocated:** 1 September 2026 (`specs/`)
 >
-> **Current stage:** Buyer **finished goods** list from pharma-erp (Flyway V8 + weekly/manual DB sync). Visiting-card assist: QR + local OCR. Live CRM/vendor, cloud OCR/voice, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)**. Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
+> **Current stage:** Buyer catalogue = pharma-erp finished goods **plus** tagged portal-supplier and offline-supplier products (`/admin`). Visiting-card assist: QR + local OCR. Live CRM/vendor, cloud OCR/voice, and public HTTPS for camera remain open. Public Windows Server: **Java 17** JAR + Jenkins — **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)**. Delivery: **[BUILD-PLAN.md](BUILD-PLAN.md)**.
 
 ## 1. Read this first: the product in one page
 
@@ -21,7 +21,7 @@ The product principle is **one configurable platform, not two disconnected forms
 
 The strongest current UX decision is that the experience is **scan-first and auto-saved**. A visitor may scan both sides of a business card, upload images, or continue manually. OCR/AI may propose values, but the visitor reviews the usable name, work email, and mobile number (including country code) before route selection. That confirmed identity is used to create a resumable partial inquiry. Meaningful progress is saved server-side so a visitor who gets busy can later be contacted rather than lost.
 
-The buyer route must be materially faster than the supplier route. Buyers are Sarv's potential customers and cannot be lost to a long B2B form. A buyer can submit after giving a saved contact and **one product-or-requirement statement**. Finished-goods multi-select shows **product names only** (no item codes); **each selected item requires its own quantity**. Pack size, standard, needed-by date, and notes stay under optional details. A buyer company is helpful but must not block submission.
+The buyer route must be materially faster than the supplier route. Buyers are Sarv's potential customers and cannot be lost to a long B2B form. A buyer can submit after giving a saved contact and **one product-or-requirement statement**. Buyer multi-select shows **product names only** (no item codes) from **all listed sources**: pharma-erp finished goods, tagged products from portal-registered suppliers, and products from offline/trading suppliers. **Each selected item requires its own quantity**. Pack size, standard, needed-by date, and notes stay under optional details. A buyer company is helpful but must not block submission.
 
 ## 2. Decision precedence and terminology
 
@@ -134,14 +134,14 @@ flowchart LR
     E --> F
     F --> G[Create or update resumable partial inquiry; autosave]
     G --> H{Visitor intent}
-    H -->|I want to sell| S1[Select one or more departments]
-    S1 --> S2[Select product types filtered by department]
+    H -->|I want to sell| S1[Select categories and/or Other]
+    S1 --> S2[Select product types / Other; describe offering]
     S2 --> S3[Smart details check: preview extracted values; ask only for missing required values]
-    S3 --> S4[Review; provide website or catalogue]
+    S3 --> S4[Review; website or supporting files; optional extra files]
     S4 --> S5[Submit supplier inquiry]
     S5 --> S6[Supplier confirmation; internal review follows]
     H -->|I want to buy| P1[Enter product or exact requirement]
-    P1 --> P2[Optionally add product area, specifications, quantity, pack size, standard, date, notes]
+    P1 --> P2[Optionally add products, specifications, and supporting files]
     P2 --> P3[Review need and saved contact]
     P3 --> P4[Submit buyer inquiry]
     P4 --> P5[Buyer confirmation; marketing/sales follows up]
@@ -164,23 +164,23 @@ Required final information (subject to configurable policy):
 
 - Company name.
 - Contact name and one reliable business contact method.
-- At least one selected department.
-- At least one product type valid for the selected department(s).
-- At least one of a catalogue upload or a website URL at final review. Both are permitted.
+- At least one listed category **or** Other (for offerings that do not match the exhibition list).
+- A free-text description of what they can supply (same idea as the buyer requirement field). Listed product types (subcategories) are optional when Other or the description covers the offering.
+- At least one of a supporting-file upload or a website URL at final review. Both are permitted. Visitors may attach **multiple** PDF/JPEG/PNG/WebP files, **5 MB each**, up to 10.
 
 Current sequence:
 
-1. Searchable/multi-select departments.
-2. Searchable product types filtered by selected departments.
+1. Searchable/multi-select categories (departments) plus **Other**.
+2. Searchable product types filtered by selected categories, plus **Other**, plus required free-text offering notes.
 3. Smart details page: selected taxonomy plus editable card-derived company/contact fields. If all required fields are present, require no additional typing; if not, show only missing required fields. Optional company context remains collapsed.
-4. Final review and submit. The submission enters an internal review queue, not the vendor platform directly.
+4. Final review and submit (website and/or supporting files). The submission enters an internal review queue, not the vendor platform directly.
 5. Confirmation: receipt and non-committal review/follow-up explanation.
 
 ### Buyer route: `I want to buy`
 
 The buyer path is deliberately a two-step inquiry after the contact checkpoint:
 
-1. **Rapid need capture:** one required multi-line `Product or requirement` description is enough to continue. Optional product-area search is available. Optional specifications are collapsed.
+1. **Rapid need capture:** one required multi-line `Product or requirement` description is enough to continue. Optional product-area search is available. Optional specifications are collapsed. Optional supporting files (same 5 MB / 10-file cap as suppliers).
 2. **Review and submit:** show the single need plus saved contact details; no new long company/contact form.
 3. **Confirmation:** acknowledge only the dynamic requirement and saved contact. State that the team will review/contact if more detail is needed. Do not invent reference numbers, standards, quantities, SLAs, category names, or response times.
 
@@ -198,9 +198,10 @@ The buyer does **not** have a mandatory separate pharmacopeial/category/quantity
 
 ### Files and catalogue handling
 
-- Supplier catalogue inputs can be approved PDFs or images.
+- Supplier catalogue and buyer supporting inputs can be approved PDFs or images.
 - Store file bytes in secure/private object storage, not in the database.
 - Store metadata, secure storage key, checksum, scan/processing state, and lineage in the database.
+- Visitors may attach **multiple** supporting files (`INQUIRY_ATTACHMENT`) on both sell and buy paths. Each file is capped at **5 MiB**; at most **10** supporting files per inquiry. Business-card photos stay on the existing 10 MiB card cap.
 - For image bundles, preserve originals and create a derived review PDF package. Do not destroy originals merely because a derivative was created.
 - File types/sizes need allowlisting and security scanning. Admin access should use authorized, time-limited access rather than public paths.
 
@@ -354,7 +355,7 @@ Initial controlled roles: `ADMIN`, `SUPPLIER_REVIEWER`, `MARKETING`, `EXPORTER`,
 ### Not implemented or not finalised
 
 - No cloud object-storage provider, cloud OCR/AI provider, live CRM product, or live enterprise-vendor API. Card assist is local: ZXing QR on the server + Tesseract.js printed-text OCR in the browser; outbox stubs write local JSON only.
-- Internal/admin screens exist as a POC at `/staff` (Alpine Blue After Dark). Not a designed Stitch admin suite. Required later: richer supplier record, Excel workbook export, SSO.
+- Internal/admin screens: review queues at `/staff`; **ADMIN** staff-account CRUD at `/admin` (Alpine Blue After Dark). Not a designed Stitch admin suite. Required later: richer supplier record, SSO. Excel workbook export is live as an expiring job.
 - Final design approval of the revised buyer confirmation should be confirmed/documented.
 - Desktop counterparts need scan-first alignment only where the old screens actually conflict.
 - Product catalogue (`products` / `product_standards`) is not in Flyway yet. Department / product-type taxonomy is business-owned under **[taxonomy/](taxonomy/)** (V7).
@@ -380,7 +381,7 @@ The HLD explicitly requires cross-functional decisions on:
 
 1. Enterprise vendor API/interface, identity-match rules, approval owner, create vs update behavior.
 2. Marketing destination (CRM or mailbox), required lead fields, routing owner, dispatch frequency, and follow-up SLA.
-3. **Supplier taxonomy (departments / product types / mappings / IP–EP):** resolved for v1 in [taxonomy/](taxonomy/). **Buyer catalogue:** source = pharma-erp **finished goods** (`pharmadb.products` active rows); presentation = **flat multi-select**; sync = **weekly DB sync** via `POST /api/v1/staff/finished-goods/sync` (manual first; cron when `exhibition.pharma-erp.schedule-enabled=true`). Snapshot table: `finished_goods` (Flyway V8). **Still open:** named stall-day maintainer; production JDBC credentials on the host.
+3. **Supplier taxonomy (departments / product types / mappings / IP–EP):** resolved for v1 in [taxonomy/](taxonomy/). **Buyer catalogue:** **multiple sources**. Pharma-erp **finished goods** (`pharmadb.products` active rows, Flyway V8 snapshot + staff sync) **and** trading products tagged on `/admin` from **offline suppliers** or **portal-registered** (“I want to sell”) suppliers (Flyway V10). Presentation = **flat multi-select, names only**. Linking a portal supplier does **not** Add to production. **Still open:** named stall-day maintainer; production JDBC credentials on the host.
 4. Exact supplier and buyer validation policy. The current UX direction is clear, but policy needs formal confirmation.
 5. Lawful purpose, consent copy, allowed evidence sources, precision, fallback, retention/deletion process for location evidence.
 6. AI provider, supported languages, card/image retention, acceptable accuracy, review expectations, and data-processing terms.
@@ -467,11 +468,15 @@ Non-negotiables:
 - QR detected on a card is saved internally only; never redirect/expose it to the visitor.
 - AI/voice/card scan are optional, consented, reviewable assists; manual fallback is mandatory; AI cannot make business decisions.
 - Follow HLD/database consent and audit rules. Do not copy stale legacy labels from old desktop/prototype screens into requirements.
-- Keep the approved Alpine Blue system. Staff uses Alpine Blue After Dark at `/staff`. Do not restyle or add generic dashboard/marketing patterns unless explicitly asked.
-- Visitor UI is a React app in frontend/ wired to the Java API. Staff is a separate `/staff` route. Local card-QR assist proposes reviewable fields; do not claim cloud OCR or a live CRM/vendor API. Outbox stubs are local JSON files. Card/catalogue files are stored privately when the API is up. Add to production enqueues vendor delivery only. Stall tablets use **Next visitor** + session pointer (not localStorage PII). Entry: `?c=CAMPAIGN`, `/web`, `?channel=direct`, `?assist=1`.
+- Keep the approved Alpine Blue system. Staff uses Alpine Blue After Dark at `/staff`. Admin uses the same dark theme at `/admin` (ADMIN-only staff-account CRUD). Do not restyle or add generic dashboard/marketing patterns unless explicitly asked.
+- Visitor UI is a React app in frontend/ wired to the Java API. Staff is a separate `/staff` route; admin is `/admin`. Local card-QR assist proposes reviewable fields; do not claim cloud OCR or a live CRM/vendor API. Outbox stubs are local JSON files. Card/catalogue files are stored privately when the API is up. Add to production enqueues vendor delivery only. Stall tablets use **Next visitor** + session pointer (not localStorage PII). Entry: `?c=CAMPAIGN`, `/web`, `?channel=direct`, `?assist=1`.
 
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
+
+**Changelog — 9 Sep 2026 (later):** Supplier categories include **Other** plus required free-text offering notes (buyer-style). Product types stay filtered by selected categories. Both sell and buy paths accept multiple supporting attachments (PDF/JPEG/PNG/WebP, 5 MB each, max 10). Flyway V11.
+
+**Changelog — 9 Sep 2026:** Buyer catalogue includes tagged portal/offline supplier products (not only pharma-erp FG). `/admin` ADMIN-only staff-account CRUD (deactivate, not hard-delete). Review queues remain `/staff`.
 
 **Changelog — 1 Sep 2026:** Specs in `specs/`. Phases 1–5: visitor API, files, consent, staff review, `integration_deliveries` outbox stubs. Build sequence: [BUILD-PLAN.md](BUILD-PLAN.md). Verification: [TESTING.md](TESTING.md).
 

@@ -7,7 +7,7 @@ Reusable QR and website inquiry portal: **I want to sell** (supplier intake) and
 | Path | Role |
 |---|---|
 | `specs/` | Product, database, build plan, testing, Windows/Jenkins deploy |
-| `frontend/` | React + Vite visitor app + `/staff` (session pointer; no PII in localStorage) |
+| `frontend/` | React + Vite visitor app + `/staff` + `/admin` (session pointer; no PII in localStorage) |
 | `backend/` | Java 17 Spring Boot (Flyway V1–V7); `prod` profile is fail-closed |
 | `Jenkinsfile` | npm + Maven (Java17) + Windows service |
 | `deploy/windows/` | Native MySQL 3306, Windows service, `http://43.225.195.200/` |
@@ -25,7 +25,7 @@ In another terminal: `cd frontend && npm run dev`.
 
 Needs **native MySQL 8** on `localhost:3306`. `mvn test` uses embedded MariaDB.
 
-UI: `https://localhost:5173` · staff: `https://localhost:5173/staff` · API: `http://localhost:8080`.
+UI: `https://localhost:5173` · staff: `https://localhost:5173/staff` · admin: `https://localhost:5173/admin` · API: `http://localhost:8080`.
 
 ## Production (Windows)
 

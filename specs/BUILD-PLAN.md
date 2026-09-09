@@ -18,7 +18,7 @@ This is the build sequence for a **Java Spring Boot** backend plus the existing 
 | PostgreSQL singleton DDL | Historical full DDL in this folder; **not applied**. POC applies a MySQL subset via Flyway (see §3) |
 | Visitor UI | React 19 + TypeScript + Vite in `frontend/`; HTTP adapter to Java; **sessionStorage** draft-id pointer (no PII in `localStorage`) |
 | Backend | **Running:** `backend/` Spring Boot 3.5, **Java 17**, JDBC, Flyway V1–V6, visitor API + staff + outbox + local card-QR assist |
-| Admin UI | **POC:** `/staff` (Alpine Blue After Dark), local Vite or same-origin from the packaged JAR. Not bolted into the visitor inquiry shell. |
+| Admin UI | **POC:** `/staff` review queues and `/admin` staff-account CRUD (Alpine Blue After Dark), local Vite or same-origin from the packaged JAR. Not bolted into the visitor inquiry shell. |
 | CRM / vendor / cloud OCR | Deferred until providers are chosen |
 
 How to run the POC: [backend/README.md](../backend/README.md). API `http://localhost:8080`, UI `https://localhost:5173` (Vite proxies `/api`). Public Windows Server: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) (`http://43.225.195.200/` — Java 17 JAR + Jenkins, native MySQL 8 on 3306, no Docker, no Vite).
@@ -115,12 +115,13 @@ Visitor uploads are scoped to the draft id (no visitor login). Bytes go to a **l
 
 | Method | Path | Purpose |
 |---|---|---|
-| `POST` | `/api/v1/inquiries/{id}/files` | Multipart upload (`purpose=BUSINESS_CARD\|CATALOGUE_ORIGINAL`, card `side=front\|back`) |
+| `POST` | `/api/v1/inquiries/{id}/files` | Multipart upload (`purpose=BUSINESS_CARD\|CATALOGUE_ORIGINAL\|INQUIRY_ATTACHMENT`, card `side=front\|back`) |
 | `GET` | `/api/v1/inquiries/{id}/files/{assetId}` | Serve a **CLEAN** file (not public listing; draft id required) |
+| `DELETE` | `/api/v1/inquiries/{id}/files/{assetId}` | Soft-remove a draft supporting file (`PURGED`; bytes stay on disk) |
 | `POST` | `/api/v1/inquiries/{id}/consents` | Append-only consent event |
 | `GET` | `/api/v1/inquiries/{id}/consents` | List consent events, latest first |
 
-Allowlist: JPEG/PNG/WebP for cards; those plus PDF for catalogue. Size caps in `application.properties`. Magic-byte check after write; **REJECTED** files stay on disk and in `file_assets` (not served). This is **not** an antivirus product.
+Allowlist: JPEG/PNG/WebP for cards; those plus PDF for catalogue/supporting attachments. Supporting files: **5 MiB** each, max **10** (`exhibition.catalogue-max-bytes`, `exhibition.attachment-max-count`). Cards remain 10 MiB. Magic-byte check after write; **REJECTED** files stay on disk and in `file_assets` (not served). This is **not** an antivirus product.
 
 Consent: `BUSINESS_CARD_EXTRACTION` granted on card upload, declined on continue-without-a-card. **Latest row wins**; never UPDATE a prior row. Location grant is rejected — GPS and raw IP are not collected.
 
@@ -130,7 +131,7 @@ Audit: `audit_events` on create, contact confirm, submit, file upload, scan reje
 
 ### Phase 4 — Internal admin (**POC done**)
 
-Staff UI is a **separate** route (`/staff`), Alpine Blue After Dark. HTTP Basic against seeded `app_users` (`{noop}poc-staff` locally — not SSO).
+Staff UI is a **separate** route (`/staff`), Alpine Blue After Dark. HTTP Basic against seeded `app_users` (`{noop}poc-staff` locally — not SSO). **ADMIN** staff-account CRUD is a second route (`/admin`).
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -141,6 +142,11 @@ Staff UI is a **separate** route (`/staff`), Alpine Blue After Dark. HTTP Basic 
 | `POST` | `/api/v1/staff/buyers/{id}/notes` | Internal marketing notes (never shown to visitors) |
 | `POST` | `/api/v1/staff/exports` | Controlled purchase-lead export job (CSV in this POC) |
 | `GET` | `/api/v1/staff/exports/{id}/file` | Download when `READY`; `GONE` after `expires_at` |
+| `GET` | `/api/v1/staff/roles` | Role catalogue (`ADMIN` only) |
+| `GET` | `/api/v1/staff/users` | List staff accounts (`ADMIN` only) |
+| `POST` | `/api/v1/staff/users` | Create staff account |
+| `PUT` | `/api/v1/staff/users/{id}` | Update email, name, roles, status, optional password |
+| `DELETE` | `/api/v1/staff/users/{id}` | Deactivate (`INACTIVE`); does not hard-delete |
 
 **DoD met:** Reviewer approve/reject has `decided_by_user_id`; `production_state` stays `NOT_REQUESTED` until **Add to production**. Phase 5 then enqueues `VENDOR_UPSERT`. Export is a job with expiry, not a raw table dump.
 
@@ -212,7 +218,7 @@ Keep Alpine Blue and the 11-screen journey. Phase 2 POC wiring is in place:
 - Submit persists on the server; confirmation shows `reference_code` (`POC-` locally / `EP-` on prod). Offline fallback still does not invent a tracking number.
 - Card upload loads `/extractions/latest` and prefills empty contact fields from PENDING proposals. Shared-device mode uses a session pointer only; fonts are self-hosted. Camera permission copy runs **before** `getUserMedia`.
 
-Admin UI is a separate `/staff` route (not inside `InquiryApp`).
+Admin UI is a separate `/staff` review route plus `/admin` for staff IDs (not inside `InquiryApp`).
 
 ## 6. Testing and quality gates
 
@@ -246,7 +252,13 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 
 **Chat-independent reference — Phase 5 (2026-09-01):** Flyway V5 `integration_deliveries`. Buyer submit enqueues `MARKETING_LEAD`; Add to production enqueues `VENDOR_UPSERT`. Worker writes stub JSON; retries; never drops the inquiry. Tests: `OutboxApiTest`, `OutboxRetryApiTest`.
 
-**Chat-independent reference — Windows public IP (2026-09-02):** Visitor UI is packaged into the Spring Boot JAR (`with-frontend` when `frontend/dist` exists). Prod profile binds port 80, CORS origin `http://43.225.195.200`, SPA forward for `/staff`. `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` rotates ACTIVE `app_users` hashes. Runbook: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md). In-page camera still needs HTTPS.
+**Chat-independent reference — Supplier Other + attachments (2026-09-09):** Supplier submit no longer requires a listed department+product-type pair. Categories (departments) **or Other**; required free-text `capabilityNotes`; product types optional when Other/notes cover the offering. Flyway V11: `supplier_inquiries.other_category` / `other_product_type` / `capability_notes`; `file_assets.purpose` adds `INQUIRY_ATTACHMENT`. Both routes: multiple supporting files, 5 MiB each, max 10. `DELETE` draft supporting files (soft `PURGED`). Cards stay 10 MiB. Audit: `FILE_REMOVED` (purpose only). Tests: `InquiryRulesTest`, `FileConsentAuditApiTest`, `FileContentRulesTest`. UI: supplier category/subcategory + Other + notes; attachments on supplier review and buyer need.
+
+**Chat-independent reference — Buyer multi-source catalogue (2026-09-09):** Buyer list is `GET /api/v1/buyer-products` = active pharma-erp `finished_goods` **union** trading products with `listed_for_buyers`. Flyway V10 `trading_suppliers` / `trading_products` / `purchase_inquiry_trading_products`. `/admin` → Buyer catalogue: create offline suppliers; link submitted portal suppliers (does not Add to production); tag product names for buyers. Inquiry `buyer.tradingProducts[]` `{ tradingProductId, quantity }`. Tests: `TradingCatalogueApiTest`, `InquiryRulesTest`. UI: BuyerNeedScreen names only; Admin `TradingCataloguePanel`.
+
+**Chat-independent reference — Admin staff CRUD (2026-09-09):** `/admin` is an ADMIN-only Alpine Blue After Dark panel for staff-account CRUD (`app_users` + `user_roles`). API: `GET/POST /api/v1/staff/users`, `GET/PUT/DELETE /api/v1/staff/users/{id}`, `GET /api/v1/staff/roles`. Delete deactivates (`INACTIVE`); last active ADMIN and self-deactivation are rejected. Audit: `STAFF_USER_CREATED` / `UPDATED` / `DEACTIVATED` on `APP_USER` (no email/password in metadata). `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` rotates only seeded `poc-*` accounts; `/admin`-created users keep their password. Tests: `StaffAdminApiTest`, `SpaRoutingTest` `/admin`. UI: `frontend/src/features/admin/`.
+
+**Chat-independent reference — Windows public IP (2026-09-02):** Visitor UI is packaged into the Spring Boot JAR (`with-frontend` when `frontend/dist` exists). Prod profile binds port 80, CORS origin `http://43.225.195.200`, SPA forward for `/staff` and `/admin`. `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` rotates seeded `poc-*` `app_users` hashes. Runbook: [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md). In-page camera still needs HTTPS.
 
 **Chat-independent reference — Java 17 + Jenkins (2026-09-03):** Target JDK is **17** (Windows Server `17.0.18`), same Jenkins tool ids as pharma-erp (`Java17`, `Maven3`). Pipeline: npm in `frontend/` then `mvn` in `backend/`; **`dev` and `poc`** → `C:\exhibition-portal-staging` (port **8082**, service `exhibition-portal-staging`); **`main`** → `C:\exhibition-portal` (port 80). **8081 is pharma-erp-staging** on this host. Docker is not part of deploy. A Maven SUCCESS on `poc` is not a deploy.
 
