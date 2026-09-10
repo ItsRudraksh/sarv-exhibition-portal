@@ -1,6 +1,6 @@
 # Deploy on Windows Server (public IP)
 
-**Updated:** 4 September 2026  
+**Updated:** 10 September 2026  
 **Target:** `http://43.225.195.200/`  
 **Runtime:** **Java 17** only (server is `17.0.18`). Same delivery shape as pharma-erp: Jenkins on the Windows agent, native database, **no Docker**.
 
@@ -13,7 +13,7 @@ The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibiti
 | URL | `http://43.225.195.200/` (visitor), `http://43.225.195.200/staff` (review), `http://43.225.195.200/admin` (staff IDs, ADMIN) |
 | Java | **17** (`javac`/`java` 17.0.x). Do not build with Java 21 bytecode. |
 | Camera | In-page `getUserMedia` needs HTTPS. On HTTP, visitors **upload** a photo or use the phone file picker. |
-| Auth | **Required:** `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `poc-staff` / `change-me-staff`). Prod refuses to start otherwise. |
+| Auth | Visitor `/` is public (no browser login). Staff `/staff` and admin `/admin` use an in-app form; HTTP Basic is only for `/api/v1/staff/**` and must not send `WWW-Authenticate` (that pops a browser sign-in on the public URL). **Required:** `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `poc-staff` / `change-me-staff`). Prod refuses to start otherwise. |
 | MySQL | Native MySQL 8 on **127.0.0.1:3306**. Do not publish 3306 on `0.0.0.0`. Docker is not used. |
 | Cloud OCR / CRM / vendor API | Still not live. Local card-QR assist may propose fields. Outbox writes local stub files (`local-mailbox` / `local-vendor-stub`). |
 | Receipts | Prod uses `EP-` prefix (`exhibition.reference-prefix`). |

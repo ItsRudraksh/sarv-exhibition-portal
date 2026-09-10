@@ -37,7 +37,7 @@ HTTPS is required for in-page camera. The Vite `/api` proxy talks to the API on 
 
 ### Staff review (`/staff`)
 
-Open `https://localhost:5173/staff`. This is not part of the visitor inquiry shell. Seeded POC logins (password `poc-staff`): `reviewer@sarv.local`, `marketing@sarv.local`, `admin@sarv.local`. Add to production enqueues a vendor outbox stub; it does not call a vendor API.
+Open `https://localhost:5173/staff`. This is not part of the visitor inquiry shell. Seeded POC logins (password `poc-staff`): `reviewer@sarv.local`, `marketing@sarv.local`, `admin@sarv.local`. Sign-in is the staff page form, not a browser username/password dialog. Add to production enqueues a vendor outbox stub; it does not call a vendor API.
 
 ### Admin (`/admin`)
 

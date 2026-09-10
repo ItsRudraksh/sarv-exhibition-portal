@@ -45,5 +45,15 @@ class SpaRoutingTest extends MysqlSpringBootTest {
     void staffApiStillRequiresAuth() {
         ResponseEntity<String> me = rest.getForEntity("/api/v1/staff/me", String.class);
         assertThat(me.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(me.getHeaders().getFirst("WWW-Authenticate")).isNull();
+        assertThat(me.getBody()).contains("Sign in required");
+    }
+
+    @Test
+    void cardOcrLangDataIsNotALoginChallenge() {
+        ResponseEntity<byte[]> tessdata = rest.getForEntity("/tessdata/eng.traineddata", byte[].class);
+        assertThat(tessdata.getStatusCode().value()).isNotEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(tessdata.getStatusCode().value()).isNotEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(tessdata.getHeaders().getFirst("WWW-Authenticate")).isNull();
     }
 }

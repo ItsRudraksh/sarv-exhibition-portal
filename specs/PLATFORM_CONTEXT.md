@@ -474,6 +474,8 @@ Non-negotiables:
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
 
+**Changelog — 10 Sep 2026:** Public visitor URL must not show a browser username/password prompt. Card OCR `/tessdata/**` is public; staff HTTP Basic 401 does not send `WWW-Authenticate`. Staff/admin still use the in-app sign-in form.
+
 **Changelog — 9 Sep 2026 (later):** Supplier categories include **Other** plus required free-text offering notes (buyer-style). Product types stay filtered by selected categories. Both sell and buy paths accept multiple supporting attachments (PDF/JPEG/PNG/WebP, 5 MB each, max 10). Flyway V11.
 
 **Changelog — 9 Sep 2026:** Buyer catalogue includes tagged portal/offline supplier products (not only pharma-erp FG). `/admin` ADMIN-only staff-account CRUD (deactivate, not hard-delete). Review queues remain `/staff`.

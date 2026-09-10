@@ -83,7 +83,7 @@ Then in `frontend/`: `npm run dev` (Vite proxies `/api` to port 8080).
 
 ## Staff endpoints (HTTP Basic)
 
-Seeded local users (password `poc-staff`): `reviewer@sarv.local`, `marketing@sarv.local`, `admin@sarv.local`. Not SSO.
+Seeded local users (password `poc-staff`): `reviewer@sarv.local`, `marketing@sarv.local`, `admin@sarv.local`. Not SSO. Visitor `/` is public — 401 on staff APIs is JSON and **does not** send `WWW-Authenticate` (that would pop a browser login on the public URL). `/staff` and `/admin` use the in-app form.
 
 | Method | Path |
 |--------|------|

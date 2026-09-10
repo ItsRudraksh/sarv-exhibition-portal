@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Updated:** 9 September 2026 (supplier Other + free-text offering; multi-file 5 MB attachments)
+**Updated:** 10 September 2026 (public visitor URL must not show a browser sign-in; supplier Other + attachments)
 
 After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
 
@@ -44,7 +44,7 @@ Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Jav
 - **`poc` / `dev`:** Deploy staging → `C:\exhibition-portal-staging\exhibition-portal.jar`, service `exhibition-portal-staging`, health on port **8082** (8081 is pharma-erp-staging). First run needs real `DATASOURCE_PASSWORD` / `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD`. **Buy FG:** `GET /api/v1/finished-goods` stays `[]` until `EXHIBITION_PHARMA_ERP_*` is set in `portal.env.ps1` and the JAR that auto-syncs on boot is deployed (`pharmaErpEnabled` / `finishedGoodsActive` on `/api/v1/meta`). Git does not copy local catalogue rows ([DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) §2b).
 - **`main`:** Deploy production → `C:\exhibition-portal\`, health on port **80**.
 
-**Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the bootstrap password → `/admin` as `admin@sarv.local` to list/create staff accounts **and** tag offline/portal supplier products for buyers. MySQL must not be reachable on the public IP.
+**Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (no browser username/password prompt; upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the in-app form and bootstrap password → `/admin` as `admin@sarv.local` to list/create staff accounts **and** tag offline/portal supplier products for buyers. MySQL must not be reachable on the public IP.
 
 **Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. Placeholder `change-me-*` still fails Deploy. **`net start` NET 2186** means the old powershell-only service registration — fixed by WinSW in `install-service.ps1`. Health Check must not use PowerShell `"$i: ..."` (drive parse error); use `-f` formatting. Manual Option A still works; close that window (or kill orphan java) before Jenkins `net start` so port 8082 is free.
 

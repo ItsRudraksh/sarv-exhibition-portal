@@ -131,7 +131,7 @@ Audit: `audit_events` on create, contact confirm, submit, file upload, scan reje
 
 ### Phase 4 — Internal admin (**POC done**)
 
-Staff UI is a **separate** route (`/staff`), Alpine Blue After Dark. HTTP Basic against seeded `app_users` (`{noop}poc-staff` locally — not SSO). **ADMIN** staff-account CRUD is a second route (`/admin`).
+Staff UI is a **separate** route (`/staff`), Alpine Blue After Dark. HTTP Basic against seeded `app_users` (`{noop}poc-staff` locally — not SSO). **Do not send `WWW-Authenticate: Basic`** — that pops a browser login on the public visitor URL (card OCR `/tessdata/**` must stay `permitAll`). Staff/admin sign-in is the in-app form. **ADMIN** staff-account CRUD is a second route (`/admin`).
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -247,6 +247,8 @@ Do not invent: visitor accounts/OTP, CRM product, vendor ERP API, AI vendor, loc
 **Chat-independent reference — Phase 8 (2026-09-05):** ProductionStartupGuard; `GET /api/v1/meta`; reference prefix `EP-` in prod; purchase-lead **xlsx** export; visitor UI hides prototype banners when `poc=false`. Tests: `ProductionStartupGuardTest`, `MetaApiTest`; export assertions updated in `StaffReviewApiTest`.
 
 **Chat-independent reference — Phase 7 (2026-09-04):** Campaign GET + create with `entryChannel`/`campaignCode`/`staffAssisted`. Frontend `entryContext` + session pointer (no PII localStorage). Self-hosted fonts. Tests: `CampaignEntryApiTest`, Spa `/web`.
+
+**Chat-independent reference — Public URL must not prompt Basic (2026-09-10):** Visitor `http://43.225.195.200:8082/` is unauthenticated. Card OCR fetches `/tessdata/eng.traineddata`; that path was `denyAll`, so Spring sent `WWW-Authenticate: Basic` and Chrome showed a username/password dialog over the card-capture screen. Fix: permit `/tessdata/**` and other public GET assets; staff APIs still 401 but **without** `WWW-Authenticate` (staff/admin use the in-app form). Tests: `SpaRoutingTest` (`staffApiStillRequiresAuth`, `cardOcrLangDataIsNotALoginChallenge`).
 
 **Chat-independent reference — Phase 6 (2026-09-04):** Flyway V6 `ai_assistance_sessions` / `ai_extractions` / `ai_extracted_fields`. Card upload runs local ZXing; visitor never receives raw QR text. Tests: `LocalCardScanEngineTest`, `CardExtractionApiTest`.
 
