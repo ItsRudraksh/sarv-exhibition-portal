@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Updated:** 10 September 2026 (public visitor URL must not show a browser sign-in; supplier Other + attachments)
+**Updated:** 10 September 2026 (public visitor URL must not show a browser sign-in; supplier Other + attachments; Jenkins staging port-in-use)
 
 After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
 
@@ -46,7 +46,7 @@ Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Jav
 
 **Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (no browser username/password prompt; upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the in-app form and bootstrap password → `/admin` as `admin@sarv.local` to list/create staff accounts **and** tag offline/portal supplier products for buyers. MySQL must not be reachable on the public IP.
 
-**Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. Placeholder `change-me-*` still fails Deploy. **`net start` NET 2186** means the old powershell-only service registration — fixed by WinSW in `install-service.ps1`. Health Check must not use PowerShell `"$i: ..."` (drive parse error); use `-f` formatting. Manual Option A still works; close that window (or kill orphan java) before Jenkins `net start` so port 8082 is free.
+**Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. Placeholder `change-me-*` still fails Deploy. **`net start` NET 2186** means the old powershell-only service registration — fixed by WinSW in `install-service.ps1`. Health Check must not use PowerShell `"$i: ..."` (drive parse error); use `-f` formatting. **Port 8082 already in use** after a green Maven stage: WinSW `onfailure` rebound the port — deploy now `net stop`s first and waits until 8082 is free ([DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)). Manual Option A still works; close that window before Jenkins `net start`.
 
 ## Reply footer (agents)
 

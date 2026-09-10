@@ -111,18 +111,72 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     exit 1
                 }
 
-                if (\$svc.Status -eq 'Running') {
-                    Write-Host "Stopping service \$service..."
+                \$listenPort = if (\$kind -eq 'staging') { [int]\$stagingPort } else { 80 }
+
+                # Always net stop first. Killing java while WinSW is Running schedules
+                # onfailure restart and the next java hits "Port already in use".
+                Write-Host "Stopping service \$service..."
+                if (\$svc -and \$svc.Status -ne 'Stopped') {
                     net stop \$service
                     if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) {
                         Write-Host "net stop returned \$LASTEXITCODE; continuing"
                     }
-                    Start-Sleep -Seconds 3
                 }
+                Start-Sleep -Seconds 3
+
+                function Get-ListenPids([int] \$Port) {
+                    \$ids = @()
+                    try {
+                        \$ids = @(Get-NetTCPConnection -LocalPort \$Port -State Listen -ErrorAction Stop |
+                            Where-Object { \$_.OwningProcess -gt 4 } |
+                            ForEach-Object { [int]\$_.OwningProcess } | Select-Object -Unique)
+                    } catch {
+                        netstat -ano | Select-String -Pattern (':' + \$Port + '\s+') | ForEach-Object {
+                            if (\$_.Line -match 'LISTENING' -and \$_.Line -match '\s(\d+)\s*$') {
+                                \$p = [int]\$Matches[1]
+                                if (\$p -gt 4) { \$ids += \$p }
+                            }
+                        }
+                        \$ids = @(\$ids | Select-Object -Unique)
+                    }
+                    return \$ids
+                }
+
+                \$deadline = (Get-Date).AddSeconds(40)
+                \$portFree = \$false
+                while ((Get-Date) -lt \$deadline) {
+                    \$listenPids = @(Get-ListenPids \$listenPort)
+                    if (\$listenPids.Count -eq 0) {
+                        Write-Host ("Listen port {0} is free" -f \$listenPort)
+                        \$portFree = \$true
+                        break
+                    }
+                    foreach (\$pid in \$listenPids) {
+                        \$proc = Get-CimInstance Win32_Process -Filter ("ProcessId=" + \$pid) -ErrorAction SilentlyContinue
+                        \$cl = if (\$proc) { \$proc.CommandLine } else { '' }
+                        if (\$cl -and \$cl -like "*\$installDir*" -and \$cl -like '*exhibition-portal.jar*') {
+                            Write-Host ("Stopping leftover portal java PID {0} on port {1}" -f \$pid, \$listenPort)
+                            Stop-Process -Id \$pid -Force -ErrorAction SilentlyContinue
+                        } else {
+                            Write-Host ("Port {0} LISTEN PID {1} (not this install dir): {2}" -f \$listenPort, \$pid, \$cl)
+                        }
+                    }
+                    Start-Sleep -Seconds 2
+                }
+                if (-not \$portFree) {
+                    \$still = @(Get-ListenPids \$listenPort)
+                    if (\$still.Count -eq 0) {
+                        Write-Host ("Listen port {0} is free" -f \$listenPort)
+                    } else {
+                        Write-Error ("Port " + \$listenPort + " still in use (PIDs " + (\$still -join ',') + "). Cannot net start.")
+                        exit 1
+                    }
+                }
+
                 Write-Host "Starting service \$service..."
                 net start \$service
                 if (\$LASTEXITCODE -and \$LASTEXITCODE -ne 0) {
-                    Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + ", WinSW logs under " + \$installDir + " (*.out.log / *.err.log), and that no orphan java still holds the port.")
+                    Write-Error ("net start " + \$service + " failed. Check " + \$envTarget + ", WinSW logs under " + \$installDir + " (*.out.log / *.err.log), and that no leftover java still holds the port.")
                     exit 1
                 }
 
@@ -171,7 +225,9 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     Write-Host "==== WinSW XML executable / env names (values redacted) ===="
                     \$xmlPath = Join-Path \$installDir (\$service + '.xml')
                     if (Test-Path -LiteralPath \$xmlPath) {
-                        Select-String -Path \$xmlPath -Pattern 'executable|env name=' | ForEach-Object { \$_.Line.Trim() }
+                        Select-String -Path \$xmlPath -Pattern 'executable|env name=' | ForEach-Object {
+                            \$_.Line.Trim() -replace 'value="[^"]*"', 'value="***"'
+                        }
                     }
                     Write-Error ("Staging/production process did not stay healthy. See WinSW logs above (DB password, Flyway, ProductionStartupGuard, port bind).")
                     exit 1

@@ -102,9 +102,58 @@ function Stop-OrphanPortalJava([string] $Dir) {
     Get-CimInstance Win32_Process -Filter "Name = 'java.exe'" -ErrorAction SilentlyContinue |
         Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Dir*" -and $_.CommandLine -like '*exhibition-portal.jar*' } |
         ForEach-Object {
-            Write-Host ("Stopping orphan java PID {0}" -f $_.ProcessId)
+            Write-Host ("Stopping leftover portal java PID {0}" -f $_.ProcessId)
             Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
         }
+}
+
+function Get-ListenPids([int] $Port) {
+    $ids = New-Object System.Collections.Generic.List[int]
+    try {
+        Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction Stop |
+            Where-Object { $_.OwningProcess -gt 4 } |
+            ForEach-Object { [void]$ids.Add([int]$_.OwningProcess) }
+    } catch {
+        netstat -ano | Select-String -Pattern (':' + $Port + '\s+') | ForEach-Object {
+            if ($_.Line -match 'LISTENING' -and $_.Line -match '\s(\d+)\s*$') {
+                $p = [int]$Matches[1]
+                if ($p -gt 4) { [void]$ids.Add($p) }
+            }
+        }
+    }
+    return @($ids | Select-Object -Unique)
+}
+
+function Test-PortalJavaProcess([int] $ProcessId, [string] $Dir) {
+    $proc = Get-CimInstance Win32_Process -Filter ("ProcessId=" + $ProcessId) -ErrorAction SilentlyContinue
+    if (-not $proc -or -not $proc.CommandLine) { return $false }
+    return ($proc.CommandLine -like "*$Dir*" -and $proc.CommandLine -like '*exhibition-portal.jar*')
+}
+
+function Wait-PortalPortFree([int] $Port, [string] $Dir, [int] $TimeoutSec = 40) {
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    while ((Get-Date) -lt $deadline) {
+        $listenPids = @(Get-ListenPids $Port)
+        if ($listenPids.Count -eq 0) {
+            Write-Host ("Listen port {0} is free" -f $Port)
+            return
+        }
+        foreach ($pid in $listenPids) {
+            if (Test-PortalJavaProcess $pid $Dir) {
+                Write-Host ("Stopping leftover portal java PID {0} still listening on {1}" -f $pid, $Port)
+                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+            } else {
+                $cl = (Get-CimInstance Win32_Process -Filter ("ProcessId=" + $pid) -ErrorAction SilentlyContinue).CommandLine
+                Write-Host ("Port {0} still LISTEN PID {1} (not this portal): {2}" -f $Port, $pid, $cl)
+            }
+        }
+        Start-Sleep -Seconds 2
+    }
+    $left = @(Get-ListenPids $Port)
+    if ($left.Count -gt 0) {
+        Write-Error ("Port {0} still in use after {1}s (PIDs {2}). Do not net start until it is free." -f $Port, $TimeoutSec, ($left -join ','))
+        exit 1
+    }
 }
 
 $envMap = Get-PortalEnvMap $envFile
@@ -190,7 +239,7 @@ $($envXml.ToString().TrimEnd())
   <workingdirectory>%BASE%</workingdirectory>
   <log mode="roll"></log>
   <onfailure action="restart" delay="10 sec"/>
-  <stoptimeout>15 sec</stoptimeout>
+  <stoptimeout>30 sec</stoptimeout>
 </service>
 "@
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
@@ -205,14 +254,20 @@ if ($existing) {
 $isWinsw = $pathName -and ($pathName -like ('*' + $serviceName + '.exe*'))
 $isJavaDirect = (Test-Path -LiteralPath $winswXml) -and ((Get-Content -LiteralPath $winswXml -Raw) -match '<executable>[^<]*java\.exe</executable>')
 
-if ($existing -and (-not $isWinsw -or -not $isJavaDirect)) {
-    Write-Host "Replacing service registration (need WinSW + java.exe direct)..."
-    if ($existing.Status -eq 'Running') {
-        Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-    }
+# Stop WinSW first. Killing java while the service is still Running schedules onfailure
+# restart (~10s) which rebinds SERVER_PORT before Jenkins can net start.
+if ($existing -and $existing.Status -ne 'Stopped') {
+    Write-Host "Stopping $serviceName before XML refresh / leftover java cleanup..."
+    Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
     if ($isWinsw -and (Test-Path -LiteralPath $winswExe)) {
         & $winswExe stop 2>$null
+    }
+    Start-Sleep -Seconds 3
+}
+
+if ($existing -and (-not $isWinsw -or -not $isJavaDirect)) {
+    Write-Host "Replacing service registration (need WinSW + java.exe direct)..."
+    if ($isWinsw -and (Test-Path -LiteralPath $winswExe)) {
         & $winswExe uninstall 2>$null
         Start-Sleep -Seconds 2
     }
@@ -224,6 +279,11 @@ if ($existing -and (-not $isWinsw -or -not $isJavaDirect)) {
 }
 
 Stop-OrphanPortalJava $installDir
+$listenPort = if ($Staging) { 8082 } else { 80 }
+if ($envMap.ContainsKey('SERVER_PORT') -and $envMap['SERVER_PORT'] -match '^\d+$') {
+    $listenPort = [int]$envMap['SERVER_PORT']
+}
+Wait-PortalPortFree $listenPort $installDir
 
 if (-not (Get-Service -Name $serviceName -ErrorAction SilentlyContinue)) {
     Write-Host "Installing WinSW service $serviceName ..."

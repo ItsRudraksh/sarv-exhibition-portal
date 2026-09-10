@@ -152,6 +152,24 @@ Invoke-WebRequest http://127.0.0.1:8082/actuator/health -UseBasicParsing
 
 Do not paste `portal.env.ps1` / WinSW XML password lines into chat.
 
+### Staging deploy: port 8082 already in use (2026-09-10)
+
+Jenkins `exibit-portal-pipeline_poc` on commit `9ba0e85` built frontend + Maven (81 tests) and then **Deploy to Staging failed**. Flyway on host MySQL was already at **v11**. The new Java process logged:
+
+`Web server failed to start. Port 8082 was already in use.`
+
+`install-service.ps1` used to **kill the running `java.exe` while WinSW was still Running**. WinSW `onfailure restart` (10s) can bind 8082 again before Jenkins `net start`. Deploy now **stops the service first**, waits until TCP **8082** has no LISTEN, then starts. Rebuild `poc` after this change.
+
+If a leftover listener remains on the host:
+
+```powershell
+net stop exhibition-portal-staging
+Get-NetTCPConnection -LocalPort 8082 -State Listen |
+  ForEach-Object { Get-Process -Id $_.OwningProcess | Format-List Id, ProcessName, Path }
+```
+
+**Secrets:** an older failure dump printed WinSW `<env value="...">` lines. Jenkins now redacts `value="***"`. Rotate `DATASOURCE_PASSWORD` and `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` on the host (MySQL user + `portal.env.ps1`) if those values were copied into a chat or log archive. Do not paste the new passwords here.
+
 ## Jenkins (copy of pharma-erp flow)
 
 Root **`Jenkinsfile`**. One agent: **Checkout → Frontend (npm) → Maven → Deploy**.
@@ -162,7 +180,7 @@ Root **`Jenkinsfile`**. One agent: **Checkout → Frontend (npm) → Maven → D
 | **Frontend** | `frontend/`: `npm ci` and `npm run build` (skipped if `SKIP_MAVEN_BUILD=true`). On Windows, PATH is prefixed with `C:\Program Files\nodejs` / `NODE_HOME` because the Jenkins service does not see an interactive user PATH. |
 | **Maven** | `backend/`: `mvn clean compile`, `mvn test`, `mvn package -DskipTests` — JDK **Java17** |
 | **Run (Smoke) / Validate** | Unix only (same skip as pharma-erp on Windows) |
-| **Deploy to Staging** | Branches **`dev`** and **`poc`**: create `C:\exhibition-portal-staging\`, copy JAR + `start-portal.ps1`, seed `portal.env.ps1`, pin **`SERVER_PORT=8082`** (8081 is **pharma-erp-staging**), run **`install-service.ps1 -Staging`** (WinSW wrapper; replaces broken powershell-only SCM that caused **NET 2186**), then `net start` |
+| **Deploy to Staging** | Branches **`dev`** and **`poc`**: create `C:\exhibition-portal-staging\`, copy JAR + `start-portal.ps1`, seed `portal.env.ps1`, pin **`SERVER_PORT=8082`** (8081 is **pharma-erp-staging**), run **`install-service.ps1 -Staging`** (WinSW wrapper; **net stop first**, wait until 8082 is free, then `net start`). Failure dumps redact WinSW env values. |
 | **Deploy to Production** | Branch **`main`** only: same copy into `C:\exhibition-portal\`, WinSW install, then `net start exhibition-portal` (port **80**). **`poc` never deploys production.** |
 | **Health Check** | **`main`**: `http://127.0.0.1/actuator/health`. **`dev`/`poc`**: `http://127.0.0.1:8082/actuator/health` |
 
