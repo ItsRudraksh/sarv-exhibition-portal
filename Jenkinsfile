@@ -156,14 +156,14 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                         \$portFree = \$true
                         break
                     }
-                    foreach (\$pid in \$listenPids) {
-                        \$proc = Get-CimInstance Win32_Process -Filter ("ProcessId=" + \$pid) -ErrorAction SilentlyContinue
+                    foreach (\$owningPid in \$listenPids) {
+                        \$proc = Get-CimInstance Win32_Process -Filter ("ProcessId=" + \$owningPid) -ErrorAction SilentlyContinue
                         \$cl = if (\$proc) { \$proc.CommandLine } else { '' }
                         if (\$cl -and \$cl -like "*\$installDir*" -and \$cl -like '*exhibition-portal.jar*') {
-                            Write-Host ("Stopping leftover portal java PID {0} on port {1}" -f \$pid, \$listenPort)
-                            Stop-Process -Id \$pid -Force -ErrorAction SilentlyContinue
+                            Write-Host ("Stopping leftover portal java PID {0} on port {1}" -f \$owningPid, \$listenPort)
+                            Stop-Process -Id \$owningPid -Force -ErrorAction SilentlyContinue
                         } else {
-                            Write-Host ("Port {0} LISTEN PID {1} (not this install dir): {2}" -f \$listenPort, \$pid, \$cl)
+                            Write-Host ("Port {0} LISTEN PID {1} (not this install dir): {2}" -f \$listenPort, \$owningPid, \$cl)
                         }
                     }
                     Start-Sleep -Seconds 2

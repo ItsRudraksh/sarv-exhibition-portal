@@ -170,6 +170,8 @@ Get-NetTCPConnection -LocalPort 8082 -State Listen |
 
 **Secrets:** an older failure dump printed WinSW `<env value="...">` lines. Jenkins now redacts `value="***"`. Rotate `DATASOURCE_PASSWORD` and `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` on the host (MySQL user + `portal.env.ps1`) if those values were copied into a chat or log archive. Do not paste the new passwords here.
 
+**`$PID` is read-only:** PowerShell’s automatic `$PID` is the current process id. A `foreach ($pid in …)` in `install-service.ps1` crashed Jenkins (`Cannot overwrite variable PID`). Use `$owningPid` (never `$pid`).
+
 ## Jenkins (copy of pharma-erp flow)
 
 Root **`Jenkinsfile`**. One agent: **Checkout → Frontend (npm) → Maven → Deploy**.

@@ -138,13 +138,13 @@ function Wait-PortalPortFree([int] $Port, [string] $Dir, [int] $TimeoutSec = 40)
             Write-Host ("Listen port {0} is free" -f $Port)
             return
         }
-        foreach ($pid in $listenPids) {
-            if (Test-PortalJavaProcess $pid $Dir) {
-                Write-Host ("Stopping leftover portal java PID {0} still listening on {1}" -f $pid, $Port)
-                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+        foreach ($owningPid in $listenPids) {
+            if (Test-PortalJavaProcess $owningPid $Dir) {
+                Write-Host ("Stopping leftover portal java PID {0} still listening on {1}" -f $owningPid, $Port)
+                Stop-Process -Id $owningPid -Force -ErrorAction SilentlyContinue
             } else {
-                $cl = (Get-CimInstance Win32_Process -Filter ("ProcessId=" + $pid) -ErrorAction SilentlyContinue).CommandLine
-                Write-Host ("Port {0} still LISTEN PID {1} (not this portal): {2}" -f $Port, $pid, $cl)
+                $cl = (Get-CimInstance Win32_Process -Filter ("ProcessId=" + $owningPid) -ErrorAction SilentlyContinue).CommandLine
+                Write-Host ("Port {0} still LISTEN PID {1} (not this portal): {2}" -f $Port, $owningPid, $cl)
             }
         }
         Start-Sleep -Seconds 2
