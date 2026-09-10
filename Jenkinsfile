@@ -124,6 +124,7 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                 }
                 Start-Sleep -Seconds 3
 
+                # netstat fallback splits on spaces. Do not use regex backslash-s in this Jenkinsfile GString.
                 function Get-ListenPids([int] \$Port) {
                     \$ids = @()
                     try {
@@ -131,11 +132,15 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                             Where-Object { \$_.OwningProcess -gt 4 } |
                             ForEach-Object { [int]\$_.OwningProcess } | Select-Object -Unique)
                     } catch {
-                        netstat -ano | Select-String -Pattern (':' + \$Port + '\s+') | ForEach-Object {
-                            if (\$_.Line -match 'LISTENING' -and \$_.Line -match '\s(\d+)\s*$') {
-                                \$p = [int]\$Matches[1]
-                                if (\$p -gt 4) { \$ids += \$p }
-                            }
+                        \$needle = ':' + \$Port
+                        netstat -ano | ForEach-Object {
+                            \$line = "\$_"
+                            if (\$line -notlike '*LISTENING*') { return }
+                            if (\$line.IndexOf(\$needle) -lt 0) { return }
+                            \$tokens = @(\$line.Trim() -split ' ' | Where-Object { \$_ -ne '' })
+                            if (\$tokens.Count -lt 1) { return }
+                            \$p = 0
+                            if ([int]::TryParse(\$tokens[-1], [ref]\$p) -and \$p -gt 4) { \$ids += \$p }
                         }
                         \$ids = @(\$ids | Select-Object -Unique)
                     }

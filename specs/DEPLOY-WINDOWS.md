@@ -205,7 +205,7 @@ Staging must **not** bind port 80 (production) or **8081** (**pharma-erp-staging
 
 **Branch vs deploy:** Staging = **`dev`** or **`poc`** → `C:\exhibition-portal-staging` (port **8082**). Production = **`main`** only → `C:\exhibition-portal` (port 80). **8081 is pharma-erp-staging.** A green Maven stage is not a deploy.
 
-PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it as a Jenkins binding (same pharma-erp rule). The file is a Groovy script: comments must be `//` or `/* */`. A leading `#` is parsed as a shebang and Jenkins fails with `expecting '!', found ' '`.
+PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it as a Jenkins binding (same pharma-erp rule). The file is a Groovy script: comments must be `//` or `/* */`. A leading `#` is parsed as a shebang and Jenkins fails with `expecting '!', found ' '`. Inside the deploy `powershell """ ... """` GString, PowerShell regex such as `\s` is an **invalid Groovy escape** and the job fails at parse (`unexpected char: '\'`) before any stage runs. Use `Get-NetTCPConnection` or split `netstat` on spaces instead.
 
 ## Files
 
