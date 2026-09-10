@@ -90,7 +90,7 @@ MySQL Workbench connected as root can paste the same `init-mysql.sql` if you pre
 notepad C:\exhibition-portal-staging\portal.env.ps1
 # DATASOURCE_PASSWORD = the exhibition user password from step 1
 # EXHIBITION_STAFF_BOOTSTRAP_PASSWORD = a real staff password
-# SERVER_PORT = '8082'   (8081 is pharma-erp-staging; 80 is production)
+# SERVER_PORT = '8083'   (8082 is wachatbot; 8081 is pharma-erp-staging; 80 is production)
 
 # Service install is in the repo, not the install dir:
 cd C:\path\to\sarv-exhibition-portal
@@ -101,7 +101,7 @@ Or skip the manual `install-service.ps1` and rebuild `exibit-portal-pipeline_poc
 
 ### 2b. Buyer finished goods on staging (empty buy list)
 
-Git being clean/pushed does **not** copy the local `finished_goods` snapshot. Staging `GET /api/v1/finished-goods` is `[]` until this host pulls `pharmadb`. Profile **`prod`** defaults `exhibition.pharma-erp.enabled=false`. Diagnose without secrets: `http://43.225.195.200:8082/api/v1/meta` (`pharmaErpEnabled`, `finishedGoodsActive`).
+Git being clean/pushed does **not** copy the local `finished_goods` snapshot. Staging `GET /api/v1/finished-goods` is `[]` until this host pulls `pharmadb`. Profile **`prod`** defaults `exhibition.pharma-erp.enabled=false`. Diagnose without secrets: `http://43.225.195.200:8083/api/v1/meta` (`pharmaErpEnabled`, `finishedGoodsActive`).
 
 On the Windows Server, uncomment in `C:\exhibition-portal-staging\portal.env.ps1` (do not paste the password into chat):
 
@@ -147,30 +147,35 @@ $mysql = 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
 & $mysql -u root -p -e "DROP DATABASE IF EXISTS exhibition_portal; CREATE DATABASE exhibition_portal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON exhibition_portal.* TO 'exhibition'@'localhost'; GRANT ALL PRIVILEGES ON exhibition_portal.* TO 'exhibition'@'127.0.0.1'; FLUSH PRIVILEGES;"
 net start exhibition-portal-staging
 Start-Sleep -Seconds 25
-Invoke-WebRequest http://127.0.0.1:8082/actuator/health -UseBasicParsing
+Invoke-WebRequest http://127.0.0.1:8083/actuator/health -UseBasicParsing
 ```
 
 Do not paste `portal.env.ps1` / WinSW XML password lines into chat.
 
-### Staging deploy: port 8082 already in use (2026-09-10)
+### Staging deploy: port collision (2026-09-10)
 
-Jenkins `exibit-portal-pipeline_poc` on commit `9ba0e85` built frontend + Maven (81 tests) and then **Deploy to Staging failed**. Flyway on host MySQL was already at **v11**. The new Java process logged:
+Jenkins `exibit-portal-pipeline_poc` on commit `9ba0e85` built frontend + Maven (81 tests) then Deploy failed with `Port 8082 was already in use`. Later runs showed the listener is **not** exhibition-portal:
 
-`Web server failed to start. Port 8082 was already in use.`
+`C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot\bin\java.exe -jar C:\wachatbot\app.jar`
 
-`install-service.ps1` used to **kill the running `java.exe` while WinSW was still Running**. WinSW `onfailure restart` (10s) can bind 8082 again before Jenkins `net start`. Deploy now **stops the service first**, waits until TCP **8082** has no LISTEN, then starts. Rebuild `poc` after this change.
+Do **not** stop that PID from Jenkins. Host ports:
 
-If a leftover listener remains on the host:
+| Port | Owner |
+|---|---|
+| **80** | exhibition-portal production |
+| **8081** | pharma-erp-staging |
+| **8082** | **wachatbot** (`C:\wachatbot\app.jar`) |
+| **8083** | exhibition-portal-staging |
+
+Jenkins `STAGING_PORT` is **8083**. Deploy pins `SERVER_PORT=8083` in `portal.env.ps1` (including a leftover `8082`). Open inbound **TCP 8083** on the Windows firewall if visitors use the public IP. Failure dumps redact WinSW `value=`. PowerShell loop variables must not be `$pid` (automatic `$PID` is read-only).
+
+If a leftover *portal* java remains on 8083:
 
 ```powershell
 net stop exhibition-portal-staging
-Get-NetTCPConnection -LocalPort 8082 -State Listen |
+Get-NetTCPConnection -LocalPort 8083 -State Listen |
   ForEach-Object { Get-Process -Id $_.OwningProcess | Format-List Id, ProcessName, Path }
 ```
-
-**Secrets:** an older failure dump printed WinSW `<env value="...">` lines. Jenkins now redacts `value="***"`. Rotate `DATASOURCE_PASSWORD` and `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` on the host (MySQL user + `portal.env.ps1`) if those values were copied into a chat or log archive. Do not paste the new passwords here.
-
-**`$PID` is read-only:** PowerShell’s automatic `$PID` is the current process id. A `foreach ($pid in …)` in `install-service.ps1` crashed Jenkins (`Cannot overwrite variable PID`). Use `$owningPid` (never `$pid`).
 
 ## Jenkins (copy of pharma-erp flow)
 
@@ -182,9 +187,9 @@ Root **`Jenkinsfile`**. One agent: **Checkout → Frontend (npm) → Maven → D
 | **Frontend** | `frontend/`: `npm ci` and `npm run build` (skipped if `SKIP_MAVEN_BUILD=true`). On Windows, PATH is prefixed with `C:\Program Files\nodejs` / `NODE_HOME` because the Jenkins service does not see an interactive user PATH. |
 | **Maven** | `backend/`: `mvn clean compile`, `mvn test`, `mvn package -DskipTests` — JDK **Java17** |
 | **Run (Smoke) / Validate** | Unix only (same skip as pharma-erp on Windows) |
-| **Deploy to Staging** | Branches **`dev`** and **`poc`**: create `C:\exhibition-portal-staging\`, copy JAR + `start-portal.ps1`, seed `portal.env.ps1`, pin **`SERVER_PORT=8082`** (8081 is **pharma-erp-staging**), run **`install-service.ps1 -Staging`** (WinSW wrapper; **net stop first**, wait until 8082 is free, then `net start`). Failure dumps redact WinSW env values. |
+| **Deploy to Staging** | Branches **`dev`** and **`poc`**: create `C:\exhibition-portal-staging\`, copy JAR + `start-portal.ps1`, seed `portal.env.ps1`, pin **`SERVER_PORT=8083`** (**8082 is wachatbot**; 8081 is **pharma-erp-staging**), run **`install-service.ps1 -Staging`**, wait until 8083 is free, then `net start`. Failure dumps redact WinSW env values. |
 | **Deploy to Production** | Branch **`main`** only: same copy into `C:\exhibition-portal\`, WinSW install, then `net start exhibition-portal` (port **80**). **`poc` never deploys production.** |
-| **Health Check** | **`main`**: `http://127.0.0.1/actuator/health`. **`dev`/`poc`**: `http://127.0.0.1:8082/actuator/health` |
+| **Health Check** | **`main`**: `http://127.0.0.1/actuator/health`. **`dev`/`poc`**: `http://127.0.0.1:8083/actuator/health` |
 
 Parameters (same idea as pharma-erp):
 
@@ -197,15 +202,15 @@ Create the Jenkins job as a **Pipeline from SCM** (or Multibranch) pointing at t
 
 ```powershell
 notepad C:\exhibition-portal-staging\portal.env.ps1
-# DATASOURCE_PASSWORD + EXHIBITION_STAFF_BOOTSTRAP_PASSWORD; SERVER_PORT=8082 (8081 is pharma-erp)
+# DATASOURCE_PASSWORD + EXHIBITION_STAFF_BOOTSTRAP_PASSWORD; SERVER_PORT=8083 (8082 is wachatbot; 8081 is pharma-erp)
 # MySQL: full path to mysql.exe — see “One-time host setup”. Do not run deploy.ps1 from this folder.
 ```
 
-Staging must **not** bind port 80 (production) or **8081** (**pharma-erp-staging** on this host). Exhibition staging is **8082**. The first Jenkins copy seeded `portal.env.ps1` with 8081; the next staging deploy rewrites `SERVER_PORT` to 8082. You can also edit it now.
+Staging must **not** bind port 80 (production), **8081** (**pharma-erp-staging**), or **8082** (**wachatbot**). Exhibition staging is **8083**. Jenkins rewrites `SERVER_PORT` from 80 / 8081 / 8082 to 8083. Open inbound TCP **8083** if visitors hit the public IP.
 
 **Node on the Windows agent:** Pharma-erp does not run npm. This pipeline does. The Jenkins Windows service runs as SYSTEM (`...\systemprofile\...`) and does **not** inherit PATH from a logged-in admin. If the log says `'npm' is not recognized`, install Node 22 into `C:\Program Files\nodejs` (all users), or set agent env `NODE_HOME` to the folder that contains `npm.cmd`, then **restart Jenkins**. The Frontend stage also prepends those folders to PATH.
 
-**Branch vs deploy:** Staging = **`dev`** or **`poc`** → `C:\exhibition-portal-staging` (port **8082**). Production = **`main`** only → `C:\exhibition-portal` (port 80). **8081 is pharma-erp-staging.** A green Maven stage is not a deploy.
+**Branch vs deploy:** Staging = **`dev`** or **`poc`** → `C:\exhibition-portal-staging` (port **8083**). Production = **`main`** only → `C:\exhibition-portal` (port 80). **8081 is pharma-erp-staging. 8082 is wachatbot.** A green Maven stage is not a deploy.
 
 PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it as a Jenkins binding (same pharma-erp rule). The file is a Groovy script: comments must be `//` or `/* */`. A leading `#` is parsed as a shebang and Jenkins fails with `expecting '!', found ' '`. Inside the deploy `powershell """ ... """` GString, PowerShell regex such as `\s` is an **invalid Groovy escape** and the job fails at parse (`unexpected char: '\'`) before any stage runs. Use `Get-NetTCPConnection` or split `netstat` on spaces instead.
 

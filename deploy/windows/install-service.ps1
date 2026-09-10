@@ -144,7 +144,8 @@ function Wait-PortalPortFree([int] $Port, [string] $Dir, [int] $TimeoutSec = 40)
                 Stop-Process -Id $owningPid -Force -ErrorAction SilentlyContinue
             } else {
                 $cl = (Get-CimInstance Win32_Process -Filter ("ProcessId=" + $owningPid) -ErrorAction SilentlyContinue).CommandLine
-                Write-Host ("Port {0} still LISTEN PID {1} (not this portal): {2}" -f $Port, $owningPid, $cl)
+                Write-Error ("Port {0} is in use by another process PID {1} (not exhibition-portal). Do not kill it from deploy. Command: {2}" -f $Port, $owningPid, $cl)
+                exit 1
             }
         }
         Start-Sleep -Seconds 2
@@ -279,7 +280,7 @@ if ($existing -and (-not $isWinsw -or -not $isJavaDirect)) {
 }
 
 Stop-OrphanPortalJava $installDir
-$listenPort = if ($Staging) { 8082 } else { 80 }
+$listenPort = if ($Staging) { 8083 } else { 80 }
 if ($envMap.ContainsKey('SERVER_PORT') -and $envMap['SERVER_PORT'] -match '^\d+$') {
     $listenPort = [int]$envMap['SERVER_PORT']
 }

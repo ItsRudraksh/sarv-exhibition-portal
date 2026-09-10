@@ -10,7 +10,7 @@
 param(
     [string] $InstallDir = 'C:\exhibition-portal-staging',
     [string] $ServiceName = 'exhibition-portal-staging',
-    [string] $ExpectPort = '8082'
+    [string] $ExpectPort = '8083'
 )
 
 $ErrorActionPreference = 'Continue'
@@ -76,7 +76,7 @@ function Get-ListenPort([int] $Port) {
 Write-Host '=== Exhibition portal staging verify ==='
 Write-Host ("Time: {0:yyyy-MM-dd HH:mm:ss}  Host: {1}  User: {2}" -f (Get-Date), $env:COMPUTERNAME, $env:USERNAME)
 Write-Host "InstallDir: $InstallDir"
-Write-Host 'Passwords are never printed. Expected staging port is 8082 (8081 is pharma-erp-staging).'
+Write-Host 'Passwords are never printed. Expected staging port is 8083 (8082 is wachatbot; 8081 is pharma-erp-staging).'
 Write-Host ''
 
 if (Test-Path -LiteralPath $InstallDir) {
@@ -125,6 +125,8 @@ if (Test-Path -LiteralPath $envFile) {
 
     if ($portValue -eq $ExpectPort) {
         Write-Check OK "SERVER_PORT=$portValue"
+    } elseif ($portValue -eq '8082') {
+        Write-Check FAIL "SERVER_PORT=8082 collides with wachatbot (C:\\wachatbot\\app.jar). Set SERVER_PORT='$ExpectPort'."
     } elseif ($portValue -eq '8081') {
         Write-Check FAIL "SERVER_PORT=8081 collides with pharma-erp-staging. Set SERVER_PORT='$ExpectPort'."
     } elseif ($portValue -eq '80') {
@@ -232,14 +234,21 @@ if ($pharma) {
     Write-Check INFO 'Port 8081 is free (pharma-erp-staging not listening right now)'
 }
 
-$ours = Get-ListenPort 8082
+$wachat = Get-ListenPort 8082
+if ($wachat) {
+    Write-Check INFO "Port 8082 LISTEN $wachat (wachatbot — leave it)"
+} else {
+    Write-Check INFO 'Port 8082 is free (wachatbot not listening right now)'
+}
+
+$ours = Get-ListenPort ([int]$ExpectPort)
 if ($ours) {
-    Write-Check OK "Port 8082 LISTEN $ours"
+    Write-Check OK ("Port {0} LISTEN {1}" -f $ExpectPort, $ours)
 } else {
     if ($svc -and $svc.Status -eq 'Running') {
-        Write-Check FAIL 'Service is Running but nothing is listening on 8082. Check Windows Event Log / start-portal.ps1.'
+        Write-Check FAIL ("Service is Running but nothing is listening on {0}. Check Windows Event Log / start-portal.ps1." -f $ExpectPort)
     } else {
-        Write-Check INFO 'Port 8082 is free (app not started yet — expected until passwords + rebuild)'
+        Write-Check INFO ("Port {0} is free (app not started yet — expected until passwords + rebuild)" -f $ExpectPort)
     }
 }
 

@@ -3,7 +3,7 @@
 // Windows Server at http://43.225.195.200/ — native MySQL 8 on 3306, no Docker, no ZK credentials.
 // Node 22: Jenkins Windows service PATH does not include an interactive user's Node.
 // Frontend prepends C:\Program Files\nodejs and NODE_HOME. Restart Jenkins after installing Node.
-// Staging listen port is 8082. 8081 is pharma-erp-staging on this host. Production is port 80.
+// Staging listen port is 8083. 8082 is wachatbot on this host. 8081 is pharma-erp-staging. Production is port 80.
 
 def windowsInstallExhibition(String installDir, String serviceName, String kind, String workspace, String jarSource, String appDir, String stagingPort) {
     powershell """
@@ -77,8 +77,9 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                     \$txt = Get-Content -LiteralPath \$envTarget -Raw
                     \$txt = \$txt.Replace('\$env:SERVER_PORT = ''80''', '\$env:SERVER_PORT = ''${stagingPort}''')
                     \$txt = \$txt.Replace('\$env:SERVER_PORT = ''8081''', '\$env:SERVER_PORT = ''${stagingPort}''')
+                    \$txt = \$txt.Replace('\$env:SERVER_PORT = ''8082''', '\$env:SERVER_PORT = ''${stagingPort}''')
                     Set-Content -LiteralPath \$envTarget -Value \$txt -NoNewline
-                    Write-Host "Pinned SERVER_PORT=\$stagingPort in \$envTarget (8081 is pharma-erp-staging; 80 is production)."
+                    Write-Host "Pinned SERVER_PORT=\$stagingPort in \$envTarget (8082 is wachatbot; 8081 is pharma-erp-staging; 80 is production)."
                 }
 
                 Write-Host "Installed exhibition-portal.jar under \$installDir"
@@ -163,7 +164,8 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                             Write-Host ("Stopping leftover portal java PID {0} on port {1}" -f \$owningPid, \$listenPort)
                             Stop-Process -Id \$owningPid -Force -ErrorAction SilentlyContinue
                         } else {
-                            Write-Host ("Port {0} LISTEN PID {1} (not this install dir): {2}" -f \$listenPort, \$owningPid, \$cl)
+                            Write-Error ("Port " + \$listenPort + " LISTEN PID " + \$owningPid + " is not this portal: " + \$cl)
+                            exit 1
                         }
                     }
                     Start-Sleep -Seconds 2
@@ -263,7 +265,7 @@ pipeline {
         SERVICE_NAME = 'exhibition-portal'
         STAGING_SERVICE = 'exhibition-portal-staging'
         APP_PORT = '80'
-        STAGING_PORT = '8082'
+        STAGING_PORT = '8083'
         SMOKE_PORT = '18080'
         STAGING_DIR = 'C:\\exhibition-portal-staging'
         PROD_DIR = 'C:\\exhibition-portal'
