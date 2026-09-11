@@ -1,3 +1,6 @@
+/**
+ * Scan-first start: camera/upload front+back or continue without a card. Consent required to store images.
+ */
 import { useCallback, useRef, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
@@ -8,6 +11,7 @@ import {
   Notice,
   PrimaryButton,
 } from '../../../components/ui'
+import { BrandArt } from '../../../components/BrandArt'
 import {
   canUseLiveCamera,
   prepareCardImage,
@@ -110,25 +114,25 @@ export function CardCaptureScreen({ journey }: CardCaptureScreenProps) {
     <div className="inquiry-app">
       <header className="entry-header">
         <Logo variant="hero" />
-        <span className="step-label">Start</span>
       </header>
 
-      <main className="inquiry-main inquiry-main--centered-intro" style={{ paddingTop: 0 }}>
-        <section className="section-gap">
-          <h1 className="screen-title" style={{ fontSize: '1.5rem' }}>
-            {copy.cardCapture.title}
-          </h1>
-          <p className="screen-subtitle">
-            {copy.cardCapture.subtitle}
-          </p>
-          {typeof window !== 'undefined' && !window.isSecureContext ? (
-            <Notice>
-              <p>{copy.cardCapture.insecureContextNote}</p>
-            </Notice>
-          ) : null}
-        </section>
+      <section className="brand-hero">
+        <BrandArt />
+        <div className="brand-hero__content">
+          <p className="brand-hero__eyebrow">{copy.brand.heroEyebrow}</p>
+          <h1 className="brand-hero__title">{copy.cardCapture.title}</h1>
+          <p className="brand-hero__lede">{copy.cardCapture.subtitle}</p>
+        </div>
+      </section>
 
-        <label className="notice" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <main className="inquiry-main" style={{ paddingTop: 24 }}>
+        {typeof window !== 'undefined' && !window.isSecureContext ? (
+          <Notice>
+            <p>{copy.cardCapture.insecureContextNote}</p>
+          </Notice>
+        ) : null}
+
+        <label className="notice section-gap" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <input
             type="checkbox"
             checked={consentGranted}

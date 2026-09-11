@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Resolves stall campaigns by code or id. */
 public class CampaignService {
 
     private final CampaignRepository campaigns;

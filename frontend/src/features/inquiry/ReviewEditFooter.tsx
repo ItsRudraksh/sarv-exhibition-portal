@@ -1,3 +1,6 @@
+/**
+ * Cancel restores snapshot; Save changes returns to the originating review/smart-details step.
+ */
 import type { ReactNode } from 'react'
 import { copy } from './copy'
 import { FixedFooter, PrimaryButton } from '../../components/ui'

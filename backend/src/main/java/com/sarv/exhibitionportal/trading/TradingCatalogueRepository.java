@@ -18,6 +18,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** trading_suppliers / trading_products and purchase selections. */
 public class TradingCatalogueRepository {
 
     private final JdbcClient jdbc;

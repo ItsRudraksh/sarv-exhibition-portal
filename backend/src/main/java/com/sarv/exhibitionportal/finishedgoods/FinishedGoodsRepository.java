@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** Local snapshot of pharmadb products for the buy list. */
 public class FinishedGoodsRepository {
 
     private final JdbcClient jdbc;

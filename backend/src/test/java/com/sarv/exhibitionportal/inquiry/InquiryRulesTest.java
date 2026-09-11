@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/** Submit contract: sell Other/notes, buy quantities and Other details. */
 class InquiryRulesTest {
 
     @Test

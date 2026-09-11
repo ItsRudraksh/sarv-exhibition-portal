@@ -1,5 +1,42 @@
+/**
+ * Shared visitor controls (header, footer, fields, buttons). Tokens from styles/tokens.css.
+ */
 import type { ReactNode } from 'react'
 import { Logo } from './Logo'
+
+export interface BrandChromeProps {
+  readonly siteLabel: string
+  readonly siteUrl: string
+  readonly kicker: string
+  readonly onRestart?: () => void
+  readonly restartLabel?: string
+  readonly phone?: string
+}
+
+export function BrandChrome({
+  siteLabel,
+  siteUrl,
+  kicker,
+  onRestart,
+  restartLabel,
+  phone,
+}: BrandChromeProps) {
+  return (
+    <div className="brand-chrome">
+      <a className="brand-chrome__site" href={siteUrl} target="_blank" rel="noreferrer">
+        {siteLabel}
+      </a>
+      <span className="brand-chrome__kicker">{kicker}</span>
+      {onRestart && restartLabel ? (
+        <button type="button" className="brand-chrome__restart" onClick={onRestart}>
+          {restartLabel}
+        </button>
+      ) : (
+        <span className="brand-chrome__meta">{phone}</span>
+      )}
+    </div>
+  )
+}
 
 export interface AppHeaderProps {
   readonly showBack?: boolean

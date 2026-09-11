@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** ADMIN staff CRUD; deactivate not delete; last ADMIN protected. */
 class StaffAdminApiTest extends MysqlSpringBootTest {
 
     private static final UUID SEEDED_ADMIN = UUID.fromString("44444444-4444-4444-8444-444444444443");

@@ -1,3 +1,6 @@
+/**
+ * Journey state: create draft, debounce PATCH, contact confirm, submit, Edit/Cancel from review. Session pointer stores only the draft id.
+ */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, applyContactProposals, applyExtractionProposals, inquiryApi } from './api'
 import {

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Upload pipeline: allowlist, store bytes, scan state, link to inquiry. */
 public class FileAssetService {
 
     private final FileAssetRepository files;

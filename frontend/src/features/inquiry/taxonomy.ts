@@ -1,3 +1,6 @@
+/**
+ * Live taxonomy from GET /taxonomy with V7 UUID fallback when the API is down.
+ */
 export interface Department {
   id: string
   name: string

@@ -1,3 +1,6 @@
+/**
+ * Confirm name, work email, mobile + country code. Creates the durable contact checkpoint.
+ */
 import { useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'

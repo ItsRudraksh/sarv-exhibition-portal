@@ -1,3 +1,6 @@
+/**
+ * ADMIN-only: staff accounts (deactivate, not delete) and buyer catalogue tagging.
+ */
 import { useEffect, useState } from 'react'
 import { adminCopy as copy } from './copy'
 import { TradingCataloguePanel } from './TradingCataloguePanel'
@@ -10,6 +13,7 @@ import {
   type StaffMe,
   type StaffRole,
 } from '../staff/api'
+import { withPublicBase } from '../../lib/publicPath'
 
 const STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED'] as const
 
@@ -130,7 +134,7 @@ export function AdminApp() {
         </header>
         <section className="staff-section">
           <p className="staff-lede">{copy.forbidden}</p>
-          <a className="staff-link-btn" href="/staff">
+          <a className="staff-link-btn" href={withPublicBase('/staff')}>
             {copy.openStaff}
           </a>
         </section>
@@ -147,7 +151,7 @@ export function AdminApp() {
           {me.displayName} · {me.roles.join(', ')}
         </p>
         <div className="staff-header-links">
-          <a className="staff-text-btn" href="/staff">
+          <a className="staff-text-btn" href={withPublicBase('/staff')}>
             {copy.openStaff}
           </a>
           <button type="button" className="staff-text-btn" onClick={signOut}>

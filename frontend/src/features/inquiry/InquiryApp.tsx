@@ -1,3 +1,6 @@
+/**
+ * Visitor shell. Renders draft.currentStep. Sell vs buy is draft.route, not a URL.
+ */
 import { copy } from './copy'
 import { useInquiryJourney } from './useInquiryJourney'
 import { CardCaptureScreen } from './screens/CardCaptureScreen'
@@ -11,6 +14,7 @@ import { SupplierConfirmationScreen } from './screens/SupplierConfirmationScreen
 import { BuyerNeedScreen } from './screens/BuyerNeedScreen'
 import { BuyerReviewScreen } from './screens/BuyerReviewScreen'
 import { BuyerConfirmationScreen } from './screens/BuyerConfirmationScreen'
+import { BrandChrome } from '../../components/ui'
 
 export function InquiryApp() {
   const journey = useInquiryJourney()
@@ -64,38 +68,36 @@ export function InquiryApp() {
 
   return (
     <>
-      <div className="restart-bar">
-        <button type="button" onClick={handleRestart} aria-label={restartLabel}>
-          {restartLabel}
-        </button>
-      </div>
+      <BrandChrome
+        siteLabel={copy.brand.siteLabel}
+        siteUrl={copy.brand.siteUrl}
+        kicker={copy.brand.kicker}
+        onRestart={handleRestart}
+        restartLabel={restartLabel}
+      />
       <p className="sr-only" role="status">
         {journey.pocMode ? copy.prototypeBanner : copy.appName}
       </p>
-      {journey.entry.staffAssisted ? (
-        <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }} role="status">
-          {copy.staffAssistBanner}
-        </p>
-      ) : null}
-      {journey.campaignLabel ? (
-        <p className="field-hint" style={{ textAlign: 'center', margin: '4px 18px 0' }}>
-          {journey.campaignLabel}
-        </p>
-      ) : null}
-      {journey.connectionLost ? (
-        <p className="field-error" style={{ textAlign: 'center', margin: '8px 18px 0' }} role="alert">
-          {copy.connectionLost}
-        </p>
-      ) : journey.pocMode && !journey.apiAvailable ? (
-        <p className="field-hint" style={{ textAlign: 'center', margin: '8px 18px 0' }}>
-          {copy.prototypeBanner}
-        </p>
-      ) : null}
-      {shared && journey.apiAvailable && !journey.entry.staffAssisted ? (
-        <p className="field-hint" style={{ textAlign: 'center', margin: '4px 18px 0' }}>
-          {copy.sharedDeviceHint}
-        </p>
-      ) : null}
+      <div className="portal-banners">
+        {journey.entry.staffAssisted ? (
+          <p className="field-hint portal-banner" role="status">
+            {copy.staffAssistBanner}
+          </p>
+        ) : null}
+        {journey.campaignLabel ? (
+          <p className="field-hint portal-banner">{journey.campaignLabel}</p>
+        ) : null}
+        {journey.connectionLost ? (
+          <p className="field-error portal-banner" role="alert">
+            {copy.connectionLost}
+          </p>
+        ) : journey.pocMode && !journey.apiAvailable ? (
+          <p className="field-hint portal-banner">{copy.prototypeBanner}</p>
+        ) : null}
+        {shared && journey.apiAvailable && !journey.entry.staffAssisted ? (
+          <p className="field-hint portal-banner">{copy.sharedDeviceHint}</p>
+        ) : null}
+      </div>
       <div className="portal-viewport">{screen}</div>
     </>
   )

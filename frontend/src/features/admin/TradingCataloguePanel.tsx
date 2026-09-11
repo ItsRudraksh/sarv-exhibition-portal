@@ -1,3 +1,6 @@
+/**
+ * Offline suppliers, link portal suppliers, listed_for_buyers. Not Add to production.
+ */
 import { useEffect, useState } from 'react'
 import { adminCopy as copy } from './copy'
 import { staffApi, type PortalSupplierCandidate, type TradingSupplier } from '../staff/api'

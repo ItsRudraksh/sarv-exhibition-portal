@@ -1,8 +1,8 @@
 # Testing and verification
 
-**Updated:** 11 September 2026 (Other details required when Other is checked on buy/sell lists)
+**Updated:** 11 September 2026 (sarvbiolabs.com navy/cyan visitor theme + public domain reverse proxy + KT comments)
 
-After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
+After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`. Developer KT map: [CODE-WALKTHROUGH.md](CODE-WALKTHROUGH.md).
 
 ## Frontend (`frontend/`)
 
@@ -43,8 +43,9 @@ Create a Jenkins Pipeline job from this repo’s **`Jenkinsfile`** (tools **`Jav
 
 - **`poc` / `dev`:** Deploy staging → `C:\exhibition-portal-staging\exhibition-portal.jar`, service `exhibition-portal-staging`, health on port **8083** (**8082 is wachatbot**; 8081 is pharma-erp-staging). First run needs real `DATASOURCE_PASSWORD` / `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD`. **Buy FG:** `GET /api/v1/finished-goods` stays `[]` until `EXHIBITION_PHARMA_ERP_*` is set in `portal.env.ps1` and the JAR that auto-syncs on boot is deployed (`pharmaErpEnabled` / `finishedGoodsActive` on `/api/v1/meta`). Git does not copy local catalogue rows ([DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) §2b).
 - **`main`:** Deploy production → `C:\exhibition-portal\`, health on port **80**.
+- **Public hostname:** Prefer **`https://exhibit.sarvbiolabs.com/`** (`VITE_BASE=/`, DNS `A` → `43.225.195.200`, IIS → `127.0.0.1:8083`). Marketing [sarvbiolabs.com](https://sarvbiolabs.com/) is **209.42.22.88** — do not point it at this server. WordPress HTTPS does not cover 8083; TLS terminates on IIS 443, Java stays HTTP. Path `https://sarvbiolabs.com/exhibit` needs Jenkins **`VITE_BASE=/exhibit/`** plus `SERVER_SERVLET_CONTEXT_PATH=/exhibit` on the WordPress host. Direct `http://43.225.195.200:8083/` stays valid (HTTP; camera upload only). Context-path test: `PublicPathPrefixTest`.
 
-**Public smoke:** `http://43.225.195.200/actuator/health` → visitor `/` (no browser username/password prompt; upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the in-app form and bootstrap password → `/admin` as `admin@sarv.local` to list/create staff accounts **and** tag offline/portal supplier products for buyers. MySQL must not be reachable on the public IP.
+**Public smoke:** `http://43.225.195.200:8083/actuator/health` (or the IIS hostname `/actuator/health`, `/exhibit/actuator/health` in path mode) → visitor `/` (no browser username/password prompt; upload or continue without a card; in-page camera needs HTTPS) → `/staff` with the in-app form and bootstrap password → `/admin` as `admin@sarv.local` to list/create staff accounts **and** tag offline/portal supplier products for buyers. MySQL must not be reachable on the public IP. After a domain cutover, also open the public URL (subdomain or `/exhibit`), visitor home, `/staff`, `/api/v1/meta`.
 
 **Staging host diagnose:** `cd C:\exhibition-portal-staging` then `.\verify-staging.ps1` (or `verify-staging.cmd`). One command only. Placeholder `change-me-*` still fails Deploy. **`net start` NET 2186** means the old powershell-only service registration — fixed by WinSW in `install-service.ps1`. **Port 8082 already in use** is **wachatbot** (`C:\wachatbot\app.jar`) — do not kill it. Staging is **8083**. Manual Option A still works; close that window before Jenkins `net start`.
 

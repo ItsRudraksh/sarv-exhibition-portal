@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** Active departments and product types with department mappings. */
 public class TaxonomyRepository {
 
     private final JdbcClient jdbc;

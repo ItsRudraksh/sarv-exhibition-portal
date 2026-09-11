@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+/** portal env file property overlay. */
 class PortalEnvFileEnvironmentPostProcessorTest {
 
     @Test

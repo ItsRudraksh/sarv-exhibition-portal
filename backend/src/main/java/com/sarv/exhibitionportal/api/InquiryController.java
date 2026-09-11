@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Visitor inquiry API: create, GET, PATCH, contact checkpoint, submit. */
 @RestController
 @RequestMapping("/api/v1/inquiries")
 public class InquiryController {

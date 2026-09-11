@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Builds xlsx of submitted buyer leads. Role-gated download. */
 public class ExportService {
 
     private final JdbcClient jdbc;

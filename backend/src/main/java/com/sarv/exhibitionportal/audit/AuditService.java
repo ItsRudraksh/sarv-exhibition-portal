@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
+/** Records operational actions. Keep secrets and QR payloads out of metadata. */
 public class AuditService {
 
     private final AuditRepository audits;

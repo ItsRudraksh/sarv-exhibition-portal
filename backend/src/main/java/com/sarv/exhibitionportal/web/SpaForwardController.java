@@ -3,6 +3,7 @@ package com.sarv.exhibitionportal.web;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+/** Forwards packaged SPA routes to {@code index.html} so deep links work without Vite. */
 @Controller
 public class SpaForwardController {
 

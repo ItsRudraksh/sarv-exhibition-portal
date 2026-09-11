@@ -1,3 +1,6 @@
+/**
+ * getUserMedia capture. Needs HTTPS. Falls back to file upload on insecure HTTP.
+ */
 import { useEffect, useRef, useState } from 'react'
 import { copy } from '../copy'
 import { captureFrameFromVideo } from '../../../lib/imageProcessing'

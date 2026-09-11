@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** HTTP create/save/submit for visitor drafts. */
 class InquiryApiTest extends MysqlSpringBootTest {
 
     @Autowired

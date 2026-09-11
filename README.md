@@ -2,7 +2,7 @@
 
 Reusable QR and website inquiry portal: **I want to sell** (supplier intake) and **I want to buy** (customer lead).
 
-**Start here:** [specs/README.md](specs/README.md) · product [specs/PLATFORM_CONTEXT.md](specs/PLATFORM_CONTEXT.md) · delivery [specs/BUILD-PLAN.md](specs/BUILD-PLAN.md) · public Windows host [specs/DEPLOY-WINDOWS.md](specs/DEPLOY-WINDOWS.md)
+**Start here:** [specs/README.md](specs/README.md) · product [specs/PLATFORM_CONTEXT.md](specs/PLATFORM_CONTEXT.md) · code walkthrough [specs/CODE-WALKTHROUGH.md](specs/CODE-WALKTHROUGH.md) · delivery [specs/BUILD-PLAN.md](specs/BUILD-PLAN.md) · public Windows host [specs/DEPLOY-WINDOWS.md](specs/DEPLOY-WINDOWS.md)
 
 | Path | Role |
 |---|---|

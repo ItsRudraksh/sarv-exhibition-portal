@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Public list of active finished-goods snapshot rows (also folded into buyer-products). */
 @RestController
 @RequestMapping("/api/v1/finished-goods")
 public class FinishedGoodsController {

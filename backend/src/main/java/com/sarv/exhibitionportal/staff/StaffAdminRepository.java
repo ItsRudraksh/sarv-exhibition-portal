@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** app_users and user_roles JDBC for /admin CRUD. */
 public class StaffAdminRepository {
 
     private final JdbcClient jdbc;

@@ -1,6 +1,7 @@
 /**
  * Local visiting-card assist: client QR (jsQR) + printed OCR (Tesseract.js).
  * Worker/core/lang are loaded from local Vite assets — not a cloud AI vendor.
+ * QR payloads are contact suggestions only; never redirect or preview a URL.
  */
 
 import jsQR from 'jsqr'

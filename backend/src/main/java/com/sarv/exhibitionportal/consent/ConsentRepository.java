@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** Append-only consent_records. Current decision is the latest by decided_at. */
 public class ConsentRepository {
 
     private final JdbcClient jdbc;

@@ -2,6 +2,7 @@ package com.sarv.exhibitionportal.api.dto;
 
 import java.util.List;
 
+/** Purchase-route fields on the visitor draft. Other+details can stand in for requirement text. */
 public record BuyerDto(
         String requirement,
         String productAreaSearch,

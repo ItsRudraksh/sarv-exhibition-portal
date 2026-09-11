@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/** ADMIN-only staff account CRUD. Delete deactivates; last ADMIN cannot be removed. */
 @RestController
 @RequestMapping("/api/v1/staff")
 public class StaffUsersController {

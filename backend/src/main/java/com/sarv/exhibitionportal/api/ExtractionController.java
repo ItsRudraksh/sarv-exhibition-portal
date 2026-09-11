@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Card-assist fields. GET returns proposals without raw QR text.
+ * POST can accept client OCR proposals (Tesseract/jsQR) for the same review queue.
+ */
 @RestController
 @RequestMapping("/api/v1/inquiries/{inquiryId}/extractions")
 public class ExtractionController {

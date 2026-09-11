@@ -1,2 +1,3 @@
+/* Loads Sarv Biolabs tokens then visitor layout. Staff CSS is imported from App.tsx for /staff and /admin. */
 @import './styles/tokens.css';
 @import './styles/app.css';

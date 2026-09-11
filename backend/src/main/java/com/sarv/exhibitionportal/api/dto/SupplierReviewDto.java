@@ -3,6 +3,7 @@ package com.sarv.exhibitionportal.api.dto;
 import java.time.Instant;
 import java.util.UUID;
 
+/** Staff supplier-queue row. capabilityNotes may include concatenated Other details. */
 public record SupplierReviewDto(
         UUID id,
         String referenceCode,

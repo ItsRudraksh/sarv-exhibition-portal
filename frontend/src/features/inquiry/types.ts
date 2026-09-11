@@ -1,3 +1,6 @@
+/**
+ * InquiryDraft and step unions. ReviewEditSession is in-memory only (not persisted).
+ */
 export type InquiryRoute = 'SUPPLIER' | 'PURCHASE'
 
 export type LifecycleState = 'DRAFT' | 'SUBMITTED'
@@ -130,6 +133,7 @@ function createDraftId(): string {
 export const ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024
 export const ATTACHMENT_MAX_COUNT = 10
 
+/** Empty visitor draft. currentStep starts at card-capture; route is null until intent. */
 export const createEmptyDraft = (): InquiryDraft => ({
   id: createDraftId(),
   lifecycleState: 'DRAFT',
@@ -181,6 +185,7 @@ export const createEmptyDraft = (): InquiryDraft => ({
   referenceCode: null,
 })
 
+/** Sell screens after intent. */
 export const SUPPLIER_STEPS: InquiryStep[] = [
   'supplier-departments',
   'supplier-product-types',
@@ -189,12 +194,14 @@ export const SUPPLIER_STEPS: InquiryStep[] = [
   'supplier-confirmation',
 ]
 
+/** Fast buy screens after intent. Specs stay optional. */
 export const BUYER_STEPS: InquiryStep[] = [
   'buyer-need',
   'buyer-review',
   'buyer-confirmation',
 ]
 
+/** Scan-first prefix shared by both routes. */
 export const SHARED_STEPS: InquiryStep[] = [
   'card-capture',
   'contact-confirm',

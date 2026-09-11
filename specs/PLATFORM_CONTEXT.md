@@ -102,7 +102,7 @@ Three initial mobile visual directions were explored:
 2. **Midnight Ledger** - premium dark and operational, better suited to internal/admin contexts.
 3. **Alpine Origin** - Sarv's Himalayan-origin/quality story with scientific credibility.
 
-The chosen final direction is **Alpine Blue** for the visitor portal, with **Alpine Blue After Dark** for internal/admin work. A senior specifically asked to maintain Sarv blue and to word visitor choices from the employee/visitor perspective: **“I want to sell”** and **“I want to buy”**, rather than corporate-centric labels.
+The chosen final direction is **Alpine Blue** for information architecture, later retargeted to the live [sarvbiolabs.com](https://sarvbiolabs.com/) navy/cyan palette so the portal reads as a subdomain microsite. A senior specifically asked to maintain Sarv blue and to word visitor choices from the employee/visitor perspective: **“I want to sell”** and **“I want to buy”**, rather than corporate-centric labels.
 
 A Stitch project was created: `Sarv Biolabs Exhibition Portal` (`16252155655979346180`). Both local design-system documents and the logo were imported into Stitch. Historic task messages say the project was created private; current `.stitch/metadata.json` says `visibility: PUBLIC`. This is a real status conflict: **verify visibility in Stitch before sharing any link or external asset.**
 
@@ -226,42 +226,44 @@ The mature decision is more restrictive than some early sketches:
 - All outbound delivery needs an idempotency key, durable outbox/delivery record, retry state, sanitized failure information, and audit capture. Never silently discard a source inquiry when delivery fails.
 - Excel is a governed, auditable generated export, not unrestricted direct database download.
 
-## 7. Visual and content system: Alpine Blue
+## 7. Visual and content system: Sarv marketing navy / cyan
 
-The visitor design system is in `.stitch/DESIGN.md`; the internal/admin counterpart is `.stitch/DESIGN.dark.md`.
+The visitor design system is in `.stitch/DESIGN.md`; staff/admin use the same navy/cyan on a dark canvas (`.stitch/DESIGN.dark.md` is historical). Public hostname is **`https://exhibit.sarvbiolabs.com/`**, a subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/).
 
 ### Visitor light mode
 
 | Token | Value | Role |
 | --- | --- | --- |
-| Alpine Paper | `#F7F8F5` | Page canvas |
-| Pure Surface | `#FFFFFF` | Inputs/elevated surfaces |
-| Research Ink | `#113944` | Headings and dense information |
-| Measured Slate | `#5C747C` | Body/secondary copy |
-| Glass Border | `#C9D9DF` | Hairlines and field outlines |
-| Sarv Process Blue | `#147A9A` | Primary action, focus, active progress |
-| Blue Mist | `#D7F0F7` | Selected/low-risk informational surface |
-| Clear Blue | `#009EC5` | Restricted illustration/hover plane |
+| Sarv Navy | `#022D59` | Utility strip, desktop canvas, footer |
+| Navy Deep | `#011C38` | Page backdrop |
+| Sarv Cyan | `#01AFEF` | Primary action, focus, links (`--color-sarv-blue`) |
+| Cyan Deep | `#0095CC` | Hover/pressed primary |
+| Himalayan Green | `#4AA485` | Illustration + buy-route accent only |
+| Paper | `#F3F8FB` | Visitor column canvas |
+| Pure Surface | `#FFFFFF` | Inputs, cards, header bar |
+| Ink | `#2C2C2C` | Headings and form text |
+| Slate | `#69727D` | Body/secondary copy |
+| Glass Border | `#C5DBE6` | Hairlines and field outlines |
+| Cyan Mist | `#E6F7FD` | Selected/low-risk informational surface |
+
+Colours were sampled from the live marketing site on 11 Sep 2026. Hero and primary-button gradients are allowed on brand surfaces only.
 
 ### Internal dark mode
 
-Use `#07171D` Midnight Mineral canvas, `#0D2932` Deep Lab Surface, `#E7F5F6` Ice Ink, `#A4BEC4` supporting text, `#274B55` borders, and `#55CFDF` Sarv Process Blue accent. It is a quieter operational companion, not a neon dashboard.
+Use `#022D59` navy canvas, `#083A5C` surfaces, `#E8F6FC` ink, `#9FBFCE` supporting text, `#1A5A80` borders, and `#01AFEF` cyan accent.
 
 ### Typography, layout, and interaction
 
-- **Plus Jakarta Sans:** interface/body; display 600-700, body 400-600.
-- **Fraunces:** public editorial entry headline only, never form labels/admin.
+- **Plus Jakarta Sans:** interface, body, and display (700 for heroes).
 - **JetBrains Mono:** small uppercase route/step metadata only.
-- Mobile-first at 390px with 18px horizontal page edges, single task column, no horizontal overflow.
-- Controls: 48px minimum form/button height, selected rows at least 44px, one-column labeled fields, 10px radii, hairline borders, 2px focus ring.
-- Primary actions are full-width Sarv blue buttons. Use restrained press/step feedback, short fade/8px movement, no glows/bouncy motion.
-- Forms must use readable labels above controls and accessible helper/error treatment.
+- Mobile-first at 390px; visitor column max 720px on desktop.
+- Controls: 48px minimum form/button height, selected rows at least 44px, one-column labeled fields, 12px radii, 2px cyan focus ring.
+- Primary actions are full-width cyan buttons. Entry uses an illustrated navy/cyan hero; intent uses two graphical cards.
 
 ### Style and copy bans
 
-- No gradients, neon, purple, generic healthcare imagery, generic dashboard metric cards, fabricated statistics, fake personal data, or invented lead values.
-- No generic “next-gen” language, emojis, three equal marketing cards, or desktop UIs merely shrunk into a phone screen.
-- No overlapping text, absolute-positioned headline tricks, or hidden manual fallbacks.
+- No purple, neon, consumer-wellness green UI, generic dashboard metric cards, fabricated statistics, fake personal data, or invented lead values.
+- No generic “next-gen” language, emojis, or hidden manual fallbacks.
 - Never imply automatic approval, product availability, a response SLA, or an invented tracking number.
 - Keep copy direct and visitor-first: `I want to sell`, `I want to buy`, `Review my inquiry`, `Submit inquiry`.
 
@@ -468,11 +470,17 @@ Non-negotiables:
 - QR detected on a card is saved internally only; never redirect/expose it to the visitor.
 - AI/voice/card scan are optional, consented, reviewable assists; manual fallback is mandatory; AI cannot make business decisions.
 - Follow HLD/database consent and audit rules. Do not copy stale legacy labels from old desktop/prototype screens into requirements.
-- Keep the approved Alpine Blue system. Staff uses Alpine Blue After Dark at `/staff`. Admin uses the same dark theme at `/admin` (ADMIN-only staff-account CRUD). Do not restyle or add generic dashboard/marketing patterns unless explicitly asked.
+- Keep the Sarv marketing navy/cyan system (see `.stitch/DESIGN.md`). Staff/admin use the same navy canvas with cyan accents at `/staff` and `/admin`. Do not restyle from stale Alpine Paper Stitch HTML.
 - Visitor UI is a React app in frontend/ wired to the Java API. Staff is a separate `/staff` route; admin is `/admin`. Local card-QR assist proposes reviewable fields; do not claim cloud OCR or a live CRM/vendor API. Outbox stubs are local JSON files. Card/catalogue files are stored privately when the API is up. Add to production enqueues vendor delivery only. Stall tablets use **Next visitor** + session pointer (not localStorage PII). Entry: `?c=CAMPAIGN`, `/web`, `?channel=direct`, `?assist=1`.
 
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
+
+**Changelog — 11 Sep 2026 (sarvbiolabs.com theme):** Visitor UI retargeted to the live marketing palette (navy `#022D59`, cyan `#01AFEF`, ink `#2C2C2C`) so `exhibit.sarvbiolabs.com` reads as a subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/). Navy utility strip links to the marketing site; entry hero + intent cards are graphical; staff/admin use the same cyan on navy. Product flow unchanged. [`.stitch/DESIGN.md`](../.stitch/DESIGN.md).
+
+**Changelog — 11 Sep 2026 (public domain):** Staging Java stays on **8083**. Marketing site [sarvbiolabs.com](https://sarvbiolabs.com/) is **209.42.22.88** (separate host). Public portal name: **`https://exhibit.sarvbiolabs.com/`** (DNS A → `43.225.195.200`, IIS reverse-proxy). WordPress HTTPS does **not** cover 8083 — terminate TLS on IIS 443; Java stays HTTP on localhost. Path `https://sarvbiolabs.com/exhibit` would be on the WordPress host and needs matching `VITE_BASE=/exhibit/` + `SERVER_SERVLET_CONTEXT_PATH=/exhibit`. [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) § Public domain.
+
+**Changelog — 11 Sep 2026 (code walkthrough):** Package/`file` comments plus [CODE-WALKTHROUGH.md](CODE-WALKTHROUGH.md) for developer KT. Does not change visitor behaviour.
 
 **Changelog — 11 Sep 2026 (Other details):** Checking **Other** on sell categories, sell product types, or the buy catalogue reveals a required **Describe Other** textbox. Details persist (`otherCategoryDetail` / `otherProductTypeDetail` / `otherProduct` + `otherProductDetail`) and show on review/confirmation. Flyway V12.
 

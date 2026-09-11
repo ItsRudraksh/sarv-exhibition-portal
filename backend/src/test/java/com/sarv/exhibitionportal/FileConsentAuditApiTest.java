@@ -19,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** Card/supporting files, consent append-only, audit events. */
 class FileConsentAuditApiTest extends MysqlSpringBootTest {
 
     private static final byte[] JPEG = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x10, 0x11, 0x12};

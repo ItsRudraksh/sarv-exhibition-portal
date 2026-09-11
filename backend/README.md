@@ -2,6 +2,8 @@
 
 Java 17 + Spring Boot 3.5 + **MySQL 8** + Flyway. Draft and submit API for the visitor React app. Same JDK and database engine as pharma-erp (`17.0.x`, MySQL on 3306).
 
+**Code walkthrough:** [specs/CODE-WALKTHROUGH.md](../specs/CODE-WALKTHROUGH.md). Each Java package has `package-info.java`; types have class Javadoc.
+
 ## Tests
 
 `mvn test` uses **embedded MariaDB** (mariaDB4j). Docker is not required.
@@ -42,9 +44,9 @@ All tunable settings live in properties files (YAML removed to keep one source o
 
 Do **not** put a second `application.properties` under `src/test/resources/` — on the test classpath it replaces the main file (same resource name). Use `application-test.properties` instead.
 
-Override any key with the matching environment variable (`DATASOURCE_*`, `EXHIBITION_*`, `SERVER_PORT`). Host example: `deploy/windows/portal.env.example.ps1`. On Windows service, Java also loads `portal.env.ps1` from the install working directory on boot (so JDBC flags do not stay stuck in a stale WinSW XML). When `exhibition.pharma-erp.enabled=true`, boot auto-syncs finished goods from `pharmadb`.
+Override any key with the matching environment variable (`DATASOURCE_*`, `EXHIBITION_*`, `SERVER_PORT`, `SERVER_SERVLET_CONTEXT_PATH`). Host example: `deploy/windows/portal.env.example.ps1`. On Windows service, Java also loads `portal.env.ps1` from the install working directory on boot (so JDBC flags do not stay stuck in a stale WinSW XML). When `exhibition.pharma-erp.enabled=true`, boot auto-syncs finished goods from `pharmadb`.
 
-Notable keys: `exhibition.poc`, `exhibition.cors-origins`, `exhibition.storage-root`, file size caps, outbox destinations, `exhibition.staff-bootstrap-password`, and `exhibition.pharma-erp.*` (buyer finished-goods DB sync).
+Notable keys: `exhibition.poc`, `exhibition.cors-origins`, `exhibition.storage-root`, file size caps, outbox destinations, `exhibition.staff-bootstrap-password`, `exhibition.pharma-erp.*` (buyer finished-goods DB sync), and `SERVER_SERVLET_CONTEXT_PATH` (empty for IP:8083 / `exhibit.sarvbiolabs.com`; `/exhibit` only with matching frontend `VITE_BASE=/exhibit/`).
 
 ## Start
 

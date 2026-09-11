@@ -25,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Admin buyer-catalogue: offline suppliers, link portal suppliers, tag products
+ * {@code listed_for_buyers}. Linking is not Add to production.
+ */
 @RestController
 @RequestMapping("/api/v1/staff/trading-suppliers")
 public class TradingSuppliersController {

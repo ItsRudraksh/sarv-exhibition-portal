@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Build flags for the visitor banner ({@code poc}, receipt prefix, finished-goods count). */
 @RestController
 @RequestMapping("/api/v1/meta")
 public class MetaController {

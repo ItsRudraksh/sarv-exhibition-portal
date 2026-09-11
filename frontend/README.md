@@ -2,6 +2,8 @@
 
 Visitor inquiry UI for the scan-first exhibition portal, plus a **separate** staff app at `/staff` and an **ADMIN** panel at `/admin`. Talks to the Java POC at `/api/v1` (Vite proxies to `http://localhost:8080`). Shared stall tablets keep only a **sessionStorage draft id** — not contact PII in `localStorage`.
 
+**Code walkthrough:** [specs/CODE-WALKTHROUGH.md](../specs/CODE-WALKTHROUGH.md). File-level comments in `src/` explain each module for KT.
+
 ## Commands
 
 ```bash
@@ -14,7 +16,7 @@ npm run preview -- --host  # preview production build on LAN
 
 Start native MySQL 8 on `localhost:3306`, then the API (`.\run.ps1` in `backend/`). See [backend/README.md](../backend/README.md). Docker is not required.
 
-**Public Windows Server** (`http://43.225.195.200/`): Java 17 + Jenkins. Do not run this Vite dev server on the public IP. `npm run build` is copied into the Spring Boot JAR. See [DEPLOY-WINDOWS.md](../specs/DEPLOY-WINDOWS.md). In-page camera still needs HTTPS; upload still works on HTTP.
+**Public Windows Server** (`http://43.225.195.200:8083/` staging): Java 17 + Jenkins. Do not run this Vite dev server on the public IP. `npm run build` is copied into the Spring Boot JAR. Default `VITE_BASE=/` for **`https://exhibit.sarvbiolabs.com/`**. Path URL `sarvbiolabs.com/exhibit` needs `VITE_BASE=/exhibit/` at build time (`vite.config.ts` + `src/lib/publicPath.ts`). See [DEPLOY-WINDOWS.md](../specs/DEPLOY-WINDOWS.md) § Public domain. In-page camera still needs HTTPS; upload still works on HTTP.
 
 ### Test on your phone (same Wi‑Fi)
 
@@ -76,7 +78,7 @@ Use **Next visitor** / **Restart demo** (top-right) to clear the session and cre
 - [PLATFORM_CONTEXT.md](../specs/PLATFORM_CONTEXT.md) — product rules and canonical flow
 - [BUILD-PLAN.md](../specs/BUILD-PLAN.md) — Java + React delivery phases
 - [FRONTEND_BUILD_PROMPT.md](../specs/FRONTEND_BUILD_PROMPT.md) — implementation contract
-- [.stitch/DESIGN.md](../.stitch/DESIGN.md) — Alpine Blue design system
+- [.stitch/DESIGN.md](../.stitch/DESIGN.md) — Sarv navy/cyan design system (aligned to sarvbiolabs.com)
 - [.stitch/designs/](../.stitch/designs/) — screen HTML references (001–011)
 - Logo: copied from [raw/sarv-bio-labs-logo-1.png](../raw/sarv-bio-labs-logo-1.png) into `src/assets/`
 
@@ -97,5 +99,5 @@ src/
   features/staff/     # Internal review UI at /staff (not the visitor shell)
   features/admin/     # ADMIN staff-account CRUD at /admin
   components/ui.tsx   # Shared UI primitives
-  styles/             # Alpine Blue tokens, visitor layout, staff dark theme
+  styles/             # Sarv navy/cyan tokens, visitor layout, staff dark theme
 ```

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Approve/reject/needs-info and Add to production (outbox vendor upsert). */
 public class ReviewService {
 
     private final ReviewRepository reviews;

@@ -25,6 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Visitor inquiry lifecycle. PATCH never accepts card QR from the client;
+ * {@link #redactQr} strips it on every response. Submit runs {@link InquiryRules}
+ * then marks the route submitted and enqueues outbox work.
+ */
 @Service
 public class InquiryService {
 
@@ -56,6 +61,7 @@ public class InquiryService {
         this.extractions = extractions;
     }
 
+    /** Creates a DRAFT, or returns the existing one if the client reused an id. */
     @Transactional
     public InquiryDraftDto create(CreateInquiryRequest requested) {
         UUID id = requested != null && requested.id() != null ? requested.id() : UUID.randomUUID();
@@ -122,6 +128,7 @@ public class InquiryService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inquiry not found")));
     }
 
+    /** Autosave while DRAFT. Submitted inquiries are immutable. */
     @Transactional
     public InquiryDraftDto save(UUID id, InquiryDraftDto incoming) {
         InquiryDraftDto existing = inquiries.findDraft(id)
@@ -143,6 +150,7 @@ public class InquiryService {
         return redactQr(inquiries.findDraft(id).orElseThrow());
     }
 
+    /** Contact checkpoint: validates name/email/mobile, then advances UI to intent. */
     @Transactional
     public InquiryDraftDto confirmContact(UUID id, InquiryDraftDto incoming) {
         InquiryDraftDto merged = save(id, incoming);
@@ -171,6 +179,7 @@ public class InquiryService {
         return redactQr(inquiries.findDraft(id).orElseThrow());
     }
 
+    /** Runs {@link InquiryRules}, sets SUBMITTED, opens review/outbox. Idempotent if already submitted. */
     @Transactional
     public InquiryDraftDto submit(UUID id, InquiryDraftDto incoming) {
         InquiryDraftDto existing = get(id);

@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** Staff queue SQL. Other details are concatenated into capability notes for display. */
 public class ReviewRepository {
 
     private final JdbcClient jdbc;

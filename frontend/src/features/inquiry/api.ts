@@ -1,9 +1,13 @@
+/**
+ * Visitor REST adapter (/api/v1). asDraft fills defaults when the API omits new fields.
+ */
 import { setLiveTaxonomy } from './taxonomy'
 import type { CardFileMeta, InquiryDraft } from './types'
 import { createEmptyDraft } from './types'
 import type { EntryChannel } from './entryContext'
+import { withPublicBase } from '../../lib/publicPath'
 
-const API_BASE = '/api/v1'
+const API_BASE = withPublicBase('/api/v1')
 
 export interface CreateInquiryOptions {
   id?: string

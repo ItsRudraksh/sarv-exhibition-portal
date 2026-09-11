@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "exhibition.outbox.max-attempts=1",
         "exhibition.outbox.backoff-seconds=0"
 })
+/** Failed deliveries retry; inquiry is not dropped. */
 class OutboxRetryApiTest extends MysqlSpringBootTest {
 
     @Autowired

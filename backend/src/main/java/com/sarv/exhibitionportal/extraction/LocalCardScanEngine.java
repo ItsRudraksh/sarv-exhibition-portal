@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 /**
  * Local card assist: decode QR with ZXing and, when the payload is a vCard/MECARD/contact URI,
  * propose reviewable contact fields. This is not cloud OCR and does not invent an AI provider.
+ * Raw QR text is stored server-side only and must never be returned on visitor GET or opened as a URL.
  */
 @Component
 public class LocalCardScanEngine {

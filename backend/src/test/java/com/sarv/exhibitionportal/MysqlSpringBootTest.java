@@ -7,6 +7,7 @@ import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+/** Shared embedded MariaDB slice for API tests. */
 public abstract class MysqlSpringBootTest {
 
     @DynamicPropertySource

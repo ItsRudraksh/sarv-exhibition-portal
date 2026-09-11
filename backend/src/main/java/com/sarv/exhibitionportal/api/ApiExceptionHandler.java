@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
+/** Maps domain validation and HTTP failures to {@code { "message": "..." }} JSON. */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 

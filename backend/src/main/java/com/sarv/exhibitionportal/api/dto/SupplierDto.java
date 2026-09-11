@@ -2,6 +2,7 @@ package com.sarv.exhibitionportal.api.dto;
 
 import java.util.List;
 
+/** Sell-route fields: company, website/files, Other flags+details, capability notes. */
 public record SupplierDto(
         String companyName,
         String websiteUrl,

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Grant/decline consent purposes (card images). Revocation is a new row. */
 public class ConsentService {
 
     static final Set<String> PURPOSES = Set.of(

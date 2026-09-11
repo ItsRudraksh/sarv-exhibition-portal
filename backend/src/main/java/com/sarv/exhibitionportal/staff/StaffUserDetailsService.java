@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+/** HTTP Basic user lookup against app_users. */
 public class StaffUserDetailsService implements UserDetailsService {
 
     private final JdbcClient jdbc;

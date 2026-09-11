@@ -1,3 +1,6 @@
+/**
+ * Buy receipt. No assumed availability or SLA.
+ */
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
 import { formatPhone } from '../validation'
@@ -16,22 +19,8 @@ export function BuyerConfirmationScreen({ journey }: BuyerConfirmationScreenProp
       <AppHeader />
 
       <main className="inquiry-main inquiry-main--with-header">
-        <section className="section-gap" style={{ textAlign: 'center' }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: 'var(--color-blue-mist)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-              color: 'var(--color-sarv-blue)',
-              fontSize: '1.5rem',
-            }}
-            aria-hidden
-          >
+        <section className="confirm-hero section-gap">
+          <div className="confirm-hero__mark" aria-hidden>
             ✓
           </div>
           <h1 className="screen-title screen-title--display">

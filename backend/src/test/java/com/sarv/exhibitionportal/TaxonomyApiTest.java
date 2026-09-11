@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** V7 departments and product types are seeded and selectable. */
 class TaxonomyApiTest extends MysqlSpringBootTest {
 
     private static final UUID DEPT_PHYTO =

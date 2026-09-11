@@ -1,4 +1,8 @@
+/**
+ * Parses ?c= /web ?channel= ?assist=1. sessionStorage holds draft id only — no PII.
+ */
 import { createEmptyDraft, type InquiryDraft } from './types'
+import { stripPublicBase } from '../../lib/publicPath'
 
 export type EntryChannel = 'EXHIBITION_QR' | 'WEBSITE' | 'DIRECT'
 
@@ -26,7 +30,7 @@ export function parseEntryContext(
     (params.get('c') ?? params.get('campaign') ?? '').trim() || null
   const staffAssisted =
     params.get('assist') === '1' || params.get('assist') === 'true'
-  const path = pathname.replace(/\/+$/, '') || '/'
+  const path = stripPublicBase(pathname).replace(/\/+$/, '') || '/'
 
   let entryChannel: EntryChannel = 'EXHIBITION_QR'
   if (channelParam === 'website' || path === '/web') {

@@ -5,6 +5,7 @@ import ch.vorburger.mariadb4j.DBConfigurationBuilder;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 
+/** mariaDB4j instance shared by @SpringBootTest slices. Not the host MySQL on 3306. */
 final class SharedEmbeddedMysql {
 
     private static final Object LOCK = new Object();

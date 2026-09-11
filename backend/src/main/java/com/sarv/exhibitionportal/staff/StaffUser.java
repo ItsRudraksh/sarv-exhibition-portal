@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/** Spring Security principal: id, email, display name, role codes. */
 public final class StaffUser implements UserDetails {
 
     private final UUID id;

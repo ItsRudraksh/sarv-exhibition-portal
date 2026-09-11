@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
+/** Disk blob store under exhibition.files.directory. */
 public class LocalObjectStorage {
 
     public void write(Path root, String storageKey, byte[] bytes) throws IOException {

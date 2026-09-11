@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Admin catalogue + buyer-products union. */
 public class TradingCatalogueService {
 
     private static final Set<String> STATUSES = Set.of("ACTIVE", "INACTIVE");

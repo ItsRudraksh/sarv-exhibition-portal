@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  IIS reverse proxy: exhibit.sarvbiolabs.com → http://127.0.0.1:8083/
+  Java stays on 8083. Do not set SERVER_SERVLET_CONTEXT_PATH. Build VITE_BASE=/
+  Requires: IIS + URL Rewrite + Application Request Routing (ARR), proxy enabled.
+  Allowed server variables: HTTP_X_FORWARDED_HOST, HTTP_X_FORWARDED_PROTO, HTTP_X_FORWARDED_FOR
+  Bind this site to host name exhibit.sarvbiolabs.com on 80/443.
+  DNS: A record exhibit.sarvbiolabs.com → 43.225.195.200
+  Do not point sarvbiolabs.com (209.42.22.88 WordPress) at this server.
+-->
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="Exhibition subdomain HTTPS to Java 8083" stopProcessing="true">
+          <match url="(.*)" />
+          <conditions>
+            <add input="{HTTPS}" pattern="on" />
+          </conditions>
+          <action type="Rewrite" url="http://127.0.0.1:8083/{R:1}" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_HOST" value="{HTTP_HOST}" />
+            <set name="HTTP_X_FORWARDED_PROTO" value="https" />
+            <set name="HTTP_X_FORWARDED_FOR" value="{REMOTE_ADDR}" />
+          </serverVariables>
+        </rule>
+        <rule name="Exhibition subdomain HTTP to Java 8083" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="http://127.0.0.1:8083/{R:1}" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_HOST" value="{HTTP_HOST}" />
+            <set name="HTTP_X_FORWARDED_PROTO" value="http" />
+            <set name="HTTP_X_FORWARDED_FOR" value="{REMOTE_ADDR}" />
+          </serverVariables>
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>

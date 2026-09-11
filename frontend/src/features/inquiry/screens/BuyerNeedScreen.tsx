@@ -1,3 +1,6 @@
+/**
+ * Fast buy path: requirement or Other details; optional catalogue (quantity per row) and specs.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'

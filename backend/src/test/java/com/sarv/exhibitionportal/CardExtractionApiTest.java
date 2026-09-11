@@ -28,6 +28,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+/** Server ZXing proposals; visitor GET has no raw QR. */
 class CardExtractionApiTest extends MysqlSpringBootTest {
 
     @Autowired

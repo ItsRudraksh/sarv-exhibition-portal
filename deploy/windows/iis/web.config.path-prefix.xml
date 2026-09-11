@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Path URL https://sarvbiolabs.com/exhibit — the WordPress host is 209.42.22.88, not this Windows box.
+  Prefer exhibit.sarvbiolabs.com instead.
+  If Goldmine/WordPress must own /exhibit, keep the prefix (do not strip it).
+  Java: SERVER_SERVLET_CONTEXT_PATH=/exhibit
+  Frontend build: VITE_BASE=/exhibit/
+  This XML is an IIS-shaped example; on 209.42.22.88 use the equivalent nginx/Apache/cPanel proxy.
+-->
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="Exhibition path prefix HTTPS to Java 8083" stopProcessing="true">
+          <match url="^exhibit(/.*)?$" />
+          <conditions>
+            <add input="{HTTPS}" pattern="on" />
+          </conditions>
+          <action type="Rewrite" url="http://127.0.0.1:8083/{R:0}" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_HOST" value="{HTTP_HOST}" />
+            <set name="HTTP_X_FORWARDED_PROTO" value="https" />
+            <set name="HTTP_X_FORWARDED_FOR" value="{REMOTE_ADDR}" />
+          </serverVariables>
+        </rule>
+        <rule name="Exhibition path prefix HTTP to Java 8083" stopProcessing="true">
+          <match url="^exhibit(/.*)?$" />
+          <action type="Rewrite" url="http://127.0.0.1:8083/{R:0}" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_HOST" value="{HTTP_HOST}" />
+            <set name="HTTP_X_FORWARDED_PROTO" value="http" />
+            <set name="HTTP_X_FORWARDED_FOR" value="{REMOTE_ADDR}" />
+          </serverVariables>
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>

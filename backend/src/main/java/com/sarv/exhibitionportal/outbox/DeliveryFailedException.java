@@ -1,5 +1,6 @@
 package com.sarv.exhibitionportal.outbox;
 
+/** Outbox attempt failed; worker retries. Inquiry is not deleted. */
 public class DeliveryFailedException extends RuntimeException {
 
     private final String code;

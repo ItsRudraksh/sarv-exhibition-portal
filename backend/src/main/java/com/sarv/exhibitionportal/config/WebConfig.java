@@ -8,6 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableConfigurationProperties(ExhibitionProperties.class)
+/** CORS for Vite HTTPS and LAN phone testing. */
 public class WebConfig implements WebMvcConfigurer {
 
     private final ExhibitionProperties properties;

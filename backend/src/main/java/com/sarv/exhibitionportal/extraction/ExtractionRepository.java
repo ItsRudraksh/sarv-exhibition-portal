@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** ai_assistance_sessions / ai_extracted_fields persistence. */
 public class ExtractionRepository {
 
     private final JdbcClient jdbc;

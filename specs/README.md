@@ -1,6 +1,6 @@
 # Specs index
 
-**Documentation status:** Updated 5 Sep 2026 — MySQL 8; Java 17 + Jenkins Windows deploy; Phases 1–8 + business taxonomy v1 (Flyway V7).
+**Documentation status:** Updated 11 Sep 2026 — code walkthrough (KT comments); MySQL 8; Java 17 + Jenkins Windows deploy; Phases 1–8 + business taxonomy v1 (Flyway V7).
 
 Canonical product and delivery documents for the **Sarv Biolabs Exhibition Portal**. Historical evidence stays in `raw/`, `concepts/`, and `.stitch/`. Do not treat those as current implementation requirements.
 
@@ -11,8 +11,9 @@ Canonical product and delivery documents for the **Sarv Biolabs Exhibition Porta
 3. **[DATABASE-DESIGN.md](DATABASE-DESIGN.md)** and [exhibition_portal_schema.sql](exhibition_portal_schema.sql) — full data baseline; applied schema is Flyway V1–V7 in `backend/`.
 4. **[taxonomy/](taxonomy/)** — business-owned departments, product types, mappings (v1).
 5. **[TESTING.md](TESTING.md)** — how to verify after a change.
-6. **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** — public Windows Server (`http://43.225.195.200/`).
-7. **[FRONTEND_BUILD_PROMPT.md](FRONTEND_BUILD_PROMPT.md)** — historical contract used to build the visitor prototype; still useful for screen list and visual rules.
+6. **[CODE-WALKTHROUGH.md](CODE-WALKTHROUGH.md)** — developer KT map (packages, visitor journey, suggested live walkthrough).
+7. **[DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md)** — public Windows Server (`http://43.225.195.200/`).
+8. **[FRONTEND_BUILD_PROMPT.md](FRONTEND_BUILD_PROMPT.md)** — historical contract used to build the visitor prototype; still useful for screen list and visual rules.
 
 When sources conflict, **PLATFORM_CONTEXT.md** decision precedence wins. Visual tokens: `.stitch/DESIGN.md`. Visitor code: `frontend/`. API: `backend/`.
 
@@ -25,6 +26,7 @@ When sources conflict, **PLATFORM_CONTEXT.md** decision precedence wins. Visual 
 | `DATABASE-DESIGN.md` | Logical/physical design + POC deviations; **applied store is MySQL 8** |
 | `exhibition_portal_schema.sql` | Historical PostgreSQL singleton DDL (full target; **not** Flyway V1; not applied) |
 | `TESTING.md` | Lint, build, `mvn test`, browser smoke |
+| `CODE-WALKTHROUGH.md` | Developer KT / code walkthrough (packages, journey, tests) |
 | `DEPLOY-WINDOWS.md` | Windows Server + Jenkins public-IP runbook (`http://43.225.195.200/`, Java 17, no Docker) |
 | `taxonomy/` | Business-owned departments, product types, mappings (v1); change process |
 

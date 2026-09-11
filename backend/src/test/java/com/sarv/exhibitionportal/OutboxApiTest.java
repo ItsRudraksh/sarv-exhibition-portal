@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** Submit enqueues marketing/vendor stub deliveries. */
 class OutboxApiTest extends MysqlSpringBootTest {
 
     @Autowired

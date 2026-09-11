@@ -17,6 +17,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+/** Public visitor APIs vs role-gated staff. JSON 401 without WWW-Authenticate. */
 public class SecurityConfig {
 
     @Bean

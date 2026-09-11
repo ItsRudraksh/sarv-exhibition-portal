@@ -1,3 +1,6 @@
+/**
+ * Buy submit. Contact + one need is enough.
+ */
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
 import { formatPhone } from '../validation'

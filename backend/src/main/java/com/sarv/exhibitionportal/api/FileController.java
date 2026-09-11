@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+/** Card and supporting-file upload/download/delete for a draft. */
 @RestController
 @RequestMapping("/api/v1/inquiries/{inquiryId}/files")
 public class FileController {

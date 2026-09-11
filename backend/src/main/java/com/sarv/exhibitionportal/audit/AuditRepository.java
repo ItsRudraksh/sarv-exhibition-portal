@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** Inserts audit_events rows. No updates; history is append-only. */
 public class AuditRepository {
 
     private final JdbcClient jdbc;

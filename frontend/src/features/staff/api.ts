@@ -1,3 +1,8 @@
+/**
+ * Staff/admin REST + sessionStorage Basic header. Used by both /staff and /admin.
+ */
+import { withPublicBase } from '../../lib/publicPath'
+
 const STAFF_AUTH_KEY = 'sarv-staff-basic-v1'
 
 export function staffAuthHeader(): string | null {
@@ -21,7 +26,7 @@ async function staffFetch(path: string, init: RequestInit = {}): Promise<Respons
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
-  return fetch(`/api/v1/staff${path}`, { ...init, headers })
+  return fetch(withPublicBase(`/api/v1/staff${path}`), { ...init, headers })
 }
 
 export interface StaffMe {

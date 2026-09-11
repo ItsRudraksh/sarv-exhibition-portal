@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.annotation.DirtiesContext;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+/** Finished-goods snapshot list. */
 class FinishedGoodsApiTest extends MysqlSpringBootTest {
 
     @Autowired

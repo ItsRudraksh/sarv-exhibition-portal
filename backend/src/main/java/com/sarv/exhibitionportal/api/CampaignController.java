@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Stall QR campaign by code ({@code GET /api/v1/campaigns/POC-STALL-1}). */
 @RestController
 @RequestMapping("/api/v1/campaigns")
 public class CampaignController {

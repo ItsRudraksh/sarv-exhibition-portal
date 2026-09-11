@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** integration_deliveries rows and claim/retry updates. */
 public class OutboxRepository {
 
     private final JdbcClient jdbc;

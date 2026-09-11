@@ -4,6 +4,8 @@
 // Node 22: Jenkins Windows service PATH does not include an interactive user's Node.
 // Frontend prepends C:\Program Files\nodejs and NODE_HOME. Restart Jenkins after installing Node.
 // Staging listen port is 8083. 8082 is wachatbot on this host. 8081 is pharma-erp-staging. Production is port 80.
+// Public domain: IIS reverse-proxy on 80/443 → 127.0.0.1:8083. VITE_BASE=/ (exhibit.sarvbiolabs.com or IP:8083).
+// Path URL sarvbiolabs.com/exhibit: VITE_BASE=/exhibit/ AND SERVER_SERVLET_CONTEXT_PATH=/exhibit (must match).
 
 def windowsInstallExhibition(String installDir, String serviceName, String kind, String workspace, String jarSource, String appDir, String stagingPort) {
     powershell """
@@ -60,6 +62,12 @@ def windowsInstallExhibition(String installDir, String serviceName, String kind,
                 \$verifyCmd = Join-Path \$workspace 'deploy\\windows\\verify-staging.cmd'
                 if (Test-Path -LiteralPath \$verifyCmd) {
                     Copy-Item -LiteralPath \$verifyCmd -Destination (Join-Path \$installDir 'verify-staging.cmd') -Force
+                }
+                \$iisSrc = Join-Path \$workspace 'deploy\\windows\\iis'
+                if (Test-Path -LiteralPath \$iisSrc) {
+                    \$iisDest = Join-Path \$installDir 'iis'
+                    New-Item -ItemType Directory -Force -Path \$iisDest | Out-Null
+                    Copy-Item -Path (Join-Path \$iisSrc '*') -Destination \$iisDest -Force
                 }
 
                 \$envTarget = Join-Path \$installDir 'portal.env.ps1'
@@ -258,6 +266,8 @@ pipeline {
             description: 'false (default): npm + mvn on this agent; Package produces backend/target/exhibition-portal.jar then deploy uses it. true: skip build (agent must have a JAR under backend/target/ or set JAR_SOURCE).')
         string(name: 'JAR_SOURCE', defaultValue: '',
             description: 'Optional: absolute path to JAR on the agent. If empty, deploy uses exactly one backend/target/*.jar from this job workspace (not *.original).')
+        string(name: 'VITE_BASE', defaultValue: '/',
+            description: 'Frontend public base. / for IP:8083 or exhibit.sarvbiolabs.com. /exhibit/ for sarvbiolabs.com/exhibit (also set SERVER_SERVLET_CONTEXT_PATH=/exhibit on the host).')
     }
 
     environment {
@@ -269,6 +279,7 @@ pipeline {
         SMOKE_PORT = '18080'
         STAGING_DIR = 'C:\\exhibition-portal-staging'
         PROD_DIR = 'C:\\exhibition-portal'
+        VITE_BASE = "${params.VITE_BASE ?: '/'}"
     }
 
     stages {
@@ -285,8 +296,17 @@ pipeline {
                 dir('frontend') {
                     script {
                         if (isUnix()) {
-                            sh 'npm ci'
-                            sh 'npm run build'
+                            sh '''
+                                if [ -z "$VITE_BASE" ]; then VITE_BASE=/; fi
+                                case "$VITE_BASE" in
+                                    */) ;;
+                                    *) VITE_BASE="${VITE_BASE}/" ;;
+                                esac
+                                export VITE_BASE
+                                echo "VITE_BASE=$VITE_BASE"
+                                npm ci
+                                npm run build
+                            '''
                         } else {
                             // Jenkins Windows service (SYSTEM) does not inherit an interactive user's PATH.
                             // Java17/Maven3 are Jenkins tools; Node is not. Prefer C:\\Program Files\\nodejs.
@@ -303,6 +323,11 @@ pipeline {
                                     Write-Error 'npm not found for the Jenkins service account. Install Node 22 to C:\\Program Files\\nodejs (all users), set NODE_HOME to that folder if it lives elsewhere, then restart the Jenkins Windows service. An interactive user PATH is ignored.'
                                     exit 1
                                 }
+                                $viteBase = $env:VITE_BASE
+                                if ([string]::IsNullOrWhiteSpace($viteBase)) { $viteBase = '/' }
+                                if ($viteBase -ne '/' -and -not $viteBase.EndsWith('/')) { $viteBase = $viteBase + '/' }
+                                $env:VITE_BASE = $viteBase
+                                Write-Host "VITE_BASE=$($env:VITE_BASE)"
                                 npm ci
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                                 npm run build

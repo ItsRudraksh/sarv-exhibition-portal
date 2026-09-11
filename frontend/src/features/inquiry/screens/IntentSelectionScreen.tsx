@@ -1,3 +1,6 @@
+/**
+ * I want to sell vs I want to buy. Sets draft.route then advances.
+ */
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
 import type { InquiryRoute } from '../types'
@@ -7,6 +10,7 @@ import {
   ShoppingBagIcon,
   StorefrontIcon,
 } from '../../../components/ui'
+import { BrandArt } from '../../../components/BrandArt'
 
 export interface IntentSelectionScreenProps {
   readonly journey: InquiryJourney
@@ -41,21 +45,24 @@ export function IntentSelectionScreen({ journey }: IntentSelectionScreenProps) {
           </div>
         </div>
 
-        <section className="section-gap">
-          <h1 className="screen-title screen-title--display">{copy.intent.title}</h1>
-          <p className="screen-subtitle">{copy.intent.subtitle}</p>
+        <section className="intent-hero section-gap">
+          <BrandArt />
+          <div className="intent-hero__copy">
+            <h1 className="screen-title screen-title--display">{copy.intent.title}</h1>
+            <p className="screen-subtitle">{copy.intent.subtitle}</p>
+          </div>
         </section>
 
-        <div style={{ borderTop: '1px solid var(--color-glass-border)', borderBottom: '1px solid var(--color-glass-border)' }}>
+        <div className="route-grid">
           <button
             type="button"
-            className="route-row"
+            className="route-card"
             onClick={() => handleRoute('SUPPLIER')}
           >
             <div className="route-icon">
               <StorefrontIcon />
             </div>
-            <div style={{ flex: 1 }}>
+            <div className="route-card__copy">
               <h2>{copy.intent.sellTitle}</h2>
               <p>{copy.intent.sellDesc}</p>
             </div>
@@ -63,13 +70,13 @@ export function IntentSelectionScreen({ journey }: IntentSelectionScreenProps) {
           </button>
           <button
             type="button"
-            className="route-row"
+            className="route-card route-card--buy"
             onClick={() => handleRoute('PURCHASE')}
           >
             <div className="route-icon">
               <ShoppingBagIcon />
             </div>
-            <div style={{ flex: 1 }}>
+            <div className="route-card__copy">
               <h2>{copy.intent.buyTitle}</h2>
               <p>{copy.intent.buyDesc}</p>
             </div>
@@ -82,9 +89,9 @@ export function IntentSelectionScreen({ journey }: IntentSelectionScreenProps) {
         <p className="step-label step-label--muted" style={{ marginBottom: 12 }}>
           {copy.intent.footer}
         </p>
-        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <span className="step-label step-label--muted">{copy.intent.policyUnavailable}</span>
-        </div>
+        <a className="brand-chrome__site intent-footer__link" href={copy.brand.siteUrl} target="_blank" rel="noreferrer">
+          {copy.brand.siteLink}
+        </a>
       </footer>
     </div>
   )

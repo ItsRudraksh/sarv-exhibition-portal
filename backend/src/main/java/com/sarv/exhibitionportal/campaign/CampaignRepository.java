@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** JDBC lookup for qr_campaigns. */
 public class CampaignRepository {
 
     private final JdbcClient jdbc;

@@ -1,11 +1,12 @@
+/* Staff and admin shells: navy/cyan companion to the visitor marketing theme. */
 .staff-app {
   min-height: 100svh;
   max-width: 880px;
   margin: 0 auto;
   padding: 24px 18px 64px;
   font-family: var(--font-ui);
-  color: #e7f5f6;
-  background: #07171d;
+  color: #e8f6fc;
+  background: #022d59;
 }
 
 .staff-header h1 {
@@ -19,20 +20,20 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.75rem;
-  color: #55cfdf;
+  color: #01afef;
 }
 
 .staff-lede,
 .staff-hint,
 .staff-meta {
-  color: #a4bec4;
+  color: #9fbfce;
 }
 
 .staff-card,
 .staff-section,
 .staff-row {
-  background: #0d2932;
-  border: 1px solid #274b55;
+  background: #083a5c;
+  border: 1px solid #1a5a80;
   border-radius: 10px;
 }
 
@@ -63,10 +64,10 @@
 .staff-app select {
   min-height: 48px;
   padding: 12px;
-  border: 1px solid #274b55;
+  border: 1px solid #1a5a80;
   border-radius: 10px;
-  background: #0d2932;
-  color: #e7f5f6;
+  background: #083a5c;
+  color: #e8f6fc;
   font: inherit;
 }
 
@@ -74,14 +75,14 @@
   min-height: 20px;
   width: 20px;
   margin: 0;
-  accent-color: #55cfdf;
+  accent-color: #01afef;
 }
 
 .staff-app input:focus,
 .staff-app textarea:focus,
 .staff-app select:focus,
 .staff-app button:focus-visible {
-  outline: 2px solid #55cfdf;
+  outline: 2px solid #01afef;
   outline-offset: 2px;
 }
 
@@ -89,8 +90,8 @@
   min-height: 48px;
   border: 0;
   border-radius: 10px;
-  background: #55cfdf;
-  color: #07171d;
+  background: #01afef;
+  color: #022d59;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -103,13 +104,13 @@
 
 .staff-secondary {
   background: transparent !important;
-  color: #e7f5f6 !important;
-  box-shadow: inset 0 0 0 1px #274b55;
+  color: #e8f6fc !important;
+  box-shadow: inset 0 0 0 1px #1a5a80;
 }
 
 .staff-text-btn {
   background: transparent !important;
-  color: #55cfdf !important;
+  color: #01afef !important;
   min-height: 40px;
   padding: 0;
   width: fit-content;
@@ -129,14 +130,14 @@ a.staff-text-btn {
 
 .staff-tabs button {
   flex: 1;
-  background: #0d2932;
-  color: #e7f5f6;
-  box-shadow: inset 0 0 0 1px #274b55;
+  background: #083a5c;
+  color: #e8f6fc;
+  box-shadow: inset 0 0 0 1px #1a5a80;
 }
 
 .staff-tabs button.is-active {
-  background: #123f4b;
-  color: #55cfdf;
+  background: #0b4a73;
+  color: #01afef;
 }
 
 .staff-list {
@@ -176,12 +177,12 @@ a.staff-text-btn {
 }
 
 .staff-ok {
-  color: #55cfdf;
+  color: #01afef;
   margin: 0;
 }
 
 .staff-empty {
-  color: #a4bec4;
+  color: #9fbfce;
 }
 
 .staff-section-title {
@@ -190,7 +191,7 @@ a.staff-text-btn {
 }
 
 .staff-fieldset {
-  border: 1px solid #274b55;
+  border: 1px solid #1a5a80;
   border-radius: 10px;
   padding: 12px 16px 16px;
   display: flex;
@@ -200,7 +201,7 @@ a.staff-text-btn {
 
 .staff-fieldset legend {
   padding: 0 6px;
-  color: #e7f5f6;
+  color: #e8f6fc;
 }
 
 .staff-check {
@@ -222,8 +223,8 @@ a.staff-text-btn {
   min-height: 48px;
   padding: 0 16px;
   border-radius: 10px;
-  background: #55cfdf;
-  color: #07171d;
+  background: #01afef;
+  color: #022d59;
   font-weight: 600;
   text-decoration: none;
 }
@@ -234,8 +235,8 @@ a.staff-text-btn {
   border-radius: 999px;
   font-size: 0.75rem;
   letter-spacing: 0.04em;
-  background: #123f4b;
-  color: #55cfdf;
+  background: #0b4a73;
+  color: #01afef;
 }
 
 .staff-badge-inactive,

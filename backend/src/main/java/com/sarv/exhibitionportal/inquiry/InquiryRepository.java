@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
+/** JDBC persist for the visitor draft. CHAR(36) UUIDs go through {@link com.sarv.exhibitionportal.config.JdbcUuids#mysql}. */
 @Repository
 public class InquiryRepository {
 
@@ -75,6 +76,7 @@ public class InquiryRepository {
         return count != null && count > 0;
     }
 
+    /** Full draft including taxonomy ids and route extension tables. QR text is loaded but redacted in the service. */
     public Optional<InquiryDraftDto> findDraft(UUID id) {
         Optional<InquiryRow> row = jdbc.sql("""
                 select i.id, i.reference_code, i.route, i.entry_channel, i.lifecycle_state,
@@ -172,6 +174,7 @@ public class InquiryRepository {
         return Optional.of(toDto(r, departments, productTypes));
     }
 
+    /** Replaces party, supplier or purchase extensions, and card UI state for a DRAFT. */
     public void saveDraft(InquiryDraftDto draft) {
         jdbc.sql("""
                  update inquiries
@@ -284,6 +287,7 @@ public class InquiryRepository {
                 .update();
     }
 
+    /** Sell extension: Other flags/details, notes, department and product-type links. */
     private void replaceSupplier(InquiryDraftDto draft) {
         if (!"SUPPLIER".equals(draft.route())) {
             return;
@@ -369,6 +373,7 @@ public class InquiryRepository {
         }
     }
 
+    /** Buy extension: Other product details, line item, finished-good and trading selections. */
     private void replacePurchase(InquiryDraftDto draft) {
         jdbc.sql("delete from purchase_line_items where purchase_inquiry_id = :id")
                 .param("id", JdbcUuids.mysql(draft.id()))

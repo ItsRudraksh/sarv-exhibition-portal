@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.mock.env.MockEnvironment;
 
+/** prod profile refuses POC secrets. */
 class ProductionStartupGuardTest {
 
     @Test

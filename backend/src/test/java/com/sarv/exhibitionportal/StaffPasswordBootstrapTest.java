@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+/** Only poc-* hashes rotate from bootstrap password. */
 class StaffPasswordBootstrapTest {
 
     @DynamicPropertySource

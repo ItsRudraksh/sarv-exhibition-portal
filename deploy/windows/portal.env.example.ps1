@@ -22,3 +22,11 @@ $env:EXHIBITION_STORAGE_ROOT = 'C:\exhibition-portal\files'
 # $env:EXHIBITION_PHARMA_ERP_USERNAME = 'root'
 # $env:EXHIBITION_PHARMA_ERP_PASSWORD = 'your-pharma-db-password'
 # $env:EXHIBITION_PHARMA_ERP_SCHEDULE = 'false'   # set true later for weekly cron
+
+# Public hostname (CORS). Same-origin IIS reverse proxy does not need extra origins,
+# but add them if the browser origin differs from the Java bind.
+# $env:EXHIBITION_CORS_ORIGINS = 'https://exhibit.sarvbiolabs.com,https://sarvbiolabs.com,https://www.sarvbiolabs.com,http://43.225.195.200:8083'
+
+# Path URL https://sarvbiolabs.com/exhibit — must match the frontend build VITE_BASE=/exhibit/
+# Leave unset (or empty) for exhibit.sarvbiolabs.com or http://IP:8083/
+# $env:SERVER_SERVLET_CONTEXT_PATH = '/exhibit'

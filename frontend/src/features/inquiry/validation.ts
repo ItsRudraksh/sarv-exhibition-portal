@@ -1,3 +1,6 @@
+/**
+ * Client submit/continue rules. Keep aligned with backend InquiryRules.
+ */
 import type { BuyerDetails, ContactDetails, InquiryDraft, SupplierDetails } from './types'
 
 export interface FieldErrors {
@@ -36,6 +39,7 @@ export function isContactValid(contact: ContactDetails): boolean {
   return Object.keys(validateContact(contact)).length === 0
 }
 
+/** Continue on sell categories: listed, Other+details, or capability notes. */
 export function validateSupplierDepartments(
   departmentIds: string[],
   otherCategory: boolean,
@@ -51,6 +55,7 @@ export function validateSupplierDepartments(
   return {}
 }
 
+/** Continue on sell product types: listed, Other+details, or capability notes. */
 export function validateSupplierProductTypes(
   productTypeIds: string[],
   otherProductType: boolean,
@@ -108,6 +113,7 @@ export function validateSupplierReview(supplier: SupplierDetails): FieldErrors {
   return errors
 }
 
+/** Buy continue: requirement text, or Other with details. Quantity per selected row. */
 export function validateBuyerNeed(buyer: BuyerDetails): FieldErrors {
   const errors: FieldErrors = {}
   if (!buyer.requirement.trim() && !(buyer.otherProduct && buyer.otherProductDetail.trim())) {
@@ -146,6 +152,7 @@ export function isSupplierDraftComplete(draft: InquiryDraft): boolean {
   )
 }
 
+/** Review line for Other: `Label: details` when checked. */
 export function formatOtherSelection(
   selected: boolean,
   label: string,

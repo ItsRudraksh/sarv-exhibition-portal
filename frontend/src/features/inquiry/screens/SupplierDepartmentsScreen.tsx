@@ -1,3 +1,6 @@
+/**
+ * Sell categories: listed checkboxes and/or Other details and/or capability notes.
+ */
 import { useMemo, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'

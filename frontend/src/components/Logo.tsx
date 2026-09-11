@@ -1,3 +1,6 @@
+/**
+ * Sarv Biolabs wordmark from the marketing site, used on the white header bar.
+ */
 import sarvLogo from '../assets/sarv-bio-labs-logo.png'
 
 export interface LogoProps {

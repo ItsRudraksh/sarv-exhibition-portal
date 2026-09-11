@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "exhibition")
+/** application.properties binding (poc, files dir, pharma-erp, outbox). */
 public record ExhibitionProperties(
         boolean poc,
         UUID defaultCampaignId,

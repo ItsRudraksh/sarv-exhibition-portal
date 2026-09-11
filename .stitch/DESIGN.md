@@ -1,104 +1,110 @@
-# Design System: Sarv Biolabs Exhibition Portal — Alpine Blue
+# Design System: Sarv Biolabs Exhibition Portal — marketing navy / cyan
 
 **Stitch project:** `16252155655979346180`  
-**Primary platform:** Mobile web, 390px first  
+**Primary platform:** Mobile web, 390px first; desktop companion  
+**Public host:** `https://exhibit.sarvbiolabs.com/` (subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/))  
 **Variant:** Base / light
 
 ## 1. Visual Theme & Atmosphere
 
-Alpine Blue combines Sarv Biolabs' Himalayan-origin story with the clarity expected of a pharmaceutical B2B workflow. It feels measured, assured, and quietly human: a research notebook that has been engineered for a busy exhibition floor.
+The visitor portal uses the same colour language as the public Sarv Biolabs website: deep navy chrome, cyan calls to action, white surfaces, and a restrained Himalayan/molecule illustration. It should feel like a branded microsite of sarvbiolabs.com.
 
-The system is deliberately calm rather than decorative. Blue carries brand recognition and action; pale mineral surfaces and botanical-blue landscape illustrations give the experience a sense of origin without becoming rustic, medicinal, or consumer-wellness oriented. The visitor sees one clear decision at a time and always has a manual path forward.
+Form screens stay single-column and task-first. Graphical treatment is concentrated on the entry hero, intent cards, confirmation mark, and a navy utility strip that links back to the marketing site.
 
-**Design dials:** creativity 5, density 5, variance 5, motion intent 4. Use asymmetric editorial composition only in the opening context panel; use direct, single-column task layouts for all form screens.
+**Design dials:** creativity 6, density 5, variance 5, motion intent 4.
 
 ## 2. Color Palette & Roles
 
-- **Alpine Paper** (`#F7F8F5`) — page canvas; a calm mineral off-white, never stark white.
-- **Pure Surface** (`#FFFFFF`) — inputs, sheets, and elevated confirmation surfaces.
-- **Research Ink** (`#113944`) — primary headings, selected-route text, and dense information.
-- **Measured Slate** (`#5C747C`) — body copy, descriptions, and secondary metadata.
-- **Glass Border** (`#C9D9DF`) — 1px dividers, field outlines, and low-emphasis structure.
-- **Sarv Process Blue** (`#147A9A`) — the single brand accent: primary actions, active progress, focus rings, and route markers.
-- **Blue Mist** (`#D7F0F7`) — selected-row tint, low-risk informational surfaces, and route icon discs.
-- **Clear Blue** (`#009EC5`) — light-facing illustration plane and restricted hover/pressed variation of the primary accent.
+Sampled from the live marketing site (11 Sep 2026):
 
-Do not introduce green, purple, neon, gradients, or additional marketing accent colors. Success, warning, and error colours are reserved for real system states only; they must never imply a vendor approval or product availability that has not occurred.
+- **Sarv Navy** (`#022D59`) — utility strip, desktop canvas, staff canvas, footer.
+- **Navy Deep** (`#011C38`) — page backdrop gradient.
+- **Sarv Cyan** (`#01AFEF`) — primary actions, focus, progress, links, hero accent. Alias `--color-sarv-blue`.
+- **Cyan Deep** (`#0095CC`) — pressed/hover primary.
+- **Himalayan Green** (`#4AA485`) — illustration ridges and the buy-route card accent only. Not a second primary button colour.
+- **Paper** (`#F3F8FB`) — visitor column canvas.
+- **Pure Surface** (`#FFFFFF`) — inputs, cards, header bar.
+- **Ink** (`#2C2C2C`) — headings and form text (marketing body colour).
+- **Slate** (`#69727D`) — supporting copy.
+- **Glass Border** (`#C5DBE6`) — field outlines.
+- **Cyan Mist** (`#E6F7FD`) — selected rows, notices, icon tiles.
+
+Success, warning, and error colours remain reserved for real system states. They must never imply vendor approval or product availability.
+
+Hero and primary-button gradients (navy→cyan, cyan→cyan-deep) are allowed on brand surfaces only. Do not flood form screens with decorative gradients.
 
 ## 3. Typography Rules
 
-- **Display:** Plus Jakarta Sans, 600–700, track-tight (`-0.045em`), `clamp(2.5rem, 11vw, 4.25rem)`, line-height `0.96`. Use only for the entry screen and major confirmation headline.
-- **Editorial display:** Fraunces, 500, track-tight (`-0.055em`), reserved for the public entry headline. It is never used in the admin workspace or form labels.
-- **Interface and body:** Plus Jakarta Sans, 400–600, `1rem` minimum body size, line-height `1.55–1.65`, body measures capped at 32ch on mobile.
-- **Technical metadata:** JetBrains Mono, 600, `0.6875rem–0.75rem`, uppercase only for short labels such as route or step markers.
-- **Banned:** Inter, generic serif fonts, browser-default font stacks, all-caps body copy, and oversized uppercase headings.
+- **Display and interface:** Plus Jakarta Sans, 400–700. Display headings 700, track-tight (`-0.04em`).
+- **Body:** Plus Jakarta Sans, `1rem` minimum, line-height `1.55–1.65`.
+- **Technical metadata:** JetBrains Mono, 600, uppercase short labels only.
+- **Banned:** Inter, generic serif stacks for UI, all-caps body copy, oversized uppercase headings. Fraunces is not used (the marketing site is sans-serif).
 
 ## 4. Component Stylings
 
-### Entry routes
+### Brand chrome
 
-The public portal begins with two equal-priority, vertically stacked route rows:
+A 36px navy strip is always visible: link to `https://sarvbiolabs.com/`, “Exhibition portal” kicker, restart / next-visitor control. White logo bar underneath with a 3px cyan rule — same hierarchy as the WordPress header (utility bar + white logo).
 
-- **“I want to sell”** — supplier/vendor intake.
-- **“I want to buy”** — product inquiry from Sarv's portfolio.
+### Entry hero
 
-Each row uses a 48px pale-blue circular direction marker, a direct first-person label, one precise supporting sentence, and a right arrow. Use hairline dividers rather than floating card grids. The first-person wording is intentional: it describes the employee's immediate task, not Sarv's marketing goal.
+Card capture opens with the logo on white, then a navy/cyan illustrated band (Himalayan ridge + molecule hexagons, no people). Title and lede sit on that band in white.
+
+### Intent routes
+
+Two equal-priority graphical cards:
+
+- **“I want to sell”** — cyan left rail.
+- **“I want to buy”** — Himalayan-green left rail.
+
+Each card has a rounded icon tile, first-person label, one supporting sentence, and a chevron.
 
 ### Actions
 
-- Primary actions use Sarv Process Blue with white Plus Jakarta Sans 600 labels, 48–52px height, and 10px corners.
-- Secondary actions are outlined in Glass Border with Research Ink text.
-- Text actions are simple blue links, never underlined by default.
-- Press feedback is a subtle `scale(0.98)` or `translateY(1px)`; never use glows or bouncy animation.
+- Primary actions use Sarv Cyan with white Plus Jakarta Sans 600 labels, 48–52px height, and 12px corners.
+- Secondary actions are outlined in Glass Border with Ink text.
+- Press feedback is `scale(0.98)` or `translateY(1px)`.
 
 ### Forms
 
-- Use one-column fields, labels above fields, 12px label-to-control spacing, and helper/error text below.
-- Minimum control height is 48px; each selectable department or product row has a 44px tap target.
-- Inputs have white fill, a 1px Glass Border, 10px corner radius, and a 2px Sarv Process Blue focus ring with 2px offset.
-- Dynamic taxonomy selection uses searchable checklists or bottom sheets; never force a dense multi-select dropdown on mobile.
-- AI-assisted card scan and voice entry are optional utility actions, visually secondary to manual entry. Extracted fields are always marked as reviewable.
+- One-column fields, labels above fields, 12px label-to-control spacing, helper/error text below.
+- Minimum control height 48px; selectable rows at least 44px.
+- Inputs: white fill, 1px Glass Border, 12px radius, 2px cyan focus ring with 2px offset.
+- Card scan is optional; extracted fields are always reviewable. Manual fallback is mandatory.
 
 ### Trust and consent
 
-Use a compact left-bordered information note with Sarv Process Blue. Explain why location evidence, card scanning, or microphone use is requested before invoking permission. Never preselect consent and never block manual completion when a permission is declined.
+Left-bordered cyan note. Never preselect consent. Never block manual completion when a permission is declined. Card QR payloads are stored internally only — never preview or open.
 
 ### Upload and confirmation
 
-- Catalogue upload uses a dashed or hairline drop zone with plain file-type guidance and a compact file list.
-- Confirmation uses a single substantial surface with a clear state title, what happens next, and a reference placeholder such as `[submission reference]`. Do not fabricate tracking numbers or response times.
+Dashed cyan drop zone for capture; confirmation uses a cyan check mark and a summary card. Do not fabricate tracking numbers or response times.
 
 ### Admin surfaces
 
-Admin screens are operationally denser but retain the same blue/ink system. Use table-like vertical lists, status chips for genuine workflow states, and a persistent review summary. The “Add to production” action must remain separate from ordinary edits and require explicit confirmation in the implementation.
+Staff `/staff` and admin `/admin` use navy `#022D59` with cyan `#01AFEF` accents. “Add to production” stays separate from ordinary edits.
 
 ## 5. Layout Principles
 
-- Mobile-first at 390px with `18px` page edges, a single content column, and no horizontal overflow.
-- Major content gaps use `clamp(1.5rem, 6vw, 2.5rem)`; form sections use 24px gaps; field stacks use 16px gaps.
-- The public entry screen may include a compact, non-overlapping Alpine Blue landscape illustration. It is a contextual brand marker, not a decorative hero image.
-- Use full-width route rows and full-width primary actions on mobile. Tablet and desktop increase whitespace and can place supporting context beside form content, but the task sequence remains vertically legible.
-- Keep all screen content in normal document flow. No overlapping copy, absolute-positioned headline treatments, floating decorative gradients, or three-card feature rows.
+- Mobile-first at 390px with 18px page edges; visitor column max 720px on desktop, centred on the navy canvas.
+- Public entry may use a full-width illustrated hero. Form screens stay one column.
+- Do not copy sample people/companies from historic Stitch HTML.
 
 ## 6. Motion & Interaction Intent
 
-- Use a restrained spring: stiffness 170, damping 24.
-- Route rows and controls receive only opacity/background/transform feedback.
-- Step transitions use a short fade and 8px vertical movement; do not animate layout dimensions.
-- Voice visualisation, if implemented, should respond only while voice capture is actively requested and must have a reduced-motion alternative.
-- Skeletons mirror final form geometry. Never use a generic circular loader.
+- Press: `scale(0.98)` or `translateY(1px)`.
+- Route cards: 1px lift on hover.
+- Honour `prefers-reduced-motion`.
 
 ## 7. Content Rules
 
-- Copy from the employee/visitor perspective: “I want to sell,” “I want to buy,” “Review my details,” and “Submit my inquiry.”
-- Use precise domain language: API, intermediate, catalogue, department, pharmacopeial category, supplier review, and product inquiry.
-- Keep assistance concrete: “Scan visiting card,” “Use voice to fill this section,” and “Enter manually instead.”
-- Do not make unsupported claims, present fabricated metrics, use generic AI copy, or imply automatic approval.
+- Visitor-first copy: “I want to sell,” “I want to buy,” “Review my inquiry,” “Submit inquiry.”
+- Precise domain language: API, intermediate, catalogue, supplier review, product inquiry.
+- Do not make unsupported claims, present fabricated metrics, or imply automatic approval.
 
 ## 8. Anti-Patterns (Banned)
 
-- No purple/blue neon aesthetic, no gradients, no outer glows, no pure black.
-- No generic dashboard metric cards, invented statistics, placeholder people, or made-up lead values.
-- No emojis, generic default iconography, or “next-gen” language.
-- No three equal feature cards, nested cards, overlapping content, or desktop UI shrunk into a phone screen.
-- No hidden manual fallback for voice, camera, network, or location features.
+- No purple/neon, no consumer-wellness green UI, no generic dashboard metric cards, no invented statistics, no placeholder people.
+- No emojis, no “next-gen” language.
+- No overlapping copy or hidden manual fallbacks.
+- Do not restyle from stale Alpine Paper Stitch HTML.

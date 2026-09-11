@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
+/** file_assets metadata. Soft-purge supporting files (PURGED). */
 public class FileAssetRepository {
 
     private final JdbcClient jdbc;

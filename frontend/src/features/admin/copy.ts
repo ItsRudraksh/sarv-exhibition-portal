@@ -1,3 +1,6 @@
+/**
+ * Admin panel strings.
+ */
 export const adminCopy = {
   kicker: 'Internal',
   title: 'Admin',

@@ -1,3 +1,7 @@
+/**
+ * Vite visitor/staff/admin bundler. HTTPS + IPv4 bind so in-page camera works on LAN phones.
+ * `/api` is proxied to Spring Boot on 8080 (see specs/TESTING.md).
+ */
 import os from 'node:os'
 import react from '@vitejs/plugin-react'
 import basicSsl from '@vitejs/plugin-basic-ssl'
@@ -15,9 +19,16 @@ function lanHosts(): string[] {
   return hosts
 }
 
+function viteBase(): string {
+  const raw = process.env.VITE_BASE || '/'
+  if (raw === '/') return '/'
+  return raw.endsWith('/') ? raw : `${raw}/`
+}
+
 // HTTPS is required for in-page camera (getUserMedia) on phones over LAN.
 // Bind IPv4 explicitly: host:true often listens on :: and Windows phones then fail.
 export default defineConfig({
+  base: viteBase(),
   plugins: [
     react(),
     basicSsl({

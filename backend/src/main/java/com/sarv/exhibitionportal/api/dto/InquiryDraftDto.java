@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/** Visitor draft contract. currentStep is the UI screen; route is SUPPLIER or PURCHASE after intent. */
 public record InquiryDraftDto(
         UUID id,
         String lifecycleState,

@@ -1,5 +1,17 @@
+/**
+ * Visitor-facing strings. Change labels/errors here, not inline in screens.
+ */
 export const copy = {
   appName: 'Sarv Biolabs Exhibition Portal',
+  brand: {
+    kicker: 'Exhibition portal',
+    siteLabel: 'sarvbiolabs.com',
+    siteUrl: 'https://sarvbiolabs.com/',
+    phone: '+91 172 4356615',
+    email: 'info@sarvbiolabs.com',
+    heroEyebrow: 'WHO-GMP · APIs & phytochemicals',
+    siteLink: 'Visit sarvbiolabs.com',
+  },
   prototypeBanner:
     'Development: drafts save to the Java API when connected. Shared stall tablets keep only a session pointer — not contact details — in the browser.',
   connectionLost:
@@ -63,7 +75,7 @@ export const copy = {
     sellDesc: 'Tell Sarv about the products or capabilities you can supply.',
     buyTitle: 'I want to buy',
     buyDesc: 'Start a quick product inquiry. Add only the details you know.',
-    footer: '© 2026 Sarv Biolabs. Mineral Research Precision.',
+    footer: '© 2026 Sarv Biolabs Pvt. Ltd.',
     policyUnavailable: 'Not available in this release',
   },
   supplier: {

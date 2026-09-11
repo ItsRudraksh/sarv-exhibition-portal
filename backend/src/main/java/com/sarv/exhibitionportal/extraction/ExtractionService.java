@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+/** Runs local ZXing on card upload and stores reviewable proposals. */
 public class ExtractionService {
 
     private static final Set<String> ALLOWED_KEYS = Set.of(

@@ -1,3 +1,6 @@
+/**
+ * Other checkbox + required Describe Other box (sell categories/types and buy catalogue).
+ */
 import { copy } from './copy'
 import { TextField } from '../../components/ui'
 

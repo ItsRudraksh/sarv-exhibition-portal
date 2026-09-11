@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Append-only consent decisions for an inquiry (card-store, etc.). */
 @RestController
 @RequestMapping("/api/v1/inquiries/{inquiryId}/consents")
 public class ConsentController {

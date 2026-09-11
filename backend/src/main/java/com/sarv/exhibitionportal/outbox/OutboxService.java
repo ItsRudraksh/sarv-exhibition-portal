@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+/** Enqueues MARKETING_LEAD or VENDOR_UPSERT after submit / Add to production. */
 public class OutboxService {
 
     public static final String MARKETING_LEAD = "MARKETING_LEAD";

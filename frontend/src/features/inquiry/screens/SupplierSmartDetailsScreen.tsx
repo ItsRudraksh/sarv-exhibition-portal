@@ -1,3 +1,6 @@
+/**
+ * Fill missing company fields; taxonomy summary with Edit back into earlier steps.
+ */
 import { useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'

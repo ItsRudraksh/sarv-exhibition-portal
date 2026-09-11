@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Supplier departments and product types for the sell screens (Flyway V7). */
 @RestController
 @RequestMapping("/api/v1/taxonomy")
 public class TaxonomyController {

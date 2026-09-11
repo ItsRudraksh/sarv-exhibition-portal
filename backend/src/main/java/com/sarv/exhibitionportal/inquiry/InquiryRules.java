@@ -8,12 +8,20 @@ import com.sarv.exhibitionportal.api.dto.SupplierDto;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Server submit contract. Mirror changes in {@code frontend/.../validation.ts}.
+ *
+ * <p>Sell: listed taxonomy <em>or</em> Other (with details) <em>or</em> capability notes,
+ * plus website or supporting file. Buy: requirement text <em>or</em> Other+details;
+ * quantity required for each selected catalogue row.
+ */
 public final class InquiryRules {
 
     private static final Pattern EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     private InquiryRules() {}
 
+    /** Name, work email, country code, and a mobile with at least 6 digits. */
     public static void assertContact(ContactDto contact) {
         if (contact == null || blank(contact.fullName())) {
             throw new InquiryValidationException("Full name is required.");
@@ -30,6 +38,7 @@ public final class InquiryRules {
         }
     }
 
+    /** Contact confirmed + route-specific rules. Unknown route is rejected. */
     public static void assertCanSubmit(InquiryDraftDto draft) {
         if (draft == null) {
             throw new InquiryValidationException("Inquiry is required.");
@@ -50,6 +59,10 @@ public final class InquiryRules {
         }
     }
 
+    /**
+     * Company required. Category signal = departments or Other (with details) or notes.
+     * Type signal = product types or Other (with details) or notes. Website or file required.
+     */
     public static void assertSupplierSubmit(InquiryDraftDto draft) {
         SupplierDto supplier = draft.supplier();
         if (supplier == null || blank(supplier.companyName())) {
@@ -94,6 +107,7 @@ public final class InquiryRules {
         }
     }
 
+    /** Requirement text, or Other with details. Each selected catalogue row needs a quantity. */
     public static void assertBuyerSubmit(BuyerDto buyer) {
         if (buyer == null) {
             throw new InquiryValidationException("Describe the product or requirement to continue.");

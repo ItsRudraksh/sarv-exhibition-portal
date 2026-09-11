@@ -26,6 +26,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/** Buyer list union and admin listed_for_buyers tagging. */
 class TradingCatalogueApiTest extends MysqlSpringBootTest {
 
     @Autowired

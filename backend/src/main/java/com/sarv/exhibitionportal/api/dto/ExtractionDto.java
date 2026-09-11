@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/** Card-assist session plus proposed fields. Raw QR is not included. */
 public record ExtractionDto(
         UUID id,
         UUID sessionId,

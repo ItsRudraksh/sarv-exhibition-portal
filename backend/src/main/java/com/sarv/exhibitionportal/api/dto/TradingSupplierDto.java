@@ -3,6 +3,7 @@ package com.sarv.exhibitionportal.api.dto;
 import java.util.List;
 import java.util.UUID;
 
+/** Admin catalogue supplier (OFFLINE or PORTAL_LINKED). */
 public record TradingSupplierDto(
         UUID id,
         String sourceKind,

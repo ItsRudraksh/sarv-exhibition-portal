@@ -1,3 +1,6 @@
+/**
+ * Sell submit: website or supporting file required. Edit returns without replaying Continue.
+ */
 import { useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'

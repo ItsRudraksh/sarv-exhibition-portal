@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+/** Exhibition QR vs website/direct entry channels. */
 class CampaignEntryApiTest extends MysqlSpringBootTest {
 
     @Autowired

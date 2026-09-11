@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
+/** MySQL CHAR(36) UUID helpers. Never bind java.util.UUID as a binary parameter. */
 public final class JdbcUuids {
 
     private JdbcUuids() {

@@ -1,3 +1,6 @@
+/**
+ * Sell product types under checked categories, plus Other. Categories stay checked (read-only).
+ */
 import { useMemo, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'

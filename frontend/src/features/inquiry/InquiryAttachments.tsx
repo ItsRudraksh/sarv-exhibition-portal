@@ -1,3 +1,6 @@
+/**
+ * Multi-file supporting attachments (5 MiB, max 10) for sell review and buy need.
+ */
 import { useRef } from 'react'
 import { copy } from './copy'
 import type { CardFileMeta } from './types'

@@ -25,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Staff review queues, buyer leads, Excel export, and finished-goods sync.
+ * Role checks live in {@link com.sarv.exhibitionportal.config.SecurityConfig}.
+ */
 @RestController
 @RequestMapping("/api/v1/staff")
 public class StaffController {

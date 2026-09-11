@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/** GET /meta poc flag and prefixes. */
 class MetaApiTest extends MysqlSpringBootTest {
 
     @Autowired

@@ -1,3 +1,6 @@
+/**
+ * Internal review UI (Alpine Blue After Dark). HTTP Basic via in-app form, never the browser prompt.
+ */
 import { useEffect, useState } from 'react'
 import {
   clearStaffAuth,
@@ -8,6 +11,7 @@ import {
   type StaffMe,
   type SupplierReview,
 } from './api'
+import { withPublicBase } from '../../lib/publicPath'
 
 type Tab = 'suppliers' | 'buyers' | 'exports'
 
@@ -150,7 +154,7 @@ export function StaffApp() {
         </p>
         <div className="staff-header-links">
           {me.roles.includes('ADMIN') ? (
-            <a className="staff-text-btn" href="/admin">
+            <a className="staff-text-btn" href={withPublicBase('/admin')}>
               Admin panel
             </a>
           ) : null}

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** SPA forwards plus no WWW-Authenticate on public tessdata. */
 class SpaRoutingTest extends MysqlSpringBootTest {
 
     @Autowired

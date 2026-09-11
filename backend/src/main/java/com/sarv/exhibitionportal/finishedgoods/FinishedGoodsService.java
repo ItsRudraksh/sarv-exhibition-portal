@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+/** Sync from pharma-erp and list active finished goods. */
 public class FinishedGoodsService {
 
     private static final Logger log = LoggerFactory.getLogger(FinishedGoodsService.class);

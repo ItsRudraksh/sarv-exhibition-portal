@@ -1,6 +1,7 @@
 /**
  * Parse contact payloads from card QR text (vCard / MECARD / mailto / tel / email).
  * Mirrors backend LocalCardScanEngine — no cloud provider.
+ * Do not treat the payload as a navigable link.
  */
 
 export interface CardOcrProposal {

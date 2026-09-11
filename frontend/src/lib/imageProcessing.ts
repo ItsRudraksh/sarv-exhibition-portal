@@ -1,3 +1,6 @@
+/**
+ * Client image resize/orient before card upload so large camera photos do not fail.
+ */
 import type { CardFileMeta } from '../features/inquiry/types'
 
 /** Max longest edge for card previews — keeps mobile browsers under memory limits. */

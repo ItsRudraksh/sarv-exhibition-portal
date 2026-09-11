@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Buy-path catalogue: pharma-erp finished goods union tagged trading products (names only). */
 @RestController
 @RequestMapping("/api/v1/buyer-products")
 public class BuyerProductsController {
