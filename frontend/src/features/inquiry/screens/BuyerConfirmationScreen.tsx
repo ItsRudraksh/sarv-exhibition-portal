@@ -52,6 +52,13 @@ export function BuyerConfirmationScreen({ journey }: BuyerConfirmationScreenProp
             <div>
               <p className="card-row-label">{copy.buyer.whatYouNeed}</p>
               <p className="card-row-value">{draft.buyer.requirement}</p>
+              {draft.buyer.otherProduct &&
+              draft.buyer.otherProductDetail.trim() &&
+              draft.buyer.otherProductDetail.trim() !== draft.buyer.requirement.trim() ? (
+                <p className="card-row-value" style={{ marginTop: 8 }}>
+                  {copy.buyer.otherProduct}: {draft.buyer.otherProductDetail.trim()}
+                </p>
+              ) : null}
             </div>
           </div>
           {draft.buyer.attachments.length > 0 ? (

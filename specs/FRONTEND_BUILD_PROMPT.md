@@ -66,7 +66,7 @@ Entry
 
 Supplier
   -> select one or more categories and/or Other
-  -> select product types filtered by categories, and/or Other, plus a required free-text offering description
+  -> describe offering and/or select product types filtered by categories, and/or Other (either is enough)
   -> smart details check: preview extracted/saved values; show only missing required fields
   -> review: at least a website OR one supporting file is required; multiple PDF/image files up to 5 MB each
   -> submit supplier inquiry -> confirmation / internal review
@@ -86,7 +86,7 @@ Buyer
 - The frontend must show that details are reviewable/correctable. AI or card-derived values cannot silently replace confirmed values.
 - Use client-side state/draft persistence only as a mock of the planned server-side draft model. Make it robust enough to demonstrate resume/reload during this prototype, but do not claim it is secure production persistence.
 - Buyer minimum path: confirmed contact plus one product/requirement statement. Product area, quantity, pack size, standards, needed-by date, notes, and buyer company information are optional/progressive.
-- Supplier minimum path: company, contact, reliable contact method, at least one category **or Other**, a free-text offering description, and website or supporting file(s). Listed product types are optional when Other/notes cover the offering. Use nonidentifying placeholder/mock data, never a fake real person/company.
+- Supplier minimum path: company, contact, reliable contact method, then category/subcategory **or** free-text offering (either is enough; Other remains), and website or supporting file(s). Use nonidentifying placeholder/mock data, never a fake real person/company.
 - Do not force an obsolete mandatory buyer category/standard/profile form. `PP` is not a valid standard; controlled standards are IP, USP, BP, and EP when the user elects to provide one.
 - Supplier submission only enters internal review. Do not claim approval, vendor creation, availability, a response SLA, a tracking number, or an external integration result.
 - Location must remain consent-based. Do not implement invisible location collection or raw-IP collection.
@@ -103,8 +103,8 @@ Implement all eleven current visitor screens as actual React states/routes/views
 1. Business-card capture start.
 2. Extracted/saved contact-details confirmation.
 3. Intent selection.
-4. Supplier category multi-select plus Other.
-5. Supplier product-type selection filtered from chosen categories, plus Other and a required free-text offering.
+4. Supplier category multi-select plus Other. Checking Other reveals required **Describe Other**. Free-text offering stays above the list (either selection or text is enough).
+5. Supplier product-type selection: chosen categories stay checked; product types listed under each, plus Other with required **Describe Other** when checked, with free-text offering above the list (either selection or text is enough).
 6. Supplier smart-details check, including a realistic missing-required-data state.
 7. Supplier review/submit.
 8. Supplier submission confirmation.
@@ -120,11 +120,11 @@ Implement these interactions:
 - Contact form with proper labels, validation, country-code selection, editable values, and saved-draft feedback.
 - Persist non-sensitive prototype draft state to `sessionStorage` or `localStorage` through an isolated adapter; include a visible, accessible way to restart/clear the demo. Explain in the README that this is a prototype only, not a production privacy solution.
 - Intent selection after a valid contact checkpoint.
-- Supplier category checkboxes/search plus Other, then product types derived from selected categories plus Other and a required free-text offering. Do not hard-code all choices into JSX; use typed mock taxonomy data.
-- Supplier smart details page that can show both an extracted-data preview and an incomplete-data state which asks only for the required missing fields. Keep optional company details collapsed.
+- Supplier category checkboxes/search plus Other (Describe Other required when checked), then product types derived from selected categories plus Other (same details box). Keep the chosen categories **checked** on the product-type screen and list types under each heading. Put the offering textarea **above** each checkbox list. Continue if a selection or the description is filled. Do not hard-code all choices into JSX; use typed mock taxonomy data.
+- Supplier smart details page that can show both an extracted-data preview and an incomplete-data state which asks only for the required missing fields. Keep optional company details collapsed. **Edit** on the taxonomy and card boxes opens the matching screen with **Cancel** / **Save changes**.
 - Supplier review validation: website URL and/or a local catalogue file selection. Treat a selected file as local-only and clearly avoid a claim that it was uploaded/scanned.
-- Buyer requirement textarea with one required value; optional product-area search and progressive specification disclosure. Validate only what is genuinely required.
-- Buyer/supplier review pages with edit-back navigation that preserves the draft.
+- Buyer requirement textarea with one required value **or** Other / not in this list plus Describe Other; optional product-area search and progressive specification disclosure. Validate only what is genuinely required.
+- Buyer/supplier review pages with **Edit** on each summary box. Edit opens that screen with **Cancel** / **Save changes** and returns to review (or smart details) without replaying later Continue steps.
 - Confirmation pages that use dynamic, nonidentifying submitted values and restrained, accurate “what happens next” copy.
 - Responsive behavior from a 390px mobile layout upward. Desktop must be a thoughtful responsive expansion of the new scan-first flow, not a resurrection of the old desktop mockups.
 

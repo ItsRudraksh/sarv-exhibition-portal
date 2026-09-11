@@ -165,15 +165,15 @@ Required final information (subject to configurable policy):
 - Company name.
 - Contact name and one reliable business contact method.
 - At least one listed category **or** Other (for offerings that do not match the exhibition list).
-- A free-text description of what they can supply (same idea as the buyer requirement field). Listed product types (subcategories) are optional when Other or the description covers the offering.
+- A free-text description of what they can supply **or** listed category/subcategory selections (either is enough). Other remains available when the list does not fit.
 - At least one of a supporting-file upload or a website URL at final review. Both are permitted. Visitors may attach **multiple** PDF/JPEG/PNG/WebP files, **5 MB each**, up to 10.
 
 Current sequence:
 
-1. Searchable/multi-select categories (departments) plus **Other**.
-2. Searchable product types filtered by selected categories, plus **Other**, plus required free-text offering notes.
-3. Smart details page: selected taxonomy plus editable card-derived company/contact fields. If all required fields are present, require no additional typing; if not, show only missing required fields. Optional company context remains collapsed.
-4. Final review and submit (website and/or supporting files). The submission enters an internal review queue, not the vendor platform directly.
+1. Searchable/multi-select categories (departments) plus **Other**, with the free-text offering **above** the checkboxes. Continue if a category/Other **or** the description is filled.
+2. Searchable product types filtered by selected categories, plus **Other**, with the same free-text field **above** the checkboxes. Selected categories remain **checked** on this step; product types are listed under each. Continue if a subcategory/Other **or** the description is filled.
+3. Smart details page: selected taxonomy and card-derived company/contact in summary boxes, each with **Edit**. Edit opens that screen with **Cancel** / **Save changes** and returns here (or to final review if Edit started there). If all required fields are present, require no additional typing; if not, show only missing required fields. Optional company context remains collapsed.
+4. Final review and submit (website and/or supporting files). Each summary box has **Edit** that jumps to that section; **Save changes** returns to review with the updated draft — the visitor does not replay Continue through later steps. The submission enters an internal review queue, not the vendor platform directly.
 5. Confirmation: receipt and non-committal review/follow-up explanation.
 
 ### Buyer route: `I want to buy`
@@ -181,7 +181,7 @@ Current sequence:
 The buyer path is deliberately a two-step inquiry after the contact checkpoint:
 
 1. **Rapid need capture:** one required multi-line `Product or requirement` description is enough to continue. Optional product-area search is available. Optional specifications are collapsed. Optional supporting files (same 5 MB / 10-file cap as suppliers).
-2. **Review and submit:** show the single need plus saved contact details; no new long company/contact form.
+2. **Review and submit:** show the single need plus saved contact details; no new long company/contact form. **Edit** on either box opens that screen with **Cancel** / **Save changes** and returns here.
 3. **Confirmation:** acknowledge only the dynamic requirement and saved contact. State that the team will review/contact if more detail is needed. Do not invent reference numbers, standards, quantities, SLAs, category names, or response times.
 
 The buyer does **not** have a mandatory separate pharmacopeial/category/quantity page. The original buyer profile and requirement-detail screens are retired from the active flow. The data model still supports standards and details if the buyer chooses to provide them.
@@ -474,9 +474,15 @@ Non-negotiables:
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
 
+**Changelog — 11 Sep 2026 (Other details):** Checking **Other** on sell categories, sell product types, or the buy catalogue reveals a required **Describe Other** textbox. Details persist (`otherCategoryDetail` / `otherProductTypeDetail` / `otherProduct` + `otherProductDetail`) and show on review/confirmation. Flyway V12.
+
+**Changelog — 11 Sep 2026:** Supplier (and buyer) review/smart-details summary boxes show **Edit**. Edit opens the matching screen with **Cancel** / **Save changes**; Done returns to the box’s screen with the updated draft instead of replaying Continue/submit. Contact edit from a supplier review also includes company name.
+
+**Changelog — 10 Sep 2026 (later):** Sell category and subcategory screens put **What can you supply?** above the checkbox list. Continue if either the description or a list selection (including Other) is filled — not both.
+
 **Changelog — 10 Sep 2026:** Public visitor URL must not show a browser username/password prompt. Card OCR `/tessdata/**` is public; staff HTTP Basic 401 does not send `WWW-Authenticate`. Staff/admin still use the in-app sign-in form.
 
-**Changelog — 9 Sep 2026 (later):** Supplier categories include **Other** plus required free-text offering notes (buyer-style). Product types stay filtered by selected categories. Both sell and buy paths accept multiple supporting attachments (PDF/JPEG/PNG/WebP, 5 MB each, max 10). Flyway V11.
+**Changelog — 9 Sep 2026 (later):** Supplier categories include **Other** plus free-text offering notes (buyer-style). Product types stay filtered by selected categories. Both sell and buy paths accept multiple supporting attachments (PDF/JPEG/PNG/WebP, 5 MB each, max 10). Flyway V11.
 
 **Changelog — 9 Sep 2026:** Buyer catalogue includes tagged portal/offline supplier products (not only pharma-erp FG). `/admin` ADMIN-only staff-account CRUD (deactivate, not hard-delete). Review queues remain `/staff`.
 

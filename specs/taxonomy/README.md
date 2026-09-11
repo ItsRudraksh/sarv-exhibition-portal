@@ -11,7 +11,7 @@
 |---|---|
 | Departments, product types, dept↔type mappings | Full Sarv `products` / `product_standards` catalogue |
 | Pharmacopoeial standards **IP, USP, BP, EP** only (no **PP**) | Extra standards (e.g. FP) unless business elects |
-| Supplier minimum: ≥1 category **or Other**, plus free-text offering notes | Admin CRUD UI (`TAXONOMY_MANAGER` role exists; no screens yet) |
+| Supplier minimum: listed category/type **or Other (with details) or** free-text offering | Admin CRUD UI (`TAXONOMY_MANAGER` role exists; no screens yet) |
 
 Source of labels: approved Stitch supplier department screen + the prior POC seed mapping, promoted to production configuration so agents stop treating it as disposable sample data.
 

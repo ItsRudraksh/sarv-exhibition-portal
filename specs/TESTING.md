@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Updated:** 10 September 2026 (public visitor URL must not show a browser sign-in; supplier Other + attachments; Jenkins staging port-in-use)
+**Updated:** 11 September 2026 (Other details required when Other is checked on buy/sell lists)
 
 After every substantive change: reproduce (if a bug) → fix → run the commands below → update specs. Runtime parity: lint/build is not a browser walkthrough. See `.cursor/rules/runtime-parity-definition-of-done.mdc`.
 
@@ -30,7 +30,7 @@ mvn spring-boot:run                          # default profile (poc=true)
 
 Config is `.properties` only (`application.properties` / `application-prod.properties`). `mvn test` activates profile `test` (`application-test.properties`); do not add `src/test/resources/application.properties` (it shadows main). Keys: `backend/README.md` § Configuration.
 
-Flyway V1–V11. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest`. Card assist: ZXing + `CLIENT_CARD_OCR`. Finished goods: `FinishedGoodsApiTest`; staff sync from pharmadb when `exhibition.pharma-erp.enabled=true` (local default is now `true`). Credentials alone do not fill the buy list — restart the API, then **Staff → Sync finished goods**. Trading/offline supplier products are tagged on `/admin` (`TradingCatalogueApiTest`). Per selected catalogue item, quantity is required (`InquiryRulesTest`). Supplier Other + capability notes (`InquiryRulesTest`). Supporting attachments 5 MiB / max 10 (`FileConsentAuditApiTest`, `FileContentRulesTest`). Admin staff CRUD: `StaffAdminApiTest` (`/api/v1/staff/users`, ADMIN only; deactivate not delete).
+Flyway V1–V12. Phase 8: `ProductionStartupGuardTest`, `MetaApiTest`; export is xlsx. Taxonomy: `TaxonomyApiTest`. Card assist: ZXing + `CLIENT_CARD_OCR`. Finished goods: `FinishedGoodsApiTest`; staff sync from pharmadb when `exhibition.pharma-erp.enabled=true` (local default is now `true`). Credentials alone do not fill the buy list — restart the API, then **Staff → Sync finished goods**. Trading/offline supplier products are tagged on `/admin` (`TradingCatalogueApiTest`). Per selected catalogue item, quantity is required (`InquiryRulesTest`). Supplier Other + either-or offering notes; Other requires a details text (`InquiryRulesTest`). Supporting attachments 5 MiB / max 10 (`FileConsentAuditApiTest`, `FileContentRulesTest`). Admin staff CRUD: `StaffAdminApiTest` (`/api/v1/staff/users`, ADMIN only; deactivate not delete).
 
 **Local MySQL first boot:** `.\run.ps1` needs native MySQL 3306 and user `exhibition` / `exhibition` (`deploy/windows/init-mysql.sql`). If Flyway says **failed migration to version 1**, the local schema already has tables from a prior attempt — drop those empty tables and re-run (see `backend/README.md`). Do not `flyway repair` that state: later `CREATE TABLE` migrations will fail and seed (V2/V7) will be missing. `mvn test` does not use this MySQL instance.
 

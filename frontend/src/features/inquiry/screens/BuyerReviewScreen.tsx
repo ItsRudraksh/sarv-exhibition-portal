@@ -35,7 +35,7 @@ function formatSpecs(draft: InquiryJourney['draft']): string {
 }
 
 export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
-  const { draft, goBack, submit, goToStep, submitting, submitError } = journey
+  const { draft, goBack, submit, startEdit, submitting, submitError } = journey
   const fromCard = draft.cardFront !== null || draft.cardBack !== null
 
   return (
@@ -60,13 +60,20 @@ export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
         <section className="card section-gap" style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
             <h2 className="step-label step-label--muted">{copy.buyer.whatYouNeed}</h2>
-            <button type="button" className="btn-text" onClick={() => goToStep('buyer-need')}>
+            <button type="button" className="btn-text" onClick={() => startEdit('buyer-need')}>
               {copy.common.edit}
             </button>
           </div>
           <p style={{ margin: '0 0 16px', fontSize: '1.125rem', fontWeight: 600 }}>
             {draft.buyer.requirement}
           </p>
+          {draft.buyer.otherProduct &&
+          draft.buyer.otherProductDetail.trim() &&
+          draft.buyer.otherProductDetail.trim() !== draft.buyer.requirement.trim() ? (
+            <p className="field-hint" style={{ marginBottom: 16 }}>
+              {copy.buyer.otherProduct}: {draft.buyer.otherProductDetail.trim()}
+            </p>
+          ) : null}
           {draft.buyer.attachments.length > 0 ? (
             <p className="field-hint" style={{ marginBottom: 16 }}>
               {draft.buyer.attachments.map((file) => file.name).join(', ')}
@@ -80,7 +87,7 @@ export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
                   {formatSpecs(draft)}
                 </p>
               </div>
-              <button type="button" className="btn-text" onClick={() => goToStep('buyer-need')}>
+              <button type="button" className="btn-text" onClick={() => startEdit('buyer-need')}>
                 {copy.common.edit}
               </button>
             </div>
@@ -107,7 +114,7 @@ export function BuyerReviewScreen({ journey }: BuyerReviewScreenProps) {
             </div>
           </div>
           <div style={{ borderTop: '1px solid var(--color-glass-border)', marginTop: 16, paddingTop: 16, textAlign: 'center' }}>
-            <button type="button" className="btn-text" onClick={() => goToStep('contact-confirm')}>
+            <button type="button" className="btn-text" onClick={() => startEdit('contact-confirm')}>
               {copy.buyer.editContact}
             </button>
           </div>

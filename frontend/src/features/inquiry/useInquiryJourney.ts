@@ -22,9 +22,11 @@ import {
   SUPPLIER_STEPS,
   type CardFileMeta,
   type CardSide,
+  cloneInquiryDraft,
   type InquiryDraft,
   type InquiryRoute,
   type InquiryStep,
+  type ReviewEditSession,
 } from './types'
 import { copy } from './copy'
 
@@ -87,13 +89,19 @@ export function useInquiryJourney() {
   const [cardScanDetail, setCardScanDetail] = useState<string | null>(null)
   const [campaignLabel, setCampaignLabel] = useState<string | null>(null)
   const [pocMode, setPocMode] = useState(true)
+  const [editSession, setEditSession] = useState<ReviewEditSession | null>(null)
   const draftRef = useRef(draft)
   const skipNextSave = useRef(true)
   const entryRef = useRef(entry)
+  const editSessionRef = useRef(editSession)
 
   useEffect(() => {
     draftRef.current = draft
   }, [draft])
+
+  useEffect(() => {
+    editSessionRef.current = editSession
+  }, [editSession])
 
   useEffect(() => {
     entryRef.current = entry
@@ -233,13 +241,55 @@ export function useInquiryJourney() {
     setDraft((prev) => ({ ...prev, currentStep: step }))
   }, [])
 
+  const startEdit = useCallback((step: InquiryStep) => {
+    if (editSessionRef.current) {
+      setDraft((prev) => ({ ...prev, currentStep: step }))
+      return
+    }
+    const snapshot = cloneInquiryDraft(draftRef.current)
+    setEditSession({
+      returnTo: snapshot.currentStep,
+      snapshot,
+      entryStep: step,
+    })
+    setDraft((prev) => ({ ...prev, currentStep: step }))
+  }, [])
+
+  const finishEdit = useCallback(() => {
+    const session = editSessionRef.current
+    setEditSession(null)
+    if (session) {
+      setDraft((prev) => ({ ...prev, currentStep: session.returnTo }))
+    }
+  }, [])
+
+  const cancelEdit = useCallback(() => {
+    const session = editSessionRef.current
+    setEditSession(null)
+    if (session) {
+      setDraft({ ...session.snapshot, currentStep: session.returnTo })
+    }
+  }, [])
+
   const goBack = useCallback(() => {
+    const session = editSessionRef.current
+    if (session) {
+      if (
+        draftRef.current.currentStep === 'supplier-product-types' &&
+        session.entryStep === 'supplier-departments'
+      ) {
+        setDraft((prev) => ({ ...prev, currentStep: 'supplier-departments' }))
+        return
+      }
+      cancelEdit()
+      return
+    }
     setDraft((prev) => {
       const prevStep = getPreviousStep(prev)
       if (!prevStep) return prev
       return { ...prev, currentStep: prevStep }
     })
-  }, [])
+  }, [cancelEdit])
 
   const selectRoute = useCallback((route: InquiryRoute) => {
     setDraft((prev) => ({
@@ -463,6 +513,7 @@ export function useInquiryJourney() {
     sessionPointerPort.clear()
     clearLegacyLocalDraft()
     skipNextSave.current = true
+    setEditSession(null)
     setSubmitError(null)
     setCardSuggestions(false)
     setCardScanStatus('idle')
@@ -510,6 +561,10 @@ export function useInquiryJourney() {
     entry,
     updateDraft,
     goToStep,
+    startEdit,
+    finishEdit,
+    cancelEdit,
+    editing: editSession !== null,
     goBack,
     selectRoute,
     advanceAfterContact,

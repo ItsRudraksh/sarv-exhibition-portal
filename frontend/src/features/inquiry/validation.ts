@@ -39,9 +39,14 @@ export function isContactValid(contact: ContactDetails): boolean {
 export function validateSupplierDepartments(
   departmentIds: string[],
   otherCategory: boolean,
+  otherCategoryDetail: string,
+  capabilityNotes: string,
 ): FieldErrors {
-  if (departmentIds.length === 0 && !otherCategory) {
-    return { departments: 'Select at least one category, or choose Other.' }
+  if (otherCategory && !otherCategoryDetail.trim()) {
+    return { otherCategory: 'Describe the other category.' }
+  }
+  if (departmentIds.length === 0 && !otherCategory && !capabilityNotes.trim()) {
+    return { departments: 'Select a category, choose Other, or describe what you can supply.' }
   }
   return {}
 }
@@ -49,16 +54,16 @@ export function validateSupplierDepartments(
 export function validateSupplierProductTypes(
   productTypeIds: string[],
   otherProductType: boolean,
+  otherProductTypeDetail: string,
   capabilityNotes: string,
 ): FieldErrors {
-  const errors: FieldErrors = {}
-  if (!capabilityNotes.trim()) {
-    errors.capabilityNotes = 'Describe what you can supply.'
+  if (otherProductType && !otherProductTypeDetail.trim()) {
+    return { otherProductType: 'Describe the other product type.' }
   }
   if (productTypeIds.length === 0 && !otherProductType && !capabilityNotes.trim()) {
-    errors.productTypes = 'Select a product type, Other, or describe what you can supply.'
+    return { productTypes: 'Select a product type, choose Other, or describe what you can supply.' }
   }
-  return errors
+  return {}
 }
 
 export function getMissingSupplierFields(supplier: SupplierDetails): string[] {
@@ -105,8 +110,11 @@ export function validateSupplierReview(supplier: SupplierDetails): FieldErrors {
 
 export function validateBuyerNeed(buyer: BuyerDetails): FieldErrors {
   const errors: FieldErrors = {}
-  if (!buyer.requirement.trim()) {
+  if (!buyer.requirement.trim() && !(buyer.otherProduct && buyer.otherProductDetail.trim())) {
     errors.requirement = 'Describe the product or requirement to continue.'
+  }
+  if (buyer.otherProduct && !buyer.otherProductDetail.trim()) {
+    errors.otherProduct = 'Describe the other product.'
   }
   for (const row of buyer.finishedGoods) {
     if (!row.quantity.trim()) {
@@ -126,11 +134,26 @@ export function validateBuyerNeed(buyer: BuyerDetails): FieldErrors {
 export function isSupplierDraftComplete(draft: InquiryDraft): boolean {
   return (
     isContactValid(draft.contact) &&
-    (draft.departmentIds.length > 0 || draft.supplier.otherCategory) &&
-    draft.supplier.capabilityNotes.trim().length > 0 &&
+    (draft.departmentIds.length > 0 ||
+      (draft.supplier.otherCategory && draft.supplier.otherCategoryDetail.trim().length > 0) ||
+      draft.supplier.capabilityNotes.trim().length > 0) &&
+    (draft.productTypeIds.length > 0 ||
+      (draft.supplier.otherProductType &&
+        draft.supplier.otherProductTypeDetail.trim().length > 0) ||
+      draft.supplier.capabilityNotes.trim().length > 0) &&
     draft.supplier.companyName.trim().length > 0 &&
     (draft.supplier.websiteUrl.trim().length > 0 || hasSupportingFiles(draft.supplier))
   )
+}
+
+export function formatOtherSelection(
+  selected: boolean,
+  label: string,
+  detail: string,
+): string {
+  if (!selected) return ''
+  const trimmed = detail.trim()
+  return trimmed ? `${label}: ${trimmed}` : label
 }
 
 export function formatPhone(contact: ContactDetails): string {

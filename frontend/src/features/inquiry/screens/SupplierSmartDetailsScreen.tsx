@@ -9,11 +9,14 @@ import {
   getMissingSupplierFields,
   validateSupplierSmartDetails,
   formatPhone,
+  formatOtherSelection,
 } from '../validation'
+import { ReviewEditFooter } from '../ReviewEditFooter'
 import {
   AppHeader,
   FixedFooter,
   PrimaryButton,
+  SummaryCard,
   TextField,
 } from '../../../components/ui'
 
@@ -22,13 +25,34 @@ export interface SupplierSmartDetailsScreenProps {
 }
 
 export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScreenProps) {
-  const { draft, updateDraft, goBack, advance } = journey
+  const { draft, updateDraft, goBack, advance, editing, startEdit, finishEdit, cancelEdit } =
+    journey
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [optionalOpen, setOptionalOpen] = useState(false)
 
   const missing = getMissingSupplierFields(draft.supplier)
   const departments = getDepartmentsByIds(draft.departmentIds)
   const productTypes = getProductTypesByIds(draft.productTypeIds)
+  const categoryValue = [
+    ...departments.map((d) => d.name),
+    formatOtherSelection(
+      draft.supplier.otherCategory,
+      copy.supplier.otherCategory,
+      draft.supplier.otherCategoryDetail,
+    ),
+  ]
+    .filter(Boolean)
+    .join(', ')
+  const typeValue = [
+    ...productTypes.map((p) => p.name),
+    formatOtherSelection(
+      draft.supplier.otherProductType,
+      copy.supplier.otherProductType,
+      draft.supplier.otherProductTypeDetail,
+    ),
+  ]
+    .filter(Boolean)
+    .join(', ')
 
   const updateSupplier = (field: keyof typeof draft.supplier, value: string) => {
     updateDraft({
@@ -40,6 +64,10 @@ export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScre
     const fieldErrors = validateSupplierSmartDetails(draft.supplier)
     setErrors(fieldErrors)
     if (Object.keys(fieldErrors).length === 0) {
+      if (editing) {
+        finishEdit()
+        return
+      }
       advance()
     }
   }
@@ -49,7 +77,7 @@ export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScre
       <AppHeader
         showBack
         onBack={goBack}
-        stepLabel={copy.common.stepOf(3, 4)}
+        stepLabel={editing ? copy.common.edit : copy.common.stepOf(3, 4)}
       />
 
       <main className="inquiry-main inquiry-main--with-header">
@@ -60,54 +88,30 @@ export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScre
           {copy.supplier.smartDetailsSubtitle}
         </p>
 
-        <section className="section-gap">
-          <h3 className="step-label step-label--muted" style={{ marginBottom: 12 }}>
-            Selected taxonomy
-          </h3>
-          <div className="card section-gap">
-            <div className="card-row">
-              <div>
-                <p className="card-row-label">Categories</p>
-                <p className="card-row-value">
-                  {[
-                    ...departments.map((d) => d.name),
-                    draft.supplier.otherCategory ? copy.supplier.otherCategory : '',
-                  ]
-                    .filter(Boolean)
-                    .join(', ') || '—'}
-                </p>
-              </div>
-            </div>
-            <div className="card-row">
-              <div>
-                <p className="card-row-label">Product types</p>
-                <p className="card-row-value">
-                  {[
-                    ...productTypes.map((p) => p.name),
-                    draft.supplier.otherProductType ? copy.supplier.otherProductType : '',
-                  ]
-                    .filter(Boolean)
-                    .join(', ') || '—'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <SummaryCard
+          title={copy.supplier.selectedTaxonomy}
+          editLabel={copy.common.edit}
+          onEdit={() => startEdit('supplier-departments')}
+          rows={[
+            { label: 'Categories', value: categoryValue || '—' },
+            { label: 'Product types', value: typeValue || '—' },
+          ]}
+        />
 
-        <section className="section-gap">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h3 className="step-label step-label--muted">{copy.supplier.fromCard}</h3>
-          </div>
-          <div className="card">
-            <PreviewRow label="Company" value={draft.supplier.companyName || '—'} />
-            <PreviewRow label="Contact" value={draft.contact.fullName || '—'} />
-            <PreviewRow label="Work email" value={draft.contact.workEmail || '—'} />
-            <PreviewRow label="Mobile" value={formatPhone(draft.contact) || '—'} />
-            {draft.supplier.locationFromCard ? (
-              <PreviewRow label="Location" value={draft.supplier.locationFromCard} />
-            ) : null}
-          </div>
-        </section>
+        <SummaryCard
+          title={copy.supplier.fromCard}
+          editLabel={copy.common.edit}
+          onEdit={() => startEdit('contact-confirm')}
+          rows={[
+            { label: 'Company', value: draft.supplier.companyName || '—' },
+            { label: 'Contact', value: draft.contact.fullName || '—' },
+            { label: 'Work email', value: draft.contact.workEmail || '—' },
+            { label: 'Mobile', value: formatPhone(draft.contact) || '—' },
+            ...(draft.supplier.locationFromCard
+              ? [{ label: 'Location', value: draft.supplier.locationFromCard }]
+              : []),
+          ]}
+        />
 
         <section className="section-gap">
           <div
@@ -189,22 +193,19 @@ export function SupplierSmartDetailsScreen({ journey }: SupplierSmartDetailsScre
         </div>
       </main>
 
-      <FixedFooter note={copy.supplier.savedSelections}>
-        <PrimaryButton onClick={handleContinue}>
-          {copy.supplier.continueReview}
-        </PrimaryButton>
-      </FixedFooter>
-    </div>
-  )
-}
-
-function PreviewRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="card-row">
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <p className="card-row-label">{label}</p>
-        <p className="card-row-value">{value}</p>
-      </div>
+      {editing ? (
+        <ReviewEditFooter
+          canSave={Object.keys(validateSupplierSmartDetails(draft.supplier)).length === 0}
+          onCancel={cancelEdit}
+          onSave={handleContinue}
+        />
+      ) : (
+        <FixedFooter note={copy.supplier.savedSelections}>
+          <PrimaryButton onClick={handleContinue}>
+            {copy.supplier.continueReview}
+          </PrimaryButton>
+        </FixedFooter>
+      )}
     </div>
   )
 }

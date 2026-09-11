@@ -94,7 +94,17 @@ public class ReviewRepository {
     public Optional<SupplierReviewRow> findSupplier(UUID inquiryId) {
         return jdbc.sql("""
                 select i.id, i.reference_code, i.submitted_at, s.review_state, s.production_state,
-                       s.website_url, s.capability_notes, s.approved_at, s.approved_by_user_id,
+                       s.website_url,
+                       NULLIF(TRIM(BOTH '\n' FROM CONCAT_WS('\n',
+                           NULLIF(TRIM(s.capability_notes), ''),
+                           CASE WHEN s.other_category <> 0
+                                 AND NULLIF(TRIM(s.other_category_detail), '') IS NOT NULL
+                                THEN CONCAT('Other category: ', TRIM(s.other_category_detail)) END,
+                           CASE WHEN s.other_product_type <> 0
+                                 AND NULLIF(TRIM(s.other_product_type_detail), '') IS NOT NULL
+                                THEN CONCAT('Other product type: ', TRIM(s.other_product_type_detail)) END
+                       )), '') AS capability_notes,
+                       s.approved_at, s.approved_by_user_id,
                        p.company_name_submitted, p.person_name_submitted, p.email_submitted, p.phone_submitted
                 from inquiries i
                 join supplier_inquiries s on s.inquiry_id = i.id
@@ -123,7 +133,17 @@ public class ReviewRepository {
     public List<SupplierReviewRow> listSuppliers() {
         return jdbc.sql("""
                 select i.id, i.reference_code, i.submitted_at, s.review_state, s.production_state,
-                       s.website_url, s.capability_notes, s.approved_at, s.approved_by_user_id,
+                       s.website_url,
+                       NULLIF(TRIM(BOTH '\n' FROM CONCAT_WS('\n',
+                           NULLIF(TRIM(s.capability_notes), ''),
+                           CASE WHEN s.other_category <> 0
+                                 AND NULLIF(TRIM(s.other_category_detail), '') IS NOT NULL
+                                THEN CONCAT('Other category: ', TRIM(s.other_category_detail)) END,
+                           CASE WHEN s.other_product_type <> 0
+                                 AND NULLIF(TRIM(s.other_product_type_detail), '') IS NOT NULL
+                                THEN CONCAT('Other product type: ', TRIM(s.other_product_type_detail)) END
+                       )), '') AS capability_notes,
+                       s.approved_at, s.approved_by_user_id,
                        p.company_name_submitted, p.person_name_submitted, p.email_submitted, p.phone_submitted
                 from inquiries i
                 join supplier_inquiries s on s.inquiry_id = i.id
@@ -194,7 +214,10 @@ public class ReviewRepository {
         return jdbc.sql("""
                 select i.id, i.reference_code, i.submitted_at, pi.lead_state, pi.marketing_notes,
                        p.company_name_submitted, p.person_name_submitted, p.email_submitted, p.phone_submitted,
-                       pli.requirement_text
+                       COALESCE(
+                           NULLIF(TRIM(pli.requirement_text), ''),
+                           NULLIF(TRIM(pi.other_product_detail), '')
+                       ) AS requirement_text
                 from inquiries i
                 join purchase_inquiries pi on pi.inquiry_id = i.id
                 left join inquiry_parties p on p.inquiry_id = i.id and p.role = 'BUYER_CONTACT'

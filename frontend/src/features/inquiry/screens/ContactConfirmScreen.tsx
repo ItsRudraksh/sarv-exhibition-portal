@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
-import { validateContact } from '../validation'
+import { validateContact, validateSupplierSmartDetails } from '../validation'
+import { ReviewEditFooter } from '../ReviewEditFooter'
 import {
   AppHeader,
   FixedFooter,
@@ -23,14 +24,32 @@ export interface ContactConfirmScreenProps {
 }
 
 export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
-  const { draft, updateDraft, goBack, advanceAfterContact, goToStep, cardSuggestions } = journey
+  const {
+    draft,
+    updateDraft,
+    goBack,
+    advanceAfterContact,
+    goToStep,
+    cardSuggestions,
+    editing,
+    finishEdit,
+    cancelEdit,
+  } = journey
   const [errors, setErrors] = useState<Record<string, string>>({})
   const fromCard = draft.cardFront !== null || draft.cardBack !== null
+  const showCompany = editing && draft.route === 'SUPPLIER'
 
   const handleContinue = () => {
-    const fieldErrors = validateContact(draft.contact)
+    const fieldErrors = {
+      ...validateContact(draft.contact),
+      ...(showCompany ? validateSupplierSmartDetails(draft.supplier) : {}),
+    }
     setErrors(fieldErrors)
     if (Object.keys(fieldErrors).length === 0) {
+      if (editing) {
+        finishEdit()
+        return
+      }
       void advanceAfterContact()
     }
   }
@@ -46,7 +65,7 @@ export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
       <AppHeader
         showBack
         onBack={goBack}
-        subLabel="DETAILS CHECK"
+        subLabel={editing ? copy.common.edit : 'DETAILS CHECK'}
       />
 
       <main className="inquiry-main inquiry-main--with-subheader">
@@ -65,6 +84,18 @@ export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
         </section>
 
         <section className="stack-gap section-gap">
+          {showCompany ? (
+            <TextField
+              id="companyName"
+              label="Company name"
+              value={draft.supplier.companyName}
+              onChange={(v) =>
+                updateDraft({ supplier: { ...draft.supplier, companyName: v } })
+              }
+              required
+              error={errors.companyName}
+            />
+          ) : null}
           <TextField
             id="fullName"
             label="Full name"
@@ -126,18 +157,26 @@ export function ContactConfirmScreen({ journey }: ContactConfirmScreenProps) {
         ) : null}
       </main>
 
-      <FixedFooter>
-        {fromCard ? (
-          <button
-            type="button"
-            className="btn-text"
-            onClick={() => goToStep('card-capture')}
-          >
-            {copy.contact.retake}
-          </button>
-        ) : null}
-        <PrimaryButton onClick={handleContinue}>{copy.contact.continue}</PrimaryButton>
-      </FixedFooter>
+      {editing ? (
+        <ReviewEditFooter
+          canSave
+          onCancel={cancelEdit}
+          onSave={handleContinue}
+        />
+      ) : (
+        <FixedFooter>
+          {fromCard ? (
+            <button
+              type="button"
+              className="btn-text"
+              onClick={() => goToStep('card-capture')}
+            >
+              {copy.contact.retake}
+            </button>
+          ) : null}
+          <PrimaryButton onClick={handleContinue}>{copy.contact.continue}</PrimaryButton>
+        </FixedFooter>
+      )}
     </div>
   )
 }

@@ -82,17 +82,20 @@ public class InquiryRepository {
                        p.person_name_submitted, p.email_submitted, p.phone_submitted, p.phone_e164,
                        p.company_name_submitted, p.job_title_submitted, p.role,
                        s.website_url, s.catalogue_filename, s.catalogue_media_type, s.catalogue_byte_size,
-                       s.catalogue_asset_id, s.other_category, s.other_product_type, s.capability_notes,
+                       s.catalogue_asset_id, s.other_category, s.other_product_type,
+                       s.other_category_detail, s.other_product_type_detail, s.capability_notes,
                        u.card_front_name, u.card_front_size, u.card_front_type, u.card_front_asset_id,
                        u.card_back_name, u.card_back_size, u.card_back_type, u.card_back_asset_id,
                        u.card_qr_payload_internal,
                        u.location_from_card,
                        pli.requirement_text, pli.quantity_text, pli.pack_size_text, pli.needed_by_date,
-                       pli.notes, pli.product_area_search, pli.standard_code
+                       pli.notes, pli.product_area_search, pli.standard_code,
+                       pi.other_product, pi.other_product_detail
                 from inquiries i
                 left join inquiry_parties p on p.inquiry_id = i.id
                 left join supplier_inquiries s on s.inquiry_id = i.id
                 left join inquiry_ui_state u on u.inquiry_id = i.id
+                left join purchase_inquiries pi on pi.inquiry_id = i.id
                 left join purchase_line_items pli on pli.purchase_inquiry_id = i.id
                 where i.id = :id
                 """)
@@ -119,6 +122,8 @@ public class InquiryRepository {
                         JdbcUuids.get(rs, "catalogue_asset_id"),
                         rs.getBoolean("other_category"),
                         rs.getBoolean("other_product_type"),
+                        rs.getString("other_category_detail"),
+                        rs.getString("other_product_type_detail"),
                         rs.getString("capability_notes"),
                         rs.getString("card_front_name"),
                         longOrNull(rs.getObject("card_front_size")),
@@ -136,7 +141,9 @@ public class InquiryRepository {
                         rs.getString("needed_by_date"),
                         rs.getString("notes"),
                         rs.getString("product_area_search"),
-                        rs.getString("standard_code")
+                        rs.getString("standard_code"),
+                        rs.getBoolean("other_product"),
+                        rs.getString("other_product_detail")
                 ))
                 .optional();
         if (row.isEmpty()) {
@@ -288,8 +295,12 @@ public class InquiryRepository {
         jdbc.sql("""
                  insert into supplier_inquiries (
                      inquiry_id, website_url, catalogue_filename, catalogue_media_type, catalogue_byte_size,
-                     catalogue_asset_id, other_category, other_product_type, capability_notes
-                 ) values (:id, :url, :fname, :mtype, :size, :asset, :otherCat, :otherType, :notes)
+                     catalogue_asset_id, other_category, other_product_type,
+                     other_category_detail, other_product_type_detail, capability_notes
+                 ) values (
+                     :id, :url, :fname, :mtype, :size, :asset, :otherCat, :otherType,
+                     :otherCatDetail, :otherTypeDetail, :notes
+                 )
                  on duplicate key update
                      website_url = VALUES(website_url),
                      catalogue_filename = COALESCE(VALUES(catalogue_filename), catalogue_filename),
@@ -298,6 +309,8 @@ public class InquiryRepository {
                      catalogue_asset_id = COALESCE(VALUES(catalogue_asset_id), catalogue_asset_id),
                      other_category = VALUES(other_category),
                      other_product_type = VALUES(other_product_type),
+                     other_category_detail = VALUES(other_category_detail),
+                     other_product_type_detail = VALUES(other_product_type_detail),
                      capability_notes = VALUES(capability_notes)
                  """)
                 .param("id", JdbcUuids.mysql(draft.id()))
@@ -308,6 +321,8 @@ public class InquiryRepository {
                 .param("asset", JdbcUuids.mysql(cat == null ? null : cat.assetId()))
                 .param("otherCat", JdbcUuids.mysql(supplier.otherCategory()))
                 .param("otherType", JdbcUuids.mysql(supplier.otherProductType()))
+                .param("otherCatDetail", JdbcUuids.mysql(emptyToNull(supplier.otherCategoryDetail())))
+                .param("otherTypeDetail", JdbcUuids.mysql(emptyToNull(supplier.otherProductTypeDetail())))
                 .param("notes", JdbcUuids.mysql(emptyToNull(supplier.capabilityNotes())))
                 .update();
         jdbc.sql("delete from supplier_inquiry_product_types where inquiry_id = :id")
@@ -363,21 +378,26 @@ public class InquiryRepository {
             trading.replaceInquirySelections(draft.id(), List.of());
             return;
         }
-        jdbc.sql("""
-                 insert into purchase_inquiries (inquiry_id) values (:id)
-                 on duplicate key update inquiry_id = inquiry_id
-                 """)
-                .param("id", JdbcUuids.mysql(draft.id()))
-                .update();
         BuyerDto buyer = draft.buyer() == null
                 ? new BuyerDto("", "", new BuyerSpecificationsDto("", "", "", "", ""))
                 : draft.buyer();
+        jdbc.sql("""
+                 insert into purchase_inquiries (inquiry_id, other_product, other_product_detail)
+                 values (:id, :other, :detail)
+                 on duplicate key update
+                     other_product = VALUES(other_product),
+                     other_product_detail = VALUES(other_product_detail)
+                 """)
+                .param("id", JdbcUuids.mysql(draft.id()))
+                .param("other", JdbcUuids.mysql(buyer.otherProduct()))
+                .param("detail", JdbcUuids.mysql(emptyToNull(buyer.otherProductDetail())))
+                .update();
         BuyerSpecificationsDto spec = buyer.specifications() == null
                 ? new BuyerSpecificationsDto("", "", "", "", "")
                 : buyer.specifications();
         String requirement = emptyToNull(buyer.requirement());
-        if (requirement == null) {
-            requirement = null;
+        if (requirement == null && buyer.otherProduct()) {
+            requirement = emptyToNull(buyer.otherProductDetail());
         }
         jdbc.sql("""
                  insert into purchase_line_items (
@@ -467,6 +487,8 @@ public class InquiryRepository {
                 catalogue,
                 r.otherCategory(),
                 r.otherProductType(),
+                nvl(r.otherCategoryDetail()),
+                nvl(r.otherProductTypeDetail()),
                 nvl(r.capabilityNotes()),
                 attachments
         );
@@ -483,7 +505,9 @@ public class InquiryRepository {
                 specs,
                 finishedGoods.selectionsForInquiry(r.id()),
                 trading.selectionsForInquiry(r.id()),
-                attachments);
+                attachments,
+                r.otherProduct(),
+                nvl(r.otherProductDetail()));
         return new InquiryDraftDto(
                 r.id(),
                 r.lifecycle(),
@@ -585,6 +609,8 @@ public class InquiryRepository {
             UUID catalogueAssetId,
             boolean otherCategory,
             boolean otherProductType,
+            String otherCategoryDetail,
+            String otherProductTypeDetail,
             String capabilityNotes,
             String frontName,
             Long frontSize,
@@ -602,6 +628,8 @@ public class InquiryRepository {
             String neededBy,
             String notes,
             String productArea,
-            String standardCode
+            String standardCode,
+            boolean otherProduct,
+            String otherProductDetail
     ) {}
 }

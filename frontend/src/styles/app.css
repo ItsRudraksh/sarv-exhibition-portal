@@ -58,7 +58,7 @@ body {
   flex: 1;
   width: 100%;
   padding: var(--space-section) var(--space-edge);
-  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--footer-reserve) + env(safe-area-inset-bottom, 0px));
 }
 
 .inquiry-main--with-header {
@@ -378,6 +378,25 @@ body {
   border: 1px solid rgba(201, 217, 223, 0.5);
 }
 
+.selection-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checkbox-group {
+  margin-top: 16px;
+}
+
+.checkbox-group__label {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-measured-slate);
+}
+
 .card {
   background: var(--color-pure-surface);
   border: 1px solid var(--color-glass-border);
@@ -441,6 +460,33 @@ body {
   text-align: center;
   font-size: 0.875rem;
   color: var(--color-measured-slate);
+}
+
+.fixed-footer__actions {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.fixed-footer__actions .btn-secondary {
+  width: auto;
+  flex: 0 1 42%;
+}
+
+.fixed-footer__actions .btn-primary {
+  flex: 1;
+  width: auto;
+}
+
+.fixed-footer__extra {
+  text-align: center;
+}
+
+.summary-card__edit {
+  flex-shrink: 0;
+  font-weight: 600;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .progress-bar {
@@ -514,6 +560,7 @@ body {
   border-radius: var(--radius);
   background: var(--color-pure-surface);
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .checkbox-item {
@@ -530,8 +577,42 @@ body {
   border-bottom: none;
 }
 
-.checkbox-item:hover {
+.checkbox-item:hover:not(.checkbox-item--parent) {
   background: var(--color-alpine-paper);
+}
+
+.checkbox-item--parent {
+  font-weight: 600;
+  background: var(--color-blue-mist);
+  cursor: default;
+}
+
+.checkbox-item--parent:hover {
+  background: var(--color-blue-mist);
+}
+
+.checkbox-item--parent input[type='checkbox']:disabled {
+  opacity: 1;
+  accent-color: var(--color-sarv-blue);
+}
+
+.checkbox-item--child {
+  padding-left: 56px;
+}
+
+.other-detail {
+  padding: 0 16px 16px;
+  background: var(--color-pure-surface);
+}
+
+.other-detail--nested {
+  padding-left: 56px;
+  border-bottom: 1px solid var(--color-glass-border);
+}
+
+.checkbox-list > .other-detail:last-child,
+.checkbox-list > :last-child.other-detail {
+  border-bottom: none;
 }
 
 .checkbox-item input[type='checkbox'] {

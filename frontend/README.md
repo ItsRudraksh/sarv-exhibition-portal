@@ -50,8 +50,8 @@ A **mobile-first React + Vite + TypeScript** app of the 11-screen visitor journe
 1. Business card capture (or manual continuation)
 2. Contact details confirmation
 3. Intent selection (`I want to sell` / `I want to buy`)
-4–8. Supplier path (categories + Other → product types + Other + free-text offering → smart details → review with files/website → confirmation)
-9–11. Buyer path (need capture → review → confirmation)
+4–8. Supplier path (categories + Other with Describe Other, or free text → product types + Other with Describe Other, or free text → smart details → review with files/website → confirmation). Review and smart-details boxes have **Edit**; **Save changes** returns to that box’s screen.
+9–11. Buyer path (need capture, including Other / not in this list + Describe Other → review → confirmation)
 
 Local **card assist** fills contact fields after camera/upload: client **jsQR** (vCard/MECARD) + local **Tesseract.js** (worker/core/lang bundled under Vite; `public/tessdata/eng.traineddata`). Server ZXing still runs on upload. On success, contact fields autofill and the app advances to contact confirm. Cloud OCR is not used.
 

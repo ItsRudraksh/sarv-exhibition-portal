@@ -3,12 +3,15 @@ import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
 import { listDepartments, listProductTypes } from '../taxonomy'
 import { validateSupplierDepartments } from '../validation'
+import { OtherDetailsField } from '../OtherDetailsField'
+import { ReviewEditFooter } from '../ReviewEditFooter'
 import {
   AppHeader,
   FixedFooter,
   Notice,
   PrimaryButton,
   SearchIcon,
+  TextField,
 } from '../../../components/ui'
 
 export interface SupplierDepartmentsScreenProps {
@@ -16,7 +19,8 @@ export interface SupplierDepartmentsScreenProps {
 }
 
 export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreenProps) {
-  const { draft, updateDraft, goBack, advance } = journey
+  const { draft, updateDraft, goBack, advance, editing, finishEdit, cancelEdit, goToStep } =
+    journey
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
 
@@ -43,23 +47,35 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
   }
 
   const handleContinue = () => {
-    const errs = validateSupplierDepartments(draft.departmentIds, draft.supplier.otherCategory)
-    const msg = errs.departments
+    const errs = validateSupplierDepartments(
+      draft.departmentIds,
+      draft.supplier.otherCategory,
+      draft.supplier.otherCategoryDetail,
+      draft.supplier.capabilityNotes,
+    )
+    const msg = errs.departments || errs.otherCategory
     if (msg) {
       setError(msg)
+      return
+    }
+    if (editing) {
+      finishEdit()
       return
     }
     advance()
   }
 
-  const canContinue = draft.departmentIds.length > 0 || draft.supplier.otherCategory
+  const canContinue =
+    draft.departmentIds.length > 0 ||
+    (draft.supplier.otherCategory && draft.supplier.otherCategoryDetail.trim().length > 0) ||
+    draft.supplier.capabilityNotes.trim().length > 0
 
   return (
     <div className="inquiry-app">
       <AppHeader
         showBack
         onBack={goBack}
-        stepLabel={copy.common.stepOf(1, 4)}
+        stepLabel={editing ? copy.common.edit : copy.common.stepOf(1, 4)}
       />
 
       <main className="inquiry-main inquiry-main--with-header">
@@ -73,7 +89,19 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
           {copy.supplier.departmentsSubtitle}
         </p>
 
-        <div className="search-input-wrap">
+        <TextField
+          id="capabilityNotes"
+          label={copy.supplier.capabilityLabel}
+          value={draft.supplier.capabilityNotes}
+          onChange={(v) => {
+            updateDraft({ supplier: { ...draft.supplier, capabilityNotes: v } })
+            setError('')
+          }}
+          multiline
+          hint={copy.supplier.capabilityHint}
+        />
+
+        <div className="search-input-wrap" style={{ marginTop: 16 }}>
           <SearchIcon />
           <input
             type="search"
@@ -95,18 +123,32 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
               <span>{dept.name}</span>
             </label>
           ))}
-          <label className="checkbox-item">
-            <input
-              type="checkbox"
-              checked={draft.supplier.otherCategory}
-              onChange={() =>
-                updateDraft({
-                  supplier: { ...draft.supplier, otherCategory: !draft.supplier.otherCategory },
-                })
-              }
-            />
-            <span>{copy.supplier.otherCategory}</span>
-          </label>
+          <OtherDetailsField
+            id="otherCategoryDetail"
+            checked={draft.supplier.otherCategory}
+            label={copy.supplier.otherCategory}
+            value={draft.supplier.otherCategoryDetail}
+            onToggle={() => {
+              const next = !draft.supplier.otherCategory
+              updateDraft({
+                supplier: {
+                  ...draft.supplier,
+                  otherCategory: next,
+                  otherCategoryDetail: next ? draft.supplier.otherCategoryDetail : '',
+                },
+              })
+            }}
+            onDetailsChange={(v) =>
+              updateDraft({
+                supplier: { ...draft.supplier, otherCategoryDetail: v },
+              })
+            }
+            error={
+              error && draft.supplier.otherCategory && !draft.supplier.otherCategoryDetail.trim()
+                ? error
+                : undefined
+            }
+          />
         </div>
 
         {error ? (
@@ -120,11 +162,40 @@ export function SupplierDepartmentsScreen({ journey }: SupplierDepartmentsScreen
         </Notice>
       </main>
 
-      <FixedFooter>
-        <PrimaryButton disabled={!canContinue} onClick={handleContinue}>
-          {copy.common.continue}
-        </PrimaryButton>
-      </FixedFooter>
+      {editing ? (
+        <ReviewEditFooter
+          canSave={canContinue}
+          onCancel={cancelEdit}
+          onSave={handleContinue}
+          extra={
+            <button
+              type="button"
+              className="btn-text"
+              onClick={() => {
+                const errs = validateSupplierDepartments(
+                  draft.departmentIds,
+                  draft.supplier.otherCategory,
+                  draft.supplier.otherCategoryDetail,
+                  draft.supplier.capabilityNotes,
+                )
+                if (errs.departments) {
+                  setError(errs.departments)
+                  return
+                }
+                goToStep('supplier-product-types')
+              }}
+            >
+              {copy.common.editProductTypes}
+            </button>
+          }
+        />
+      ) : (
+        <FixedFooter>
+          <PrimaryButton disabled={!canContinue} onClick={handleContinue}>
+            {copy.common.continue}
+          </PrimaryButton>
+        </FixedFooter>
+      )}
     </div>
   )
 }

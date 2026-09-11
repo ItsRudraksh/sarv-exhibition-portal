@@ -4,8 +4,10 @@ import { copy } from '../copy'
 import { inquiryApi, type BuyerProduct } from '../api'
 import { PHARMACOPOEIAL_STANDARDS } from '../taxonomy'
 import { validateBuyerNeed } from '../validation'
+import { OtherDetailsField } from '../OtherDetailsField'
 import type { BuyerFinishedGoodSelection, BuyerTradingProductSelection, PharmacopoeialStandard } from '../types'
 import { InquiryAttachments } from '../InquiryAttachments'
+import { ReviewEditFooter } from '../ReviewEditFooter'
 import {
   AppHeader,
   FixedFooter,
@@ -19,7 +21,18 @@ export interface BuyerNeedScreenProps {
 }
 
 export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
-  const { draft, updateDraft, goBack, advance, uploadAttachments, removeAttachment, apiAvailable } = journey
+  const {
+    draft,
+    updateDraft,
+    goBack,
+    advance,
+    uploadAttachments,
+    removeAttachment,
+    apiAvailable,
+    editing,
+    finishEdit,
+    cancelEdit,
+  } = journey
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [specsOpen, setSpecsOpen] = useState(false)
   const [catalogue, setCatalogue] = useState<BuyerProduct[]>([])
@@ -165,9 +178,22 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
   }
 
   const handleContinue = () => {
-    const fieldErrors = validateBuyerNeed(draft.buyer)
+    const nextBuyer = { ...draft.buyer }
+    if (
+      !nextBuyer.requirement.trim() &&
+      nextBuyer.otherProduct &&
+      nextBuyer.otherProductDetail.trim()
+    ) {
+      nextBuyer.requirement = nextBuyer.otherProductDetail.trim()
+    }
+    const fieldErrors = validateBuyerNeed(nextBuyer)
     setErrors(fieldErrors)
     if (Object.keys(fieldErrors).length === 0) {
+      updateDraft({ buyer: nextBuyer })
+      if (editing) {
+        finishEdit()
+        return
+      }
       advance()
     }
   }
@@ -177,8 +203,8 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
       <AppHeader
         showBack
         onBack={goBack}
-        stepLabel={copy.common.stepOf(1, 2)}
-        progress={0.5}
+        stepLabel={editing ? copy.common.edit : copy.common.stepOf(1, 2)}
+        progress={editing ? undefined : 0.5}
       />
 
       <main className="inquiry-main inquiry-main--with-header">
@@ -194,7 +220,7 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
             value={draft.buyer.requirement}
             onChange={(v) => updateBuyer('requirement', v)}
             multiline
-            required
+            required={!draft.buyer.otherProduct}
             error={errors.requirement}
             hint={copy.buyer.requirementHint}
           />
@@ -342,6 +368,30 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
                 })}
               </ul>
             ) : null}
+            <div className="checkbox-list" style={{ marginTop: filtered.length > 0 ? 12 : 8 }}>
+              <OtherDetailsField
+                id="otherProductDetail"
+                checked={draft.buyer.otherProduct}
+                label={copy.buyer.otherProduct}
+                value={draft.buyer.otherProductDetail}
+                onToggle={() => {
+                  const next = !draft.buyer.otherProduct
+                  updateDraft({
+                    buyer: {
+                      ...draft.buyer,
+                      otherProduct: next,
+                      otherProductDetail: next ? draft.buyer.otherProductDetail : '',
+                    },
+                  })
+                }}
+                onDetailsChange={(v) =>
+                  updateDraft({
+                    buyer: { ...draft.buyer, otherProductDetail: v },
+                  })
+                }
+                error={errors.otherProduct}
+              />
+            </div>
           </div>
 
           <div className="accordion">
@@ -447,9 +497,17 @@ export function BuyerNeedScreen({ journey }: BuyerNeedScreenProps) {
         </div>
       </main>
 
-      <FixedFooter note={copy.buyer.autoSave}>
-        <PrimaryButton onClick={handleContinue}>{copy.buyer.review}</PrimaryButton>
-      </FixedFooter>
+      {editing ? (
+        <ReviewEditFooter
+          canSave={Object.keys(validateBuyerNeed(draft.buyer)).length === 0}
+          onCancel={cancelEdit}
+          onSave={handleContinue}
+        />
+      ) : (
+        <FixedFooter note={copy.buyer.autoSave}>
+          <PrimaryButton onClick={handleContinue}>{copy.buyer.review}</PrimaryButton>
+        </FixedFooter>
+      )}
     </div>
   )
 }

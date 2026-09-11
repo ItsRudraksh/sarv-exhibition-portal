@@ -5,7 +5,7 @@ import {
   getDepartmentsByIds,
   getProductTypesByIds,
 } from '../taxonomy'
-import { validateSupplierReview, formatPhone } from '../validation'
+import { validateSupplierReview, formatPhone, formatOtherSelection } from '../validation'
 import { InquiryAttachments } from '../InquiryAttachments'
 import {
   AppHeader,
@@ -25,7 +25,7 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
     updateDraft,
     goBack,
     submit,
-    goToStep,
+    startEdit,
     submitting,
     submitError,
     uploadAttachments,
@@ -39,13 +39,21 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
   const productTypes = getProductTypesByIds(draft.productTypeIds)
   const categoryValue = [
     ...departments.map((d) => d.name),
-    draft.supplier.otherCategory ? copy.supplier.otherCategory : '',
+    formatOtherSelection(
+      draft.supplier.otherCategory,
+      copy.supplier.otherCategory,
+      draft.supplier.otherCategoryDetail,
+    ),
   ]
     .filter(Boolean)
     .join(', ')
   const typeValue = [
     ...productTypes.map((p) => p.name),
-    draft.supplier.otherProductType ? copy.supplier.otherProductType : '',
+    formatOtherSelection(
+      draft.supplier.otherProductType,
+      copy.supplier.otherProductType,
+      draft.supplier.otherProductTypeDetail,
+    ),
   ]
     .filter(Boolean)
     .join(', ')
@@ -89,7 +97,8 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
 
         <SummaryCard
           title={copy.supplier.companyContacts}
-          onEdit={() => goToStep('supplier-smart-details')}
+          editLabel={copy.common.edit}
+          onEdit={() => startEdit('contact-confirm')}
           rows={[
             { label: 'Company', value: draft.supplier.companyName },
             { label: 'Contact', value: draft.contact.fullName },
@@ -100,11 +109,15 @@ export function SupplierReviewScreen({ journey }: SupplierReviewScreenProps) {
 
         <SummaryCard
           title={copy.supplier.supplyCapability}
-          onEdit={() => goToStep('supplier-departments')}
+          editLabel={copy.common.edit}
+          onEdit={() => startEdit('supplier-departments')}
           rows={[
             { label: 'Categories', value: categoryValue || '—' },
             { label: 'Product types', value: typeValue || '—' },
-            { label: copy.supplier.capabilityLabel, value: draft.supplier.capabilityNotes },
+            {
+              label: copy.supplier.capabilityLabel,
+              value: draft.supplier.capabilityNotes.trim() || '—',
+            },
           ]}
         />
 

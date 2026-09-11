@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { InquiryJourney } from '../useInquiryJourney'
 import { copy } from '../copy'
-import {
-  getProductTypesForDepartments,
-} from '../taxonomy'
+import { groupProductTypesByDepartments } from '../taxonomy'
 import { validateSupplierProductTypes } from '../validation'
+import { OtherDetailsField } from '../OtherDetailsField'
+import { ReviewEditFooter } from '../ReviewEditFooter'
 import {
   AppHeader,
   FixedFooter,
@@ -18,56 +18,89 @@ export interface SupplierProductTypesScreenProps {
 }
 
 export function SupplierProductTypesScreen({ journey }: SupplierProductTypesScreenProps) {
-  const { draft, updateDraft, goBack, advance } = journey
+  const { draft, updateDraft, goBack, advance, editing, finishEdit, cancelEdit } = journey
   const [search, setSearch] = useState('')
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [error, setError] = useState('')
 
-  const available = useMemo(
-    () => getProductTypesForDepartments(draft.departmentIds),
+  const grouped = useMemo(
+    () => groupProductTypesByDepartments(draft.departmentIds),
     [draft.departmentIds],
   )
 
-  const filtered = useMemo(() => {
+  const filteredGroups = useMemo(() => {
     const term = search.trim().toLowerCase()
-    if (!term) return available
-    return available.filter((pt) => pt.name.toLowerCase().includes(term))
-  }, [available, search])
+    if (!term) return grouped
+    return grouped
+      .map((group) => ({
+        ...group,
+        types: group.types.filter((pt) => pt.name.toLowerCase().includes(term)),
+      }))
+      .filter(
+        (group) =>
+          group.types.length > 0 || group.department.name.toLowerCase().includes(term),
+      )
+  }, [grouped, search])
+
+  const availableIds = useMemo(
+    () => grouped.flatMap((group) => group.types.map((pt) => pt.id)),
+    [grouped],
+  )
 
   const toggle = (id: string) => {
     const ids = draft.productTypeIds.includes(id)
       ? draft.productTypeIds.filter((x) => x !== id)
       : [...draft.productTypeIds, id]
     updateDraft({ productTypeIds: ids })
-    setErrors({})
+    setError('')
   }
 
   const handleContinue = () => {
     const fieldErrors = validateSupplierProductTypes(
       draft.productTypeIds,
       draft.supplier.otherProductType,
+      draft.supplier.otherProductTypeDetail,
       draft.supplier.capabilityNotes,
     )
-    setErrors(fieldErrors)
-    if (Object.keys(fieldErrors).length === 0) {
-      advance()
+    if (fieldErrors.productTypes || fieldErrors.otherProductType) {
+      setError(fieldErrors.productTypes || fieldErrors.otherProductType)
+      return
     }
+    if (editing) {
+      finishEdit()
+      return
+    }
+    advance()
   }
 
-  const validIds = new Set(available.map((p) => p.id))
+  const validIds = new Set(availableIds)
   const effectiveSelected = draft.productTypeIds.filter((id) => validIds.has(id))
+  const searchTerm = search.trim().toLowerCase()
+  const showOtherCategory =
+    draft.supplier.otherCategory &&
+    (!searchTerm || copy.supplier.otherCategory.toLowerCase().includes(searchTerm))
+  const showOtherType =
+    !searchTerm || copy.supplier.otherProductType.toLowerCase().includes(searchTerm)
   const canContinue =
-    draft.supplier.capabilityNotes.trim().length > 0 &&
-    (effectiveSelected.length > 0 || draft.supplier.otherProductType || draft.supplier.capabilityNotes.trim().length > 0)
+    effectiveSelected.length > 0 ||
+    (draft.supplier.otherProductType &&
+      draft.supplier.otherProductTypeDetail.trim().length > 0) ||
+    draft.supplier.capabilityNotes.trim().length > 0
+
+  const hasCategoryRows =
+    filteredGroups.length > 0 || showOtherCategory || showOtherType
 
   return (
     <div className="inquiry-app">
       <AppHeader
         showBack
         onBack={goBack}
-        stepLabel={copy.common.stepOf(2, 4)}
+        stepLabel={editing ? copy.common.edit : copy.common.stepOf(2, 4)}
       />
 
       <main className="inquiry-main inquiry-main--with-header">
+        <p className="step-label step-label--muted section-gap">
+          {copy.supplier.productTypesStep}
+        </p>
         <h1 className="screen-title" style={{ fontSize: '1.25rem' }}>
           {copy.supplier.productTypesTitle}
         </h1>
@@ -75,98 +108,128 @@ export function SupplierProductTypesScreen({ journey }: SupplierProductTypesScre
           {copy.supplier.productTypesSubtitle}
         </p>
 
-        <p className="field-hint section-gap" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span aria-hidden>↻</span> {copy.supplier.savedSelections}
-        </p>
+        <TextField
+          id="capabilityNotes"
+          label={copy.supplier.capabilityLabel}
+          value={draft.supplier.capabilityNotes}
+          onChange={(v) => {
+            updateDraft({ supplier: { ...draft.supplier, capabilityNotes: v } })
+            setError('')
+          }}
+          multiline
+          hint={copy.supplier.capabilityHint}
+        />
 
-        {available.length > 0 ? (
-          <>
-            <div className="search-input-wrap">
-              <SearchIcon />
-              <input
-                type="search"
-                placeholder="Search product types"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label="Search product types"
-              />
-            </div>
+        {grouped.length > 0 || draft.supplier.otherCategory ? (
+          <div className="search-input-wrap" style={{ marginTop: 16 }}>
+            <SearchIcon />
+            <input
+              type="search"
+              placeholder="Search product types"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search product types"
+            />
+          </div>
+        ) : null}
 
-            <div className="checkbox-list" role="group" aria-label="Product types">
-              {filtered.map((pt) => (
-                <label key={pt.id} className="checkbox-item">
+        {hasCategoryRows ? (
+          <div className="checkbox-list" role="group" aria-label={copy.supplier.selectedCategories}>
+            {filteredGroups.map((group) => (
+              <div key={group.department.id}>
+                <label className="checkbox-item checkbox-item--parent">
                   <input
                     type="checkbox"
-                    checked={effectiveSelected.includes(pt.id)}
-                    onChange={() => toggle(pt.id)}
+                    checked
+                    disabled
+                    aria-label={`${group.department.name} (selected)`}
                   />
-                  <span>{pt.name}</span>
+                  <span>{group.department.name}</span>
                 </label>
-              ))}
-              <label className="checkbox-item">
-                <input
-                  type="checkbox"
-                  checked={draft.supplier.otherProductType}
-                  onChange={() =>
-                    updateDraft({
-                      supplier: {
-                        ...draft.supplier,
-                        otherProductType: !draft.supplier.otherProductType,
-                      },
-                    })
-                  }
-                />
-                <span>{copy.supplier.otherProductType}</span>
-              </label>
-            </div>
-          </>
-        ) : (
-          <div className="checkbox-list" role="group" aria-label="Product types">
-            <label className="checkbox-item">
-              <input
-                type="checkbox"
+                {group.types.map((pt) => (
+                  <label key={pt.id} className="checkbox-item checkbox-item--child">
+                    <input
+                      type="checkbox"
+                      checked={effectiveSelected.includes(pt.id)}
+                      onChange={() => toggle(pt.id)}
+                    />
+                    <span>{pt.name}</span>
+                  </label>
+                ))}
+              </div>
+            ))}
+            {showOtherCategory ? (
+              <>
+                <label className="checkbox-item checkbox-item--parent">
+                  <input
+                    type="checkbox"
+                    checked
+                    disabled
+                    aria-label={`${copy.supplier.otherCategory} (selected)`}
+                  />
+                  <span>{copy.supplier.otherCategory}</span>
+                </label>
+                {draft.supplier.otherCategoryDetail.trim() ? (
+                  <p className="other-detail other-detail--nested field-hint" style={{ margin: 0 }}>
+                    {draft.supplier.otherCategoryDetail.trim()}
+                  </p>
+                ) : null}
+              </>
+            ) : null}
+            {showOtherType ? (
+              <OtherDetailsField
+                id="otherProductTypeDetail"
+                nested
                 checked={draft.supplier.otherProductType}
-                onChange={() =>
+                label={copy.supplier.otherProductType}
+                value={draft.supplier.otherProductTypeDetail}
+                onToggle={() => {
+                  const next = !draft.supplier.otherProductType
                   updateDraft({
                     supplier: {
                       ...draft.supplier,
-                      otherProductType: !draft.supplier.otherProductType,
+                      otherProductType: next,
+                      otherProductTypeDetail: next ? draft.supplier.otherProductTypeDetail : '',
                     },
                   })
+                }}
+                onDetailsChange={(v) =>
+                  updateDraft({
+                    supplier: { ...draft.supplier, otherProductTypeDetail: v },
+                  })
+                }
+                error={
+                  error &&
+                  draft.supplier.otherProductType &&
+                  !draft.supplier.otherProductTypeDetail.trim()
+                    ? error
+                    : undefined
                 }
               />
-              <span>{copy.supplier.otherProductType}</span>
-            </label>
+            ) : null}
           </div>
-        )}
+        ) : null}
 
-        <div className="section-gap" style={{ marginTop: 16 }}>
-          <TextField
-            id="capabilityNotes"
-            label={copy.supplier.capabilityLabel}
-            value={draft.supplier.capabilityNotes}
-            onChange={(v) =>
-              updateDraft({ supplier: { ...draft.supplier, capabilityNotes: v } })
-            }
-            multiline
-            required
-            error={errors.capabilityNotes}
-            hint={copy.supplier.capabilityHint}
-          />
-        </div>
-
-        {errors.productTypes ? (
+        {error ? (
           <p className="field-error" role="alert" style={{ marginTop: 12 }}>
-            {errors.productTypes}
+            {error}
           </p>
         ) : null}
       </main>
 
-      <FixedFooter note={copy.supplier.savedSelections}>
-        <PrimaryButton disabled={!canContinue} onClick={handleContinue}>
-          {copy.common.continue}
-        </PrimaryButton>
-      </FixedFooter>
+      {editing ? (
+        <ReviewEditFooter
+          canSave={canContinue}
+          onCancel={cancelEdit}
+          onSave={handleContinue}
+        />
+      ) : (
+        <FixedFooter note={copy.supplier.savedSelections}>
+          <PrimaryButton disabled={!canContinue} onClick={handleContinue}>
+            {copy.common.continue}
+          </PrimaryButton>
+        </FixedFooter>
+      )}
     </div>
   )
 }

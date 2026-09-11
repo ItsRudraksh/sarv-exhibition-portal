@@ -40,6 +40,8 @@ export interface SupplierDetails {
   catalogueFile: CardFileMeta | null
   otherCategory: boolean
   otherProductType: boolean
+  otherCategoryDetail: string
+  otherProductTypeDetail: string
   capabilityNotes: string
   attachments: CardFileMeta[]
 }
@@ -74,6 +76,8 @@ export interface BuyerDetails {
   tradingProducts: BuyerTradingProductSelection[]
   specifications: BuyerSpecifications
   attachments: CardFileMeta[]
+  otherProduct: boolean
+  otherProductDetail: string
 }
 
 export interface InquiryDraft {
@@ -93,6 +97,17 @@ export interface InquiryDraft {
   contactConfirmed: boolean
   submittedAt: string | null
   referenceCode: string | null
+}
+
+/** In-memory only — not persisted. Lets Edit from review return without replaying Continue. */
+export interface ReviewEditSession {
+  returnTo: InquiryStep
+  snapshot: InquiryDraft
+  entryStep: InquiryStep
+}
+
+export function cloneInquiryDraft(draft: InquiryDraft): InquiryDraft {
+  return structuredClone(draft)
 }
 
 function createDraftId(): string {
@@ -138,6 +153,8 @@ export const createEmptyDraft = (): InquiryDraft => ({
     catalogueFile: null,
     otherCategory: false,
     otherProductType: false,
+    otherCategoryDetail: '',
+    otherProductTypeDetail: '',
     capabilityNotes: '',
     attachments: [],
   },
@@ -156,6 +173,8 @@ export const createEmptyDraft = (): InquiryDraft => ({
       notes: '',
     },
     attachments: [],
+    otherProduct: false,
+    otherProductDetail: '',
   },
   contactConfirmed: false,
   submittedAt: null,

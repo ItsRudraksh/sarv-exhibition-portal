@@ -111,7 +111,11 @@ export function listProductTypes(): ProductType[] {
 }
 
 export function getDepartmentsByIds(ids: string[]): Department[] {
-  return departments().filter((d) => ids.includes(d.id))
+  const byId = new Map(departments().map((d) => [d.id, d]))
+  return ids.flatMap((id) => {
+    const dept = byId.get(id)
+    return dept ? [dept] : []
+  })
 }
 
 export function getProductTypesForDepartments(departmentIds: string[]): ProductType[] {
@@ -119,6 +123,21 @@ export function getProductTypesForDepartments(departmentIds: string[]): ProductT
   return productTypes().filter((pt) =>
     pt.departmentIds.some((id) => departmentIds.includes(id)),
   )
+}
+
+/** Types grouped under selected categories (each type listed once, first matching category). */
+export function groupProductTypesByDepartments(
+  departmentIds: string[],
+): { department: Department; types: ProductType[] }[] {
+  const used = new Set<string>()
+  return getDepartmentsByIds(departmentIds)
+    .map((department) => {
+      const types = productTypes().filter(
+        (pt) => pt.departmentIds.includes(department.id) && !used.has(pt.id),
+      )
+      for (const pt of types) used.add(pt.id)
+      return { department, types }
+    })
 }
 
 export function getProductTypesByIds(ids: string[]): ProductType[] {

@@ -26,6 +26,10 @@
   --shell-max: min(100%, 640px);
   --header-total: var(--control-height);
   --header-total-sub: calc(var(--control-height) + 40px);
+  /* Note + primary button footer, plus last checkbox row clearance. */
+  --footer-reserve: calc(
+    var(--space-edge) * 2 + 12px + 1.5rem + var(--control-height) + 56px
+  );
 }
 
 @media (min-width: 768px) {

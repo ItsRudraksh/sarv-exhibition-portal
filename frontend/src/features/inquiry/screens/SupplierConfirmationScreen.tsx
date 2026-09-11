@@ -4,7 +4,7 @@ import {
   getDepartmentsByIds,
   getProductTypesByIds,
 } from '../taxonomy'
-import { formatPhone } from '../validation'
+import { formatPhone, formatOtherSelection } from '../validation'
 import { AppHeader, PrimaryButton } from '../../../components/ui'
 
 export interface SupplierConfirmationScreenProps {
@@ -74,7 +74,11 @@ export function SupplierConfirmationScreen({ journey }: SupplierConfirmationScre
               <p className="card-row-value">
                 {[
                   ...departments.map((d) => d.name),
-                  draft.supplier.otherCategory ? copy.supplier.otherCategory : '',
+                  formatOtherSelection(
+                    draft.supplier.otherCategory,
+                    copy.supplier.otherCategory,
+                    draft.supplier.otherCategoryDetail,
+                  ),
                 ]
                   .filter(Boolean)
                   .join(', ') || '—'}
@@ -87,7 +91,11 @@ export function SupplierConfirmationScreen({ journey }: SupplierConfirmationScre
               <p className="card-row-value">
                 {[
                   ...productTypes.map((p) => p.name),
-                  draft.supplier.otherProductType ? copy.supplier.otherProductType : '',
+                  formatOtherSelection(
+                    draft.supplier.otherProductType,
+                    copy.supplier.otherProductType,
+                    draft.supplier.otherProductTypeDetail,
+                  ),
                 ]
                   .filter(Boolean)
                   .join(', ') || '—'}

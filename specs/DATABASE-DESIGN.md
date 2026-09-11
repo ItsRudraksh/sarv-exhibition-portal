@@ -1,7 +1,7 @@
 # Exhibition Portal Database Design
 
 **Status:** Approved logical and physical design baseline  
-**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V11 in `backend/src/main/resources/db/migration/`.  
+**Database (applied):** MySQL 8 (user decision 3 September 2026; same engine as pharma-erp). Flyway V1–V12 in `backend/src/main/resources/db/migration/`.  
 **Logical types in this document:** Originally written for PostgreSQL (`uuid`, `timestamptz`, `jsonb`, `text`). Keep them as the entity/invariant SSOT. The applied store maps them to `CHAR(36)`, `DATETIME(6)`, `JSON`, and `VARCHAR`/`TEXT`. Do **not** load `exhibition_portal_schema.sql`.  
 **Application target:** Java 17 Spring Boot, with Flyway migrations. POC persistence is JDBC; ORM remains replaceable.  
 **Scope:** Data design. The singleton DDL in this folder is the **historical full target**. The **applied POC schema** is `backend/src/main/resources/db/migration/` — see [BUILD-PLAN.md](BUILD-PLAN.md) §3.  
@@ -275,7 +275,9 @@ One-to-one extension for an inquiry whose route is `SUPPLIER`.
 | `approved_by_user_id` | `uuid` | Nullable FK to `app_users`; required for `APPROVED`. |
 | `other_category` | `boolean` | Visitor selected Other instead of (or in addition to) listed departments. Default false. **V11**. |
 | `other_product_type` | `boolean` | Visitor selected Other for product types / subcategories. Default false. **V11**. |
-| `capability_notes` | `text` | Free-text offering description (required on supplier submit). **V11**. |
+| `other_category_detail` | `text` | Required when `other_category` is true. Names the unlisted category. **V12**. |
+| `other_product_type_detail` | `text` | Required when `other_product_type` is true. Names the unlisted product type. **V12**. |
+| `capability_notes` | `text` | Free-text offering description. Enough on submit when listed category/type or Other is absent. **V11**. |
 
 ### `supplier_inquiry_departments`
 
@@ -320,6 +322,8 @@ One-to-one extension for an inquiry whose route is `PURCHASE`.
 | `assigned_to_user_id` | `uuid` | Nullable FK to `app_users`. |
 | `first_dispatched_at` | `timestamptz` | Nullable. |
 | `marketing_notes` | `text` | Nullable internal notes; never shown to the visitor. |
+| `other_product` | `boolean` | Visitor selected Other / not in this list on the buyer catalogue. Default false. **V12**. |
+| `other_product_detail` | `text` | Required when `other_product` is true. Names the unlisted product. Copied into `purchase_line_items.requirement_text` when the requirement field is blank. **V12**. |
 
 ### `purchase_line_items`
 

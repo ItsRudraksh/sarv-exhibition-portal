@@ -193,9 +193,10 @@ export interface SummaryCardProps {
   readonly title: string
   readonly rows: { label: string; value: string }[]
   readonly onEdit?: () => void
+  readonly editLabel?: string
 }
 
-export function SummaryCard({ title, rows, onEdit }: SummaryCardProps) {
+export function SummaryCard({ title, rows, onEdit, editLabel = 'Edit' }: SummaryCardProps) {
   return (
     <section className="section-gap">
       <div
@@ -203,13 +204,14 @@ export function SummaryCard({ title, rows, onEdit }: SummaryCardProps) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: 12,
           marginBottom: 8,
         }}
       >
         <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>{title}</h2>
         {onEdit ? (
-          <button type="button" className="btn-text" onClick={onEdit}>
-            Edit
+          <button type="button" className="btn-text summary-card__edit" onClick={onEdit}>
+            {editLabel}
           </button>
         ) : null}
       </div>
