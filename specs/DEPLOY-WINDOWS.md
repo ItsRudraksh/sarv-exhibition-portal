@@ -59,7 +59,7 @@ If Goldmine later proxies `https://sarvbiolabs.com/exhibit`, TLS stays on **thei
 1. Install **IIS**, **URL Rewrite**, **Application Request Routing**.
 2. ARR → Server Proxy Settings → **Enable proxy**.
 3. URL Rewrite → View Server Variables → allow `HTTP_X_FORWARDED_HOST`, `HTTP_X_FORWARDED_PROTO`, `HTTP_X_FORWARDED_FOR`.
-4. Bind 80/443 to the **exhibit** site (host header `welcome.sarvbiolabs.com` only — do not steal `*:80` from production Java until cutover). Trust those headers in Java via `server.forward-headers-strategy=framework` (already in `application.properties`).
+4. Bind 80/443 to the **welcome** site (host header `welcome.sarvbiolabs.com` only — do not steal `*:80` from production Java until cutover). Trust those headers in Java via `server.forward-headers-strategy=framework` (already in `application.properties`).
 5. CORS: same-origin proxy usually needs none. Prod defaults already include `https://welcome.sarvbiolabs.com`. Override with `EXHIBITION_CORS_ORIGINS` in `portal.env.ps1` if needed.
 
 ### Port 80 conflict
