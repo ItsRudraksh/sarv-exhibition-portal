@@ -28,7 +28,7 @@ Source of truth: `specs/PLATFORM_CONTEXT.md`. Applied schema: Flyway in `backend
 
 Vite (`npm run dev`) proxies `/api` to `http://localhost:8080`. Packaged `prod` serves `frontend/dist` from Spring Boot; `SpaForwardController` forwards `/staff`, `/admin`, `/web` to `index.html`.
 
-Public hostname: **`https://exhibit.sarvbiolabs.com/`** (IIS reverse-proxy; Java stays on 8083). Default build `VITE_BASE=/`. Path URL `https://sarvbiolabs.com/exhibit` needs `VITE_BASE=/exhibit/` plus `SERVER_SERVLET_CONTEXT_PATH=/exhibit` (`frontend/src/lib/publicPath.ts`). Marketing [sarvbiolabs.com](https://sarvbiolabs.com/) is a different host (`209.42.22.88`). Visitor chrome/tokens match that site (navy `#022D59`, cyan `#01AFEF`).
+Public hostname: **`https://welcome.sarvbiolabs.com/`** (IIS reverse-proxy; Java stays on 8083). Default build `VITE_BASE=/`. Path URL `https://sarvbiolabs.com/exhibit` needs `VITE_BASE=/exhibit/` plus `SERVER_SERVLET_CONTEXT_PATH=/exhibit` (`frontend/src/lib/publicPath.ts`). Marketing [sarvbiolabs.com](https://sarvbiolabs.com/) is a different host (`209.42.22.88`). Visitor chrome/tokens match that site (navy `#022D59`, cyan `#01AFEF`).
 
 ## 3. Visitor journey (frontend)
 
