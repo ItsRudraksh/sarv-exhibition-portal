@@ -1,19 +1,19 @@
 # Deploy on Windows Server (public IP)
 
 **Updated:** 11 September 2026  
-**Target:** `http://43.225.195.200:8083/` (staging Java). Public hostname: **`https://exhibit.sarvbiolabs.com/`** (IIS on this host). Marketing site `https://sarvbiolabs.com/` is a different IP — see **Public domain**.  
+**Target:** `http://43.225.195.200:8083/` (staging Java). Public hostname: **`https://welcome.sarvbiolabs.com/`** (IIS on this host). Marketing site `https://sarvbiolabs.com/` is a different IP — see **Public domain**.  
 **Runtime:** **Java 17** only (server is `17.0.18`). Same delivery shape as pharma-erp: Jenkins on the Windows agent, native database, **no Docker**.
 
 The visitor UI and API ship as **one Spring Boot JAR** (`backend/target/exhibition-portal.jar`). Production does **not** use `npm run dev` or Vite port 5173.
 
-## Public domain (`https://exhibit.sarvbiolabs.com/` preferred)
+## Public domain (`https://welcome.sarvbiolabs.com/` preferred)
 
 The marketing site **[https://sarvbiolabs.com/](https://sarvbiolabs.com/)** is **not** this Windows box:
 
 | Name | Resolves today (2026-09-11) |
 |---|---|
 | `sarvbiolabs.com` / `www.sarvbiolabs.com` | **209.42.22.88** (Goldmine-hosted WordPress) |
-| `exhibit.sarvbiolabs.com` | **NXDOMAIN** — create this |
+| `welcome.sarvbiolabs.com` | **NXDOMAIN** — create this |
 | Exhibition Java (staging) | **43.225.195.200:8083** (`node43225195200.zeonet.co.in`) |
 
 Java **stays on 8083**. Do not move staging onto port 80 (production). Do not stop **wachatbot** on 8082.
@@ -22,7 +22,7 @@ Prefer the **subdomain**. Path `https://sarvbiolabs.com/exhibit` would be config
 
 | Public URL | App change | Where to configure |
 |---|---|---|
-| **`https://exhibit.sarvbiolabs.com/`** (preferred) | Keep the app at origin root. Jenkins **`VITE_BASE=/`**. Leave `SERVER_SERVLET_CONTEXT_PATH` unset. | DNS `A` `exhibit.sarvbiolabs.com` → `43.225.195.200`. New IIS site, host header `exhibit.sarvbiolabs.com`, rewrite all → `http://127.0.0.1:8083/{R:1}`. Sample: `deploy/windows/iis/web.config.subdomain.xml`. TLS cert for that name. |
+| **`https://welcome.sarvbiolabs.com/`** (preferred) | Keep the app at origin root. Jenkins **`VITE_BASE=/`**. Leave `SERVER_SERVLET_CONTEXT_PATH` unset. | DNS `A` `welcome.sarvbiolabs.com` → `43.225.195.200`. New IIS site, host header `welcome.sarvbiolabs.com`, rewrite all → `http://127.0.0.1:8083/{R:1}`. Sample: `deploy/windows/iis/web.config.subdomain.xml`. TLS cert for that name. |
 | **`https://sarvbiolabs.com/exhibit`** | Namespace everything under `/exhibit` or WordPress `/assets` `/api` collide. | Reverse-proxy on **209.42.22.88** (Goldmine panel / their nginx/Apache), **not** IIS on this server. Then Jenkins **`VITE_BASE=/exhibit/`** and `$env:SERVER_SERVLET_CONTEXT_PATH = '/exhibit'`. Sample rewrite shape: `deploy/windows/iis/web.config.path-prefix.xml` (keep the `/exhibit` prefix). |
 
 Path mode requires **both** together (mismatch → 404 on JS/CSS/API):
@@ -35,9 +35,9 @@ Subdomain / IP:8083 keep **`VITE_BASE=/`** and an empty context-path (Jenkins de
 
 ### DNS and TLS (subdomain)
 
-1. At the **sarvbiolabs.com** DNS registrar (same place the WordPress `A` to `209.42.22.88` lives), add **`exhibit.sarvbiolabs.com` → `43.225.195.200`** (`A`). Do not point `sarvbiolabs.com` itself at 43.225.195.200 — that would take down the public website.
-2. On **43.225.195.200**, IIS site binding host header `exhibit.sarvbiolabs.com` on 80/443.
-3. Certificate for `exhibit.sarvbiolabs.com` (in-page camera needs **HTTPS**). HTTP visitors use upload / file picker.
+1. At the **sarvbiolabs.com** DNS registrar (same place the WordPress `A` to `209.42.22.88` lives), add **`welcome.sarvbiolabs.com` → `43.225.195.200`** (`A`). Do not point `sarvbiolabs.com` itself at 43.225.195.200 — that would take down the public website.
+2. On **43.225.195.200**, IIS site binding host header `welcome.sarvbiolabs.com` on 80/443.
+3. Certificate for `welcome.sarvbiolabs.com` (in-page camera needs **HTTPS**). HTTP visitors use upload / file picker.
 4. After the subdomain works, 8083 can stay LAN-only; keep it open during cutover.
 
 ### Where HTTPS lives (8083 stays HTTP)
@@ -46,7 +46,7 @@ Subdomain / IP:8083 keep **`VITE_BASE=/`** and an empty context-path (Jenkins de
 
 | URL the visitor opens | TLS |
 |---|---|
-| `https://exhibit.sarvbiolabs.com/` | **Yes — on IIS (port 443)** with a cert for `exhibit.sarvbiolabs.com`. Camera works. |
+| `https://welcome.sarvbiolabs.com/` | **Yes — on IIS (port 443)** with a cert for `welcome.sarvbiolabs.com`. Camera works. |
 | `http://127.0.0.1:8083/` (IIS → Java) | **No.** Leave Java on HTTP. This hop is local on the Windows box. |
 | `http://43.225.195.200:8083/` | **No.** Direct IP stays HTTP. Camera will not start; upload / file picker still work. Do not put a second TLS stack on 8083. |
 
@@ -59,12 +59,12 @@ If Goldmine later proxies `https://sarvbiolabs.com/exhibit`, TLS stays on **thei
 1. Install **IIS**, **URL Rewrite**, **Application Request Routing**.
 2. ARR → Server Proxy Settings → **Enable proxy**.
 3. URL Rewrite → View Server Variables → allow `HTTP_X_FORWARDED_HOST`, `HTTP_X_FORWARDED_PROTO`, `HTTP_X_FORWARDED_FOR`.
-4. Bind 80/443 to the **exhibit** site (host header `exhibit.sarvbiolabs.com` only — do not steal `*:80` from production Java until cutover). Trust those headers in Java via `server.forward-headers-strategy=framework` (already in `application.properties`).
-5. CORS: same-origin proxy usually needs none. Prod defaults already include `https://exhibit.sarvbiolabs.com`. Override with `EXHIBITION_CORS_ORIGINS` in `portal.env.ps1` if needed.
+4. Bind 80/443 to the **exhibit** site (host header `welcome.sarvbiolabs.com` only — do not steal `*:80` from production Java until cutover). Trust those headers in Java via `server.forward-headers-strategy=framework` (already in `application.properties`).
+5. CORS: same-origin proxy usually needs none. Prod defaults already include `https://welcome.sarvbiolabs.com`. Override with `EXHIBITION_CORS_ORIGINS` in `portal.env.ps1` if needed.
 
 ### Port 80 conflict
 
-Production **`exhibition-portal`** binds port **80** today. IIS also needs 80/443 for `exhibit.sarvbiolabs.com`. They cannot both listen on `0.0.0.0:80`. Host-header IIS still needs the HTTP.sys 80 listener. Cutover: put production Java behind IIS as well, or bind IIS only after stopping Java on 80. Staging on **8083** is unchanged.
+Production **`exhibition-portal`** binds port **80** today. IIS also needs 80/443 for `welcome.sarvbiolabs.com`. They cannot both listen on `0.0.0.0:80`. Host-header IIS still needs the HTTP.sys 80 listener. Cutover: put production Java behind IIS as well, or bind IIS only after stopping Java on 80. Staging on **8083** is unchanged.
 
 Jenkins Health Check still uses `http://127.0.0.1:8083/actuator/health` (no context-path). Path mode health is `http://127.0.0.1:8083/exhibit/actuator/health` — confirm manually after enabling `/exhibit`.
 
@@ -72,9 +72,9 @@ Jenkins Health Check still uses `http://127.0.0.1:8083/actuator/health` (no cont
 
 | Topic | Production behaviour |
 |---|---|
-| URL | Direct: `http://43.225.195.200:8083/` (staging) or `http://43.225.195.200/` (production Java on 80). Public name: **`https://exhibit.sarvbiolabs.com/`** (preferred). Path `https://sarvbiolabs.com/exhibit` is on the WordPress host (`209.42.22.88`), not this box. |
+| URL | Direct: `http://43.225.195.200:8083/` (staging) or `http://43.225.195.200/` (production Java on 80). Public name: **`https://welcome.sarvbiolabs.com/`** (preferred). Path `https://sarvbiolabs.com/exhibit` is on the WordPress host (`209.42.22.88`), not this box. |
 | Java | **17** (`javac`/`java` 17.0.x). Do not build with Java 21 bytecode. |
-| Camera | In-page `getUserMedia` needs the **browser URL** to be HTTPS (`https://exhibit.sarvbiolabs.com/`). Java **8083 stays HTTP** behind IIS. The WordPress cert on sarvbiolabs.com does not cover 8083. On plain HTTP, visitors **upload** a photo or use the phone file picker. |
+| Camera | In-page `getUserMedia` needs the **browser URL** to be HTTPS (`https://welcome.sarvbiolabs.com/`). Java **8083 stays HTTP** behind IIS. The WordPress cert on sarvbiolabs.com does not cover 8083. On plain HTTP, visitors **upload** a photo or use the phone file picker. |
 | Auth | Visitor `/` is public (no browser login). Staff `/staff` and admin `/admin` use an in-app form; HTTP Basic is only for `/api/v1/staff/**` and must not send `WWW-Authenticate` (that pops a browser sign-in on the public URL). **Required:** `EXHIBITION_STAFF_BOOTSTRAP_PASSWORD` (not `poc-staff` / `change-me-staff`). Prod refuses to start otherwise. |
 | MySQL | Native MySQL 8 on **127.0.0.1:3306**. Do not publish 3306 on `0.0.0.0`. Docker is not used. |
 | Cloud OCR / CRM / vendor API | Still not live. Local card-QR assist may propose fields. Outbox writes local stub files (`local-mailbox` / `local-vendor-stub`). |
@@ -257,7 +257,7 @@ Parameters (same idea as pharma-erp):
 
 - **`SKIP_MAVEN_BUILD`** default **false**. Set **true** only to deploy a JAR already on disk.
 - **`JAR_SOURCE`** optional absolute path on the agent (like pharma **`WAR_SOURCE`**).
-- **`VITE_BASE`** default **`/`**. Use `/` for IP:8083 and `exhibit.sarvbiolabs.com`. Use **`/exhibit/`** only for `sarvbiolabs.com/exhibit` (also set `SERVER_SERVLET_CONTEXT_PATH=/exhibit` on the host).
+- **`VITE_BASE`** default **`/`**. Use `/` for IP:8083 and `welcome.sarvbiolabs.com`. Use **`/exhibit/`** only for `sarvbiolabs.com/exhibit` (also set `SERVER_SERVLET_CONTEXT_PATH=/exhibit` on the host).
 
 Create the Jenkins job as a **Pipeline from SCM** (or Multibranch) pointing at this repo, same as pharma-erp. Job `exibit-portal-pipeline_poc` tracks branch **`poc`** and deploys **staging**, not production.
 
@@ -287,7 +287,7 @@ PowerShell `$` in the Jenkinsfile is escaped as `\$` so Groovy does not treat it
 | `deploy/windows/deploy.ps1` | Manual `npm` + `mvn` + copy JAR |
 | `deploy/windows/install-service.ps1` | **WinSW** service: runs **`java.exe -jar`** directly with env from `portal.env.ps1` (not powershell wrapper — that exited and left Status=Stopped). Downloads WinSW-x64 once. Resolves Java 17 / `JAVA_HOME`. |
 | `deploy/windows/init-mysql.sql` | Create database + user |
-| `deploy/windows/iis/web.config.subdomain.xml` | IIS ARR sample: `exhibit.sarvbiolabs.com` → `127.0.0.1:8083` |
+| `deploy/windows/iis/web.config.subdomain.xml` | IIS ARR sample: `welcome.sarvbiolabs.com` → `127.0.0.1:8083` |
 | `deploy/windows/iis/web.config.path-prefix.xml` | Proxy sample: `sarvbiolabs.com/exhibit` → Java context-path `/exhibit` (WordPress host, not this IIS) |
 | `backend/run.ps1` | Local `spring-boot:run` |
 

@@ -4,7 +4,7 @@
 // Node 22: Jenkins Windows service PATH does not include an interactive user's Node.
 // Frontend prepends C:\Program Files\nodejs and NODE_HOME. Restart Jenkins after installing Node.
 // Staging listen port is 8083. 8082 is wachatbot on this host. 8081 is pharma-erp-staging. Production is port 80.
-// Public domain: IIS reverse-proxy on 80/443 → 127.0.0.1:8083. VITE_BASE=/ (exhibit.sarvbiolabs.com or IP:8083).
+// Public domain: IIS reverse-proxy on 80/443 → 127.0.0.1:8083. VITE_BASE=/ (welcome.sarvbiolabs.com or IP:8083).
 // Path URL sarvbiolabs.com/exhibit: VITE_BASE=/exhibit/ AND SERVER_SERVLET_CONTEXT_PATH=/exhibit (must match).
 
 def windowsInstallExhibition(String installDir, String serviceName, String kind, String workspace, String jarSource, String appDir, String stagingPort) {
@@ -267,7 +267,7 @@ pipeline {
         string(name: 'JAR_SOURCE', defaultValue: '',
             description: 'Optional: absolute path to JAR on the agent. If empty, deploy uses exactly one backend/target/*.jar from this job workspace (not *.original).')
         string(name: 'VITE_BASE', defaultValue: '/',
-            description: 'Frontend public base. / for IP:8083 or exhibit.sarvbiolabs.com. /exhibit/ for sarvbiolabs.com/exhibit (also set SERVER_SERVLET_CONTEXT_PATH=/exhibit on the host).')
+            description: 'Frontend public base. / for IP:8083 or welcome.sarvbiolabs.com. /exhibit/ for sarvbiolabs.com/exhibit (also set SERVER_SERVLET_CONTEXT_PATH=/exhibit on the host).')
     }
 
     environment {
