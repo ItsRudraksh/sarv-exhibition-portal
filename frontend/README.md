@@ -16,7 +16,7 @@ npm run preview -- --host  # preview production build on LAN
 
 Start native MySQL 8 on `localhost:3306`, then the API (`.\run.ps1` in `backend/`). See [backend/README.md](../backend/README.md). Docker is not required.
 
-**Public Windows Server** (`http://43.225.195.200:8083/` staging): Java 17 + Jenkins. Do not run this Vite dev server on the public IP. `npm run build` is copied into the Spring Boot JAR. Default `VITE_BASE=/` for **`https://exhibit.sarvbiolabs.com/`**. Path URL `sarvbiolabs.com/exhibit` needs `VITE_BASE=/exhibit/` at build time (`vite.config.ts` + `src/lib/publicPath.ts`). See [DEPLOY-WINDOWS.md](../specs/DEPLOY-WINDOWS.md) § Public domain. In-page camera still needs HTTPS; upload still works on HTTP.
+**Public Windows Server** (`http://43.225.195.200:8083/` staging): Java 17 + Jenkins. Do not run this Vite dev server on the public IP. `npm run build` is copied into the Spring Boot JAR. Default `VITE_BASE=/` for **`https://welcome.sarvbiolabs.com/`**. Path URL `sarvbiolabs.com/exhibit` needs `VITE_BASE=/exhibit/` at build time (`vite.config.ts` + `src/lib/publicPath.ts`). See [DEPLOY-WINDOWS.md](../specs/DEPLOY-WINDOWS.md) § Public domain. In-page camera still needs HTTPS; upload still works on HTTP.
 
 ### Test on your phone (same Wi‑Fi)
 
