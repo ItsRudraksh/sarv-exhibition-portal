@@ -46,7 +46,7 @@ Do **not** put a second `application.properties` under `src/test/resources/` —
 
 Override any key with the matching environment variable (`DATASOURCE_*`, `EXHIBITION_*`, `SERVER_PORT`, `SERVER_SERVLET_CONTEXT_PATH`). Host example: `deploy/windows/portal.env.example.ps1`. On Windows service, Java also loads `portal.env.ps1` from the install working directory on boot (so JDBC flags do not stay stuck in a stale WinSW XML). When `exhibition.pharma-erp.enabled=true`, boot auto-syncs finished goods from `pharmadb`.
 
-Notable keys: `exhibition.poc`, `exhibition.cors-origins`, `exhibition.storage-root`, file size caps, outbox destinations, `exhibition.staff-bootstrap-password`, `exhibition.pharma-erp.*` (buyer finished-goods DB sync), and `SERVER_SERVLET_CONTEXT_PATH` (empty for IP:8083 / `exhibit.sarvbiolabs.com`; `/exhibit` only with matching frontend `VITE_BASE=/exhibit/`).
+Notable keys: `exhibition.poc`, `exhibition.cors-origins`, `exhibition.storage-root`, file size caps, outbox destinations, `exhibition.staff-bootstrap-password`, `exhibition.pharma-erp.*` (buyer finished-goods DB sync), and `SERVER_SERVLET_CONTEXT_PATH` (empty for IP:8083 / `welcome.sarvbiolabs.com`; `/exhibit` only with matching frontend `VITE_BASE=/exhibit/`).
 
 ## Start
 

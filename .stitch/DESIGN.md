@@ -2,7 +2,7 @@
 
 **Stitch project:** `16252155655979346180`  
 **Primary platform:** Mobile web, 390px first; desktop companion  
-**Public host:** `https://exhibit.sarvbiolabs.com/` (subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/))  
+**Public host:** `https://welcome.sarvbiolabs.com/` (subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/))  
 **Variant:** Base / light
 
 ## 1. Visual Theme & Atmosphere

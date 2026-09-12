@@ -228,7 +228,7 @@ The mature decision is more restrictive than some early sketches:
 
 ## 7. Visual and content system: Sarv marketing navy / cyan
 
-The visitor design system is in `.stitch/DESIGN.md`; staff/admin use the same navy/cyan on a dark canvas (`.stitch/DESIGN.dark.md` is historical). Public hostname is **`https://exhibit.sarvbiolabs.com/`**, a subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/).
+The visitor design system is in `.stitch/DESIGN.md`; staff/admin use the same navy/cyan on a dark canvas (`.stitch/DESIGN.dark.md` is historical). Public hostname is **`https://welcome.sarvbiolabs.com/`**, a subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/).
 
 ### Visitor light mode
 
@@ -476,9 +476,9 @@ Non-negotiables:
 Before changing a flow or policy, distinguish current approved decisions from historical assets and ask for a decision whenever the context explicitly lists it as open.
 ```
 
-**Changelog — 11 Sep 2026 (sarvbiolabs.com theme):** Visitor UI retargeted to the live marketing palette (navy `#022D59`, cyan `#01AFEF`, ink `#2C2C2C`) so `exhibit.sarvbiolabs.com` reads as a subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/). Navy utility strip links to the marketing site; entry hero + intent cards are graphical; staff/admin use the same cyan on navy. Product flow unchanged. [`.stitch/DESIGN.md`](../.stitch/DESIGN.md).
+**Changelog — 11 Sep 2026 (sarvbiolabs.com theme):** Visitor UI retargeted to the live marketing palette (navy `#022D59`, cyan `#01AFEF`, ink `#2C2C2C`) so `welcome.sarvbiolabs.com` reads as a subdomain of [sarvbiolabs.com](https://sarvbiolabs.com/). Navy utility strip links to the marketing site; entry hero + intent cards are graphical; staff/admin use the same cyan on navy. Product flow unchanged. [`.stitch/DESIGN.md`](../.stitch/DESIGN.md).
 
-**Changelog — 11 Sep 2026 (public domain):** Staging Java stays on **8083**. Marketing site [sarvbiolabs.com](https://sarvbiolabs.com/) is **209.42.22.88** (separate host). Public portal name: **`https://exhibit.sarvbiolabs.com/`** (DNS A → `43.225.195.200`, IIS reverse-proxy). WordPress HTTPS does **not** cover 8083 — terminate TLS on IIS 443; Java stays HTTP on localhost. Path `https://sarvbiolabs.com/exhibit` would be on the WordPress host and needs matching `VITE_BASE=/exhibit/` + `SERVER_SERVLET_CONTEXT_PATH=/exhibit`. [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) § Public domain.
+**Changelog — 11 Sep 2026 (public domain):** Staging Java stays on **8083**. Marketing site [sarvbiolabs.com](https://sarvbiolabs.com/) is **209.42.22.88** (separate host). Public portal name: **`https://welcome.sarvbiolabs.com/`** (DNS A → `43.225.195.200`, IIS reverse-proxy). WordPress HTTPS does **not** cover 8083 — terminate TLS on IIS 443; Java stays HTTP on localhost. Path `https://sarvbiolabs.com/exhibit` would be on the WordPress host and needs matching `VITE_BASE=/exhibit/` + `SERVER_SERVLET_CONTEXT_PATH=/exhibit`. [DEPLOY-WINDOWS.md](DEPLOY-WINDOWS.md) § Public domain.
 
 **Changelog — 11 Sep 2026 (code walkthrough):** Package/`file` comments plus [CODE-WALKTHROUGH.md](CODE-WALKTHROUGH.md) for developer KT. Does not change visitor behaviour.
 

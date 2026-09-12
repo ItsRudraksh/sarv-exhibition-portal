@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Path URL https://sarvbiolabs.com/exhibit — the WordPress host is 209.42.22.88, not this Windows box.
-  Prefer exhibit.sarvbiolabs.com instead.
+  Prefer welcome.sarvbiolabs.com instead.
   If Goldmine/WordPress must own /exhibit, keep the prefix (do not strip it).
   Java: SERVER_SERVLET_CONTEXT_PATH=/exhibit
   Frontend build: VITE_BASE=/exhibit/

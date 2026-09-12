@@ -1,7 +1,7 @@
 /**
  * Public URL prefix for the packaged SPA.
  *
- * Vite {@code base} is `/` on the IP:port and on exhibit.sarvbiolabs.com.
+ * Vite {@code base} is `/` on the IP:port and on welcome.sarvbiolabs.com.
  * Set {@code VITE_BASE=/exhibit/} (build) and {@code SERVER_SERVLET_CONTEXT_PATH=/exhibit}
  * (runtime) together when a proxy serves https://sarvbiolabs.com/exhibit.
  */
